@@ -1,0 +1,14 @@
+# Spielstand und Spoilerdatei gehören nie ins Repository
+test/privat/
+privat/
+*.SPOILER.md
+02_spielstand.md
+# Erzeugtes
+test/karte.svg
+test/liste.json
+test/*.png
+test/widget.html
+node_modules/
+
+# Kartendaten einer Figur liegen in ihrem Projekt (02_karte.md), nicht hier
+daten/
