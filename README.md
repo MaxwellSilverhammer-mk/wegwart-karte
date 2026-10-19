@@ -1,6 +1,11 @@
 # Wegwart-Karte
 
-Kartentisch für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Textabenteuer mit Claude als Spielleitung. Die Datei `karte.js` zeichnet aus Kartendaten eine Pergamentkarte in ein Visualizer-Widget: Orte, Wege mit Reisezeiten, Gebiete, Küste und Notizen. Wer einen Ort antippt, sieht, was die Figur über ihn weiß, und die Karte zoomt hinein. Ein Knopf fragt die Spielleitung per `sendPrompt` nach dem Glossareintrag.
+Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Textabenteuer mit Claude als Spielleitung. Alle drei zeigen nur, was die Figur weiß, und werden vorher mit derselben Prüfung freigegeben:
+
+- **Kartentisch** (`karte.js`): Pergamentkarte mit Orten, Wegen und Reisezeiten, Gebieten, Küste und Notizen. Wer einen Ort antippt, sieht, was die Figur über ihn weiß, und die Karte zoomt hinein. Ein Knopf fragt die Spielleitung per `sendPrompt` nach dem Glossareintrag.
+- **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, mit dem, was sie darüber weiß (Abschnitt „Gepäck“).
+- **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
+- **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
 
 ## Aufruf
 
@@ -45,9 +50,79 @@ Für Ortsnamen und Wegzeiten sucht der Kartentisch selbst eine freie Stelle; `la
 
 Pergament, Tinte und Gelände bleiben im hellen und dunklen Modus gleich, das Pergament wird im dunklen Modus etwas gedämpft. Schriften: EB Garamond und IM Fell English von Google Fonts, sonst Georgia.
 
+## Gepäck
+
+```html
+<h2 class="sr-only">Inventar: Fürchtegotts Gepäck</h2>
+<div id="gepaeck">Gepäck lädt …</div>
+<script>var INVENTAR={titel:'Fürchtegotts Gepäck', stand:'Stand: Tag 8', geld:{ga:19, sm:9}, traeger:[…]}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/inventar.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `titel`, `stand` | Kopf des Pergaments; `figur` (Name, frei) |
+| `geld` | Münzen der Hold: `pm` Highlord, `ga` Goldadmiral, `em` Bright Ship, `sm` Silber, `km` Common |
+| `esser` | wie viele von den Rationen essen (Standard 1); daraus „reicht X Tage“ |
+| `traeger[]` | `id`, `name`, `art` (`figur`, `gefolge`, `lasttier`, `reittier`, `lager`), `dinge[]`; dazu `namen`, `staerke` und `faktor` (Traglast nach Regelwerk 9.5: STÄ × Faktor × 2,5 / 5 / 7,5 kg; Lasttiere Faktor 2), `ort` |
+| `dinge[]` | `name`, `art`; dazu `namen`, `anzahl`, `kg` (je Stück), `notiz` (was die Figur weiß), `wortlaut` (Text eines Schriftstücks), `herkunft`, `quelle`, `glossar` (Stichwort für den Knopf „Glossar …“) |
+
+- Arten der Dinge: `waffe`, `ruestung`, `kleidung`, `kostuem`, `instrument`, `werkzeug`, `schreibzeug`, `licht`, `seil`, `behaelter`, `schlafzeug`, `tierbedarf`, `boot`, `ration`, `proviant`, `trank`, `papier`, `brief`, `karte`, `zeichen`, `andenken`, `fund`, `wertsache`, `spiel`, `sonstiges`. Sie bestimmen Zeichen und Gruppe.
+- Rationen sind Dinge der Art `ration`; der Kopf zählt sie je Träger. Ein `lager` (etwas, das nicht im Gepäck ist) ist eingeklappt.
+
+## Logbuch
+
+```html
+<h2 class="sr-only">Questlog: Fürchtegotts Logbuch</h2>
+<div id="logbuch">Logbuch lädt …</div>
+<script>var QUESTLOG={titel:'Logbuch', stand:'Stand: Tag 8', heute:8, frist:28, welttag:8, auftraege:[…]}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/questlog.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `titel`, `stand`, `heute` | Kopf; `heute` ist der Tag, wie das Abenteuer ihn zählt |
+| `frist`, `fristText` | Tag der Frist und wofür; ohne Frist zeigt die Leiste die Tage um heute |
+| `welttag` | Welttag von heute. Daraus rechnet das Logbuch Datum und Mondphasen (Regelwerk 8.1). |
+| `ep` | `[Stand, Grenze, Stufe]`, z. B. `[900, 2700, 4]` |
+| `termine[]` | `tag`, `text`; dazu `quelle`, `mond` (`voll`, `dunkel`, `zunehmend`, `abnehmend`) |
+| `auftraege[]` | `id`, `titel`, `art` (`haupt`, `neben`, `faden`, `gefahr`), `status` (`offen`, `erledigt`, `gescheitert`, `ruht`); dazu `von`, `frist`, `lohn`, `text`, `quelle`, `glossar` (Liste), `etappen[]` mit `text`, `erledigt`, `gescheitert`, `notiz`, `quelle` |
+| `wort[]` | `text`, `status` (`offen`, `gehalten`, `eingeloest`, `gebrochen`); `an` (wem die Figur ihr Wort gab) oder `von` (wer ihr sein Wort gab) |
+
+## Rast
+
+Plant kurze und lange Rast. Trefferwürfel würfelt der Spieler einzeln wie am Tisch, das Lied der Erholung und Heilzauber würfelt der Kasten mit; Heldenmut lässt einen Trefferwürfel neu werfen. Dazu Essen, Versorgung von Tieren und Gefolge, Klassenfähigkeiten, Zauber während der kurzen Rast oder vor und nach der langen, und Zaubervorbereitung. Das Ergebnis geht als „Rast #nr · …“ an die Spielleitung; die Nummer teilt sich den Zähler mit dem Würfelkasten (Repository wegwart-wuerfel). Die Rast liegt hier, weil sie zu den Tischen des Spiels gehört; sie braucht keine Spoilerprüfung, denn sie zeigt nur Werte vom Bogen und den Zustand der Figur.
+
+```html
+<h2 class="sr-only">Rast: Fürchtegott in Hollos Hütte</h2>
+<div id="rast">Rastübersicht lädt …</div>
+<script>var RAST={nr:7,figur:'Fürchtegott',ort:'Hollos Hütte',tp:[15,21],tw:[2,3,8],kon:1,plaetze:[[3,4],[2,2]],lied:{name:'Lied der Erholung',w:6}}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/rast.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `nr`, `figur`, `tp`, `tw` | Pflicht. `tp: [aktuell, Maximum]`, `tw: [frei, gesamt, Seiten]` oder eine Liste davon (mehrere Klassen) |
+| `kon` | KON-Modifikator für Trefferwürfel |
+| `ort`, `erschoepfung`, `hunger` | Anzeige; `hunger: [Tage ohne Essen, Grenze]` |
+| `plaetze` | je Grad `[frei, Maximum]`; `pakt: [frei, Maximum, Grad]` für Paktmagie (kehrt bei kurzer Rast zurück) |
+| `ressourcen[]` | `name`, `frei`, `max`, `rast` (`kurz` oder `lang`: wann sie zurückkommt) |
+| `lied` | `name`, `w`: zusätzlicher Würfel bei kurzer Rast, wenn Trefferwürfel ausgegeben werden (Song of Rest) |
+| `faehigkeiten[]` | `name`, `rast` (`kurz`, `lang`, `beide`), `art` (`heilung` mit `wuerfel`, `mod`; `plaetze` mit `summe`, `bisGrad` wie Arcane Recovery; `pool` mit `frei`, `max`, `einheit` wie Lay on Hands; `hinweis`), `text` |
+| `zauber[]` | `name`, `grad`, `wann` (`kurz`: während der kurzen Rast, `vor`/`nach`: vor oder nach der langen), `ziele` (Anzahl), `heilung`, `mod`, `hoeher` (Würfel je Grad darüber), `ritual`, `wirkung` |
+| `ziele` | wer in der Nähe ist (für Zauber und Fähigkeiten); die Figur steht immer dabei |
+| `vorbereiten` | für Zauberklassen: `anzahl`, `liste` (`[[Name, Grad], …]`), `vorbereitet`, `immer` |
+| `essen` | `rationen` (dabei), `gepaeck` und `traeger` (bei Tier oder Gefolge), `heute` (schon gegessen), `mahlzeit` und `preis` (Essen vor Ort) |
+| `versorgung[]` | `name`, `text`, `standard` (vorausgewählt, Standard ja): Tiere und Gefolge |
+| `kurz`, `lang` | `true` oder ein Sperrgrund als Text (z. B. höchstens eine lange Rast in 24 Stunden) |
+| `start` | `'lang'`, um mit der langen Rast zu öffnen |
+| `held` | `true`, wenn die Figur Heldenmut hat |
+
+Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 3+1 = 10 · Lied der Erholung W6: 4 · TP 8 → 21/21 · Trefferwürfel übrig 0/3 · isst eine Ration“ und „Rast #8 · Lange Rast · isst vorher eine Ration · danach Aid (Grad 2) auf Fürchtegott, Hollo und Pfeffer · Pfeffer versorgt (Hafer oder Weide)“. Die lange Rast ist ein Plan: Was in der Nacht geschieht und was am Morgen zurückkommt, erzählt die Spielleitung.
+
 ## Spoilerschutz
 
-Die Karte darf nur zeigen, was die Figur weiß. Dafür gibt es drei Sperren:
+Kartentisch, Gepäck und Logbuch dürfen nur zeigen, was die Figur weiß. Für die Karte gibt es drei Sperren:
 
 1. **Kartendaten kommen aus dem Spielstand**, nie aus der Spoilerdatei. Alles, was im `KARTE`-Objekt steht, ist im Widget lesbar, auch ohne gezeichnet zu werden. Darum gibt es keine versteckten Felder: Die Prüfung lehnt jedes Feld ab, das die Tabelle oben nicht kennt.
 2. **Laufzeitsperre:** `karte.js` zeichnet nur Orte und Wege, deren `bekannt` `gesehen`, `karte` oder `gehoert` ist. Jeder Ort zeigt beim Antippen seine Herkunft: „Selbst gesehen.“, „Aus Varrins Karte.“ oder „Vom Hörensagen (Ssark).“
@@ -63,8 +138,20 @@ Die Karte darf nur zeigen, was die Figur weiß. Dafür gibt es drei Sperren:
 
 Die Prüfung läuft nur bei der Spielleitung (Node). Spielstand und Spoilerdatei gehören nie ins Repository und nie ins Widget (`.gitignore`). `test/spoiler.test.js` prüft die Prüfung selbst: echte Daten müssen durchgehen, eingeschleuste Spoiler scheitern.
 
+### Gepäck und Logbuch
+
+Dieselbe Prüfung, `node pruefen.js 02_inventar.md …` oder `02_questlog.md …`, erkennt die Art an den Daten (`traeger` oder `auftraege`) und nutzt `wissen.js`. Gesperrt wird, wenn
+
+- ein Wort oder eine Zahl nicht im Spielstand steht oder nur in der Spoilerdatei; ein Feld, eine Art oder ein Wert nicht erlaubt ist (wie bei der Karte),
+- ein Name (Ding, Träger) nicht im Spielstand steht; eine Quelle, ein Gegenüber beim Wort oder ein Glossar-Stichwort fehlt (Stichwörter müssen im Glossar des Spielstands stehen),
+- **Belegprüfung:** ein Satz aus Notiz, Text, Etappe, Termin oder Wort keine Zeile im Spielstand hat, die mindestens 70 % seiner Inhaltswörter trägt (Wortlaut eines Schriftstücks: 90 %). So lässt sich aus verstreuten Wörtern nichts Neues zusammensetzen,
+- **Wortpaare:** ein Satz zwei benachbarte Inhaltswörter mit der Spoilerdatei teilt, die der Spielstand nicht in derselben Reihenfolge nah beieinander hat („verrät … Figur“, „versunkene Kapelle“),
+- **Lore-Check (Logbuch):** ein Termin mit `mond` oder mit „Vollmond“/„Dunkelmond“ im Text nicht auf diese Mondphase fällt, `stand` nicht zu `heute` passt, die Stufengrenze in `ep` nicht Regelwerk 11.1 entspricht, EP, Frist, heute oder ein Termintag nicht im Spielstand stehen (einen Termin, den der Weltkalender festlegt, belegt der Mond).
+
+Hinweise, die nicht sperren: Geld oder Traglast weichen vom Spielstand ab, ein Termin liegt nach der Frist, der Aufstieg ist fällig, der Monat steht nicht im Spielstand. `test/wissen.test.js` prüft das an einer erfundenen Welt.
+
 Wortvergleich: Wörter werden ohne Umlaute und Groß-/Kleinschreibung verglichen; Beugungen gelten als gleich, wenn Wortanfang und Länge nahe beieinander liegen („überfallen“ und „Überfall“, nicht „Hain“ und „Haken“). Wer einen Begriff neu einführt, trägt ihn zuerst in den Spielstand ein.
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0.
