@@ -8,8 +8,10 @@ Kartentisch für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Textabe
 <h2 class="sr-only">Karte: Hool-Hinterland</h2>
 <div id="karte">Karte lädt …</div>
 <script>var KARTE={titel:'Hool-Hinterland', stand:'Stand: Tag 8', orte:[…], wege:[…]}</script>
-<script src="https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/karte.js"></script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/karte.js';document.head.appendChild(s);</script>
 ```
+
+Die Datei wird aus einem Skript heraus nachgeladen, nicht über ein geschriebenes `<script src>`-Tag: Das Tag kam im Visualizer-Widget nicht an, das eingefügte Skript lädt (geprüft am 19.10.2026).
 
 ## Weltraster
 
