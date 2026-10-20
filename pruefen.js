@@ -1,42 +1,69 @@
 #!/usr/bin/env node
-// Spoilerprüfung für Kartendaten, Inventar und Questlog:
-//   node pruefen.js <daten.md|.json|.js> <02_spielstand.md> <03_spielleitung_SPOILER.md>
-// Erkennt die Art an den Daten: Karte (orte, wege), Inventar (traeger), Questlog (auftraege).
+// Spoilerprüfung für Kartendaten, Inventar, Questlog und Glossar:
+//   node pruefen.js <daten.md|.json|.js> <02_spielstand.md> <03_spielleitung_SPOILER.md> [weitere Daten …]
+// Erkennt die Art an den Daten: Karte (orte, wege), Inventar (traeger), Questlog (auftraege), Glossar (eintraege).
+// Weitere Dateien nach den drei Pflichtdateien dienen nur den Querverweisen: Kartendaten, Gepäck und Logbuch
+// der Figur und eine Figurenliste der Weltchronik (json: ["Name", …] oder {"figuren":[…]}). Fehlen sie,
+// bleiben die Querverweise ungeprüft und die Prüfung sagt das.
 // Rückgabe 0 mit FREIGEGEBEN, wenn das Widget nur zeigt, was im Spielstand steht; sonst 1 mit der Liste der Fehler.
 'use strict';
 var fs = require('fs'), path = require('path');
 
 var args = process.argv.slice(2);
 if (args.length < 3) {
-  console.error('Aufruf: node pruefen.js <daten.md|.json|.js> <spielstand.md> <spoiler.md>');
+  console.error('Aufruf: node pruefen.js <daten.md|.json|.js> <spielstand.md> <spoiler.md> [02_karte.md 02_inventar.md 02_questlog.md figuren.json]');
   process.exit(2);
 }
+var bloecke = [];
 function lade(datei) {
   var text = fs.readFileSync(datei, 'utf8');
   if (/\.json$/i.test(datei)) return JSON.parse(text);
   if (/\.js$/i.test(datei)) return require(path.resolve(datei));
-  // Markdown mit einem Block ```json … ``` oder einer Zeile var KARTE={…} (ebenso INVENTAR, QUESTLOG)
-  var m = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(?:KARTE|INVENTAR|QUESTLOG)\s*=\s*(\{[\s\S]*\})\s*;?\s*(<\/script>|$)/);
-  if (!m) throw new Error('In ' + datei + ' steht kein json-Block und kein KARTE={…}, INVENTAR={…} oder QUESTLOG={…}.');
-  return JSON.parse(m[1]);
+  // Markdown mit einem Block ```json … ``` oder einer Zeile var KARTE={…} (ebenso INVENTAR, QUESTLOG, GLOSSAR).
+  // Weitere json-Blöcke derselben Datei (die Stichwortliste des Glossars) landen in bloecke.
+  var alle = [], re = /```json\s*([\s\S]*?)```/g, m;
+  while ((m = re.exec(text))) alle.push(JSON.parse(m[1]));
+  if (!alle.length) {
+    m = text.match(/(?:KARTE|INVENTAR|QUESTLOG|GLOSSAR)\s*=\s*(\{[\s\S]*\})\s*;?\s*(<\/script>|$)/);
+    if (!m) throw new Error('In ' + datei + ' steht kein json-Block und kein KARTE={…}, INVENTAR={…}, QUESTLOG={…} oder GLOSSAR={…}.');
+    return JSON.parse(m[1]);
+  }
+  bloecke = alle.slice(1);
+  return alle[0];
 }
-var D = lade(args[0]);
+function art(D) {
+  if (!D || typeof D !== 'object') return '';
+  if (Array.isArray(D) || D.figuren) return 'figuren';
+  if (D.orte || D.wege) return 'karte';
+  if (D.traeger) return 'inventar';
+  if (D.auftraege) return 'questlog';
+  if (D.eintraege) return 'glossar';
+  return '';
+}
+var D = lade(args[0]), listeBlock = bloecke.filter(function (b) { return b && b.liste === true; })[0];
 var quellen = { spielstand: fs.readFileSync(args[1], 'utf8'), spoiler: fs.readFileSync(args[2], 'utf8') };
-var r, kopf;
-if (D && (D.orte || D.wege)) {
+if (listeBlock) quellen.liste = listeBlock;
+args.slice(3).forEach(function (datei) {
+  var X = lade(datei), a = art(X);
+  if (!a || a === art(D)) { console.error('Weitere Datei ' + datei + ' nicht erkannt oder von derselben Art wie die geprüften Daten; übergangen.'); return; }
+  quellen[a] = X;
+});
+var r, kopf, was = art(D);
+if (was === 'karte') {
   var karte = require(path.join(__dirname, 'karte.js'));
   r = karte.pruefen(D, quellen);
   kopf = r.orte + ' Orte, ' + r.wege + ' Wege · Kartentisch ' + karte.version;
-} else if (D && (D.traeger || D.auftraege)) {
-  var art = D.traeger ? 'inventar' : 'questlog';
-  var modul = require(path.join(__dirname, art + '.js')), wissen = require(path.join(__dirname, 'wissen.js'));
+} else if (was === 'inventar' || was === 'questlog' || was === 'glossar') {
+  var modul = require(path.join(__dirname, was + '.js')), wissen = require(path.join(__dirname, 'wissen.js'));
   r = wissen.pruefe(D, modul.SCHEMA, quellen, modul.zusatz);
   var z = r.zaehl;
-  kopf = art === 'inventar'
+  kopf = was === 'inventar'
     ? 'Inventar: ' + (z.traeger || 0) + ' Träger, ' + (z.ding || 0) + ' Dinge · Gepäck ' + modul.version
-    : 'Questlog: ' + (z.auftrag || 0) + ' Aufträge, ' + (z.etappe || 0) + ' Etappen, ' + (z.termin || 0) + ' Termine, ' + (z.wort || 0) + ' Mal Wort · Logbuch ' + modul.version;
+    : was === 'questlog'
+      ? 'Questlog: ' + (z.auftrag || 0) + ' Aufträge, ' + (z.etappe || 0) + ' Etappen, ' + (z.termin || 0) + ' Termine, ' + (z.wort || 0) + ' Mal Wort · Logbuch ' + modul.version
+      : 'Glossar: ' + (z.eintrag || 0) + ' Einträge, ' + (z.wissen || 0) + ' Wissensposten · Glossar ' + modul.version;
 } else {
-  console.error('Unbekannte Daten: weder Karte (orte, wege) noch Inventar (traeger) noch Questlog (auftraege).');
+  console.error('Unbekannte Daten: weder Karte (orte, wege) noch Inventar (traeger) noch Questlog (auftraege) noch Glossar (eintraege).');
   process.exit(2);
 }
 console.log((r.ok ? 'FREIGEGEBEN' : 'GESPERRT') + ' · ' + kopf);

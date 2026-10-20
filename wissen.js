@@ -130,7 +130,7 @@ function pruefe(D, schema, quellen, zusatz) {
   var F = schema.felder, W = schema.wahl || {}, P = schema.pflicht || {};
   function name(typ, o, i) {
     var t = o && typeof o === 'object' ? (o.name || o.titel || o.id || (o.text ? String(o.text).slice(0, 40) + (String(o.text).length > 40 ? '…' : '') : '')) : '';
-    return { traeger: 'Träger', ding: 'Ding', auftrag: 'Auftrag', etappe: 'Etappe', termin: 'Termin', wort: 'Wort', geld: 'Geld' }[typ] + ' ' + (t ? '„' + t + '“' : i + 1);
+    return ({ traeger: 'Träger', ding: 'Ding', auftrag: 'Auftrag', etappe: 'Etappe', termin: 'Termin', wort: 'Wort', geld: 'Geld', eintrag: 'Eintrag', wissen: 'Posten', post: 'Post' }[typ] || typ) + ' ' + (t ? '„' + t + '“' : i + 1);
   }
   function wert(v, typ, wo) {
     if (v === undefined) return;
@@ -216,7 +216,7 @@ function pruefe(D, schema, quellen, zusatz) {
   });
 
   if (typeof zusatz === 'function') {
-    var z = zusatz(D, { stand: stand, nStand: nStand, norm: norm, kommtVor: kommtVor, zahlBekannt: zahlBekannt, kennt: kennt, wStand: wStand, woerterVon: woerterVon }) || {};
+    var z = zusatz(D, { stand: stand, nStand: nStand, norm: norm, kommtVor: kommtVor, zahlBekannt: zahlBekannt, kennt: kennt, wStand: wStand, woerterVon: woerterVon, quellen: quellen }) || {};
     (z.fehler || []).forEach(function (f) { melde(fehler, f); });
     (z.hinweise || []).forEach(function (h) { melde(hinweise, h); });
   }
