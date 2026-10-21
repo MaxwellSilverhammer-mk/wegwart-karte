@@ -75,6 +75,16 @@ pruef('geänderter Eintrag mit if_version', finde('glossar', 'zur-alten-eiche') 
 pruef('unveränderte weggelassen', !finde('glossar', 'bodo') && !finde('tische', 'karte') && !finde('geschichte', 'sitzung-1-tag-1'), JSON.stringify(w));
 pruef('gestrichener Eintrag gelöscht', finde('glossar', 'gestrichen') && finde('glossar', 'gestrichen').op === 'delete' && finde('glossar', 'gestrichen').if_version === 5, JSON.stringify(w));
 pruef('file_path absolut und vorhanden', w.filter(function (x) { return x.op === 'set'; }).every(function (x) { return path.isAbsolute(x.file_path) && fs.existsSync(x.file_path); }));
+// Die Datenbank liefert Dokumente mit sortierten Schlüsseln (out_dir); unverändert bleibt unverändert
+function sortiert(o) { if (Array.isArray(o)) return o.map(sortiert); if (o && typeof o === 'object') { var r = {}; Object.keys(o).sort().forEach(function (k) { r[k] = sortiert(o[k]); }); return r; } return o; }
+var dbS = path.join(dir, 'db-sortiert');
+fs.readdirSync(db).forEach(function (c) {
+  fs.mkdirSync(path.join(dbS, c), { recursive: true });
+  fs.readdirSync(path.join(db, c)).forEach(function (f) { fs.writeFileSync(path.join(dbS, c, f), JSON.stringify(sortiert(JSON.parse(fs.readFileSync(path.join(db, c, f), 'utf8'))), null, 2)); });
+});
+r = cp.spawnSync(process.execPath, [bauen, '--batches', neu, '--alt', dbS, liste], { encoding: 'utf8' });
+var wS = [].concat.apply([], r.stdout.trim().split('\n').filter(Boolean).map(JSON.parse));
+pruef('--alt mit sortierten Schlüsseln: nur das Geänderte', r.status === 0 && wS.some(function (x) { return x.doc_id === 'zur-alten-eiche'; }) && !wS.some(function (x) { return x.doc_id === 'bodo' || x.doc_id === 'karte'; }), JSON.stringify(wS.map(function (x) { return x.collection + '/' + x.doc_id; })));
 r = cp.spawnSync(process.execPath, [bauen, '--batches', neu], { encoding: 'utf8' });
 var alle = [].concat.apply([], r.stdout.trim().split('\n').map(JSON.parse));
 pruef('ohne --alt alle Dokumente, je Batch höchstens 50', alle.length === fs.readdirSync(neu).reduce(function (n, c) { return n + fs.readdirSync(path.join(neu, c)).length; }, 0) && r.stdout.trim().split('\n').every(function (z) { return JSON.parse(z).length <= 50; }), r.stderr);

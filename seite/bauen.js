@@ -180,6 +180,12 @@ function versionenAus(text) {
   return v;
 }
 var SAMMLUNGEN = ['meta', 'glossar', 'tische', 'geschichte', 'sl'], LOESCHBAR = ['glossar', 'tische', 'geschichte', 'sl'];
+// Die Datenbank gibt Dokumente mit sortierten Schlüsseln zurück; verglichen wird darum ohne Rücksicht auf die Reihenfolge
+function kanonisch(o) {
+  if (Array.isArray(o)) return o.map(kanonisch);
+  if (o && typeof o === 'object') { var r = {}; Object.keys(o).sort().forEach(function (k) { r[k] = kanonisch(o[k]); }); return r; }
+  return o;
+}
 function batches(args) {
   var ordner = args.shift(), alt = null, versionen = {};
   while (args.length) {
@@ -193,7 +199,7 @@ function batches(args) {
       var k = s + '/' + d.id; neu[k] = true;
       if (alt) {
         var ap = path.join(alt, s, d.id + '.json');
-        if (fs.existsSync(ap) && JSON.stringify(JSON.parse(lies(ap))) === JSON.stringify(d.daten)) { zaehl.gleich++; return; }
+        if (fs.existsSync(ap) && JSON.stringify(kanonisch(JSON.parse(lies(ap)))) === JSON.stringify(kanonisch(d.daten))) { zaehl.gleich++; return; }
       }
       var w = { op: 'set', collection: s, doc_id: d.id, file_path: path.resolve(ordner, s, d.id + '.json') };
       if (versionen[k]) { w.if_version = versionen[k]; zaehl.ersetzt++; } else zaehl.neu++;
