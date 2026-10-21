@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Spoilerprüfung für Kartendaten, Inventar, Questlog und Glossar:
+// Spoilerprüfung für Kartendaten, Inventar, Questlog, Glossar und Wissensbuch:
 //   node pruefen.js <daten.md|.json|.js> <02_spielstand.md> <03_spielleitung_SPOILER.md> [weitere Dateien …]
 // Erkennt die Art an den Daten: Karte (orte, wege), Inventar (traeger), Questlog (auftraege), Glossar (Textform
-// mit Rubriken „### Personen“ … oder ein Objekt mit eintraege).
+// mit Rubriken „### Personen“ … oder ein Objekt mit eintraege), Wissensbuch (Abschnitt „## Wer weiß was“, meist
+// in der Spoilerdatei selbst: node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_glossar.md).
 // Weitere Dateien nach den drei Pflichtdateien dienen den Querverweisen: Kartendaten, Gepäck, Logbuch und Glossar
 // der Figur und eine Figurenliste der Weltchronik (json: ["Name", …] oder {"figuren":[…]}). Das Glossar
 // (02_glossar.md) ist der Glossar-Abschnitt des Spielstands in eigener Datei und zählt für Karte, Gepäck und
@@ -16,8 +17,9 @@ if (args.length < 3) {
   console.error('Aufruf: node pruefen.js <daten.md|.json|.js> <spielstand.md> <spoiler.md> [02_karte.md 02_inventar.md 02_questlog.md 02_glossar.md figuren.json]');
   process.exit(2);
 }
-var glossarModul = require(path.join(__dirname, 'glossar.js'));
+var glossarModul = require(path.join(__dirname, 'glossar.js')), wissensbuch = require(path.join(__dirname, 'wissensbuch.js'));
 function istGlossarText(text) { return /^###\s+(Personen|Gruppen|Orte|Dinge|Gerüchte)\s*$/m.test(text) && /^-\s+\*\*/m.test(text); }
+function istWissensbuch(text) { return /^##\s+Wer wei(ß|ss) was/mi.test(text); }
 function lade(datei) {
   var text = fs.readFileSync(datei, 'utf8');
   if (/\.json$/i.test(datei)) return { D: JSON.parse(text) };
@@ -25,11 +27,13 @@ function lade(datei) {
   // Markdown mit einem Block ```json … ```, einer Zeile var KARTE={…} (ebenso INVENTAR, QUESTLOG, GLOSSAR) oder, beim Glossar, Text
   var m = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(?:KARTE|INVENTAR|QUESTLOG|GLOSSAR)\s*=\s*(\{[\s\S]*\})\s*;?\s*(<\/script>|$)/);
   if (m) return { D: JSON.parse(m[1]) };
+  if (istWissensbuch(text)) { var b = wissensbuch.ausText(text); b.wissensbuch = true; return { D: b, text: text }; }
   if (istGlossarText(text)) { var g = glossarModul.ausText(text); return { D: g.D, probleme: g.probleme, text: text }; }
-  throw new Error('In ' + datei + ' steht kein json-Block, kein KARTE={…}, INVENTAR={…}, QUESTLOG={…} oder GLOSSAR={…} und kein Glossar-Text.');
+  throw new Error('In ' + datei + ' steht kein json-Block, kein KARTE={…}, INVENTAR={…}, QUESTLOG={…} oder GLOSSAR={…}, kein Glossar-Text und kein Wissensbuch.');
 }
 function art(D) {
   if (!D || typeof D !== 'object') return '';
+  if (D.wissensbuch) return 'wissensbuch';
   if (Array.isArray(D) || D.figuren) return 'figuren';
   if (D.orte || D.wege) return 'karte';
   if (D.traeger) return 'inventar';
@@ -47,7 +51,7 @@ if (was === 'glossar') {
 }
 args.slice(3).forEach(function (datei) {
   var X = lade(datei), a = art(X.D);
-  if (!a || a === was) { console.error('Weitere Datei ' + datei + ' nicht erkannt oder von derselben Art wie die geprüften Daten; übergangen.'); return; }
+  if (!a || a === was) { if (a !== 'wissensbuch') console.error('Weitere Datei ' + datei + ' nicht erkannt oder von derselben Art wie die geprüften Daten; übergangen.'); return; }
   quellen[a] = X.D;
   // Das Glossar ist Spielstand: Was dort steht, belegt Karte, Gepäck und Logbuch wie der Spielstand selbst
   if (a === 'glossar') {
@@ -60,7 +64,10 @@ args.slice(3).forEach(function (datei) {
   }
 });
 var r, kopf;
-if (was === 'karte') {
+if (was === 'wissensbuch') {
+  r = wissensbuch.pruefe(D, quellen);
+  kopf = 'Wissensbuch: ' + r.zaehl.figur + ' Figuren, ' + r.zaehl.zeile + ' Zeilen · Wissensbuch ' + wissensbuch.version;
+} else if (was === 'karte') {
   var karte = require(path.join(__dirname, 'karte.js'));
   r = karte.pruefen(D, quellen);
   kopf = r.orte + ' Orte, ' + r.wege + ' Wege · Kartentisch ' + karte.version;
@@ -74,7 +81,7 @@ if (was === 'karte') {
       ? 'Questlog: ' + (z.auftrag || 0) + ' Aufträge, ' + (z.etappe || 0) + ' Etappen, ' + (z.termin || 0) + ' Termine, ' + (z.wort || 0) + ' Mal Wort · Logbuch ' + modul.version
       : 'Glossar: ' + (z.eintrag || 0) + ' Einträge, ' + (z.wissen || 0) + ' Posten' + (D.auszug ? ' (Auszug)' : '') + ' · Glossar ' + modul.version;
 } else {
-  console.error('Unbekannte Daten: weder Karte (orte, wege) noch Inventar (traeger) noch Questlog (auftraege) noch Glossar (Text oder eintraege).');
+  console.error('Unbekannte Daten: weder Karte (orte, wege) noch Inventar (traeger) noch Questlog (auftraege) noch Glossar (Text oder eintraege) noch Wissensbuch (## Wer weiß was).');
   process.exit(2);
 }
 console.log((r.ok ? 'FREIGEGEBEN' : 'GESPERRT') + ' · ' + kopf);

@@ -228,4 +228,4 @@ function pruefe(D, schema, quellen, zusatz) {
   return { ok: fehler.length === 0, fehler: fehler, hinweise: hinweise, zaehl: zaehl };
 }
 
-module.exports = { pruefe: pruefe, norm: norm, woerterVon: woerterVon, wortschatz: wortschatz, kennt: kennt, zahlBekannt: zahlBekannt, kommtVor: kommtVor, beleg: beleg, einheiten: einheiten };
+module.exports = { pruefe: pruefe, norm: norm, woerterVon: woerterVon, inhalt: inhalt, wortschatz: wortschatz, kennt: kennt, zahlBekannt: zahlBekannt, kommtVor: kommtVor, beleg: beleg, einheiten: einheiten };

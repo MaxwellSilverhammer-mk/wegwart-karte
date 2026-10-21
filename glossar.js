@@ -7,7 +7,7 @@
  *   <h2 class="sr-only">Glossar: was Fürchtegott weiß, Stand Tag 12</h2>
  *   <div id="glossar">Glossar lädt … Falls nicht, frag nach dem Glossar als Text.</div>
  *   <script type="text/plain" id="glossar-text">
- *   *Stand: Tag 12 · neu seit Tag 9 · Gefahr nach Stufe 3 · Figur: Fürchtegott*
+ *   *Stand: Tag 12 · Gefahr nach Stufe 3 · Figur: Fürchtegott*
  *   ### Personen
  *   - **Ksshar** (verbündet) · Ort: Schuppenkreis · Logbuch: Die Gelbkehlen · siehe: Ssark
  *     Späher der Gelbkehlen, dein Vertrauter.
@@ -20,6 +20,8 @@
  * ganze Glossar (alle Einträge, ein Tipp klappt einen auf). Jeder Posten trägt seine Herkunft (selbst
  * gesehen, von wem gehört, gelesen, laut Karte, Gerücht) und den Welttag. Die Datei ist der Glossar-
  * Abschnitt des Spielstands in eigener Datei; sie wird vorher mit pruefen.js geprüft (README).
+ * Dieselbe Datei füllt die Glossar-Seite (seite/glossar-seite.html, Artefakt mit Datenbank): node glossar.js --db
+ * schreibt die Dokumente, die die Spielleitung beim Sitzungsende mit ArtifactData einspielt.
  */
 (function () {
   'use strict';
@@ -47,7 +49,7 @@
     name: 'Glossar',
     wurzel: 'glossar',
     felder: {
-      glossar: { titel: 'text', stand: 'text', heute: 'zahl', neuSeit: 'zahl', stufe: 'zahl', figur: 'text', auszug: 'ja', gesamt: 'zahl', eintraege: 'eintrag[]' },
+      glossar: { titel: 'text', stand: 'text', heute: 'zahl', stufe: 'zahl', figur: 'text', auszug: 'ja', gesamt: 'zahl', eintraege: 'eintrag[]' },
       eintrag: { id: 'id', name: 'text', namen: 'text[]', art: 'eintragsart', kurz: 'text', spieler: 'ja', haltung: 'haltung', gefahr: 'gefahr', ort: 'text', logbuch: 'text[]', siehe: 'text[]', post: 'post', wissen: 'wissen[]' },
       wissen: { text: 'text', bekannt: 'bekannt', quelle: 'text', tag: 'zahl' },
       post: { ort: 'text', wie: 'text' }
@@ -64,7 +66,7 @@
     // übrigen Spielstand, die Einträge des Glossars und die Kartendaten.
     quellen: { eintrag: ['logbuch'] },
     // Zahlen, die im Spielstand stehen müssen
-    zahlen: { glossar: ['heute', 'neuSeit'], wissen: ['tag'] }
+    zahlen: { glossar: ['heute'], wissen: ['tag'] }
   };
 
   /* ---------- Hilfen ---------- */
@@ -98,8 +100,6 @@
       return e && typeof e.id === 'string' && e.name && ART[e.art] && Array.isArray(e.wissen) && e.wissen.some(gueltig);
     });
   }
-  function istNeu(D, tag) { return typeof D.neuSeit === 'number' && typeof tag === 'number' && tag >= D.neuSeit; }
-  function hatNeues(D, e) { return e.wissen.some(function (w) { return gueltig(w) && istNeu(D, w.tag); }); }
   function herkunft(w) {
     var b = BEKANNT[w.bekannt], t = b[1].replace('{q}', w.quelle || '');
     if (w.bekannt === 'geruecht' && w.quelle) t = 'Gerücht von ' + w.quelle;
@@ -133,7 +133,6 @@
     function kopf(z) {
       var s = z.replace(/^\*+|\*+$/g, '').trim(), m;
       if ((m = /Stand:\s*Tag\s+(\d+)/i.exec(s))) { D.stand = 'Stand: Tag ' + m[1]; D.heute = +m[1]; }
-      if ((m = /neu seit Tag\s+(\d+)/i.exec(s))) D.neuSeit = +m[1];
       if ((m = /Stufe\s+(\d+)/i.exec(s))) D.stufe = +m[1];
       if ((m = /Figur:\s*([^·]+)/i.exec(s))) D.figur = m[1].trim();
       if ((m = /Auszug:\s*(\d+)\s+von\s+(\d+)/i.exec(s))) { D.auszug = true; D.gesamt = +m[2]; }
@@ -199,7 +198,6 @@
     var aus = [], kopf = [];
     if (D.stand) kopf.push(D.stand); else if (typeof D.heute === 'number') kopf.push('Stand: Tag ' + D.heute);
     if (D.auszug) kopf.push('Auszug: ' + (D.eintraege || []).length + ' von ' + (D.gesamt || (D.eintraege || []).length));
-    if (typeof D.neuSeit === 'number') kopf.push('neu seit Tag ' + D.neuSeit);
     if (typeof D.stufe === 'number') kopf.push('Gefahr nach Stufe ' + D.stufe);
     if (D.figur) kopf.push('Figur: ' + D.figur);
     aus.push('# ' + (D.titel || 'Glossar'));
@@ -231,7 +229,7 @@
   function alsAuszug(D, name) {
     var E = sichtbar(D), e = E.filter(function (x) { return x.id === name || stichwort(x.name) === stichwort(name) || (x.namen || []).some(function (n) { return stichwort(n) === stichwort(name); }); })[0];
     if (!e) return null;
-    var A = { titel: D.titel, stand: D.stand, heute: D.heute, neuSeit: D.neuSeit, stufe: D.stufe, figur: D.figur, auszug: true, gesamt: E.length, eintraege: [e] };
+    var A = { titel: D.titel, stand: D.stand, heute: D.heute, stufe: D.stufe, figur: D.figur, auszug: true, gesamt: E.length, eintraege: [e] };
     Object.keys(A).forEach(function (k) { if (A[k] === undefined) delete A[k]; });
     return A;
   }
@@ -244,12 +242,13 @@
     return '<button type="button" class="glK" data-prompt="' + esc('Glossar ' + name) + '">' + (icon ? ikon(icon, 14) + ' ' : '') + esc(name) + ' ↗</button>';
   }
   function eintragHtml(D, e, i, karte) {
-    var id = 'gl' + i, neu = hatNeues(D, e), g = e.gefahr && GEFAHR[e.gefahr];
+    var id = 'gl' + i, g = e.gefahr && GEFAHR[e.gefahr];
+    // Gefahr steht nur als Zeichen am Namen (Regelwerk 3); die Stufe, auf der es eingeschätzt ist, trägt die Beschriftung
+    var gefahrText = g ? g[1] + (typeof D.stufe === 'number' ? ' (eingeschätzt auf Stufe ' + D.stufe + ')' : '') : '';
     var h = '<li class="glE" data-id="' + esc(e.id) + '"><button type="button" class="glZ" aria-expanded="false" aria-controls="' + id + '">' +
       ikon(ART[e.art][0], 17) + '<span class="glN">' + anzeigeName(e) +
-      (g ? ' <i class="ti ti-' + g[0] + ' glGef" aria-label="' + esc(g[1]) + '"></i>' : '') +
+      (g ? ' <i class="ti ti-' + g[0] + ' glGef" role="img" aria-label="' + esc(gefahrText) + '" title="' + esc(gefahrText) + '"></i>' : '') +
       (e.haltung && HALTUNG[e.haltung] ? ' <em class="glH" title="' + esc((D.figur || 'die Figur') + ' schätzt') + '">' + esc(HALTUNG[e.haltung]) + '</em>' : '') +
-      (neu ? ' <em class="glNeu">neu</em>' : '') +
       (e.kurz ? '<small>' + prosa(e.kurz) + '</small>' : '') + '</span><i class="glPlus" aria-hidden="true">+</i></button>';
     h += '<div class="glD" id="' + id + '" hidden>';
     // Wissen, Posten für Posten, in der Reihenfolge, in der die Figur es erfuhr
@@ -262,11 +261,9 @@
     wissen.forEach(function (x) {
       var w = x.w, b = BEKANNT[w.bekannt];
       h += '<li class="' + esc(w.bekannt) + '">' + ikon(b[0], 16) + '<span>' + prosa(w.text) + '<small>' + esc(herkunft(w)) +
-        (typeof w.tag === 'number' ? ' · Tag ' + w.tag : '') + (istNeu(D, w.tag) ? ' <em class="glNeu">neu</em>' : '') + '</small></span></li>';
+        (typeof w.tag === 'number' ? ' · Tag ' + w.tag : '') + '</small></span></li>';
     });
     h += '</ul>';
-    // Gefahr: eine Einschätzung nach der Stufe der Figur (Regelwerk 12.2), darum steht die Stufe dabei
-    if (g) h += '<p class="glKl glGefZ">' + ikon(g[0], 15) + ' ' + esc(g[1]) + (typeof D.stufe === 'number' ? ' · eingeschätzt auf Stufe ' + D.stufe : '') + '</p>';
     // Haltung: der Eindruck der Figur, nicht die Wahrheit; darum steht sie als Satz der Figur unter dem Wissen
     if (e.haltung && HALTUNG[e.haltung]) h += '<p class="glKl">' + esc(D.figur || 'Die Figur') + ' hält ' + esc(e.name.replace(/^(Der|Die|Das) /, function (a) { return a.toLowerCase(); })) + ' für ' + esc(HALTUNG[e.haltung]) + '.</p>';
     // Querverweise: Ort, siehe auch, Logbuch, Post; dann die Tische, auf denen das Stichwort liegt
@@ -286,10 +283,9 @@
   function zeichne(D) {
     var E = sichtbar(D), karte = {};
     E.forEach(function (e) { karte[stichwort(e.name)] = e; (e.namen || []).forEach(function (n) { if (!karte[stichwort(n)]) karte[stichwort(n)] = e; }); });
-    var neu = E.filter(function (e) { return hatNeues(D, e); }).length;
     var kopf = D.auszug
       ? ' · Auszug: ' + E.length + (D.gesamt ? ' von ' + zahl(D.gesamt) + ' Einträgen' : E.length === 1 ? ' Eintrag' : ' Einträge')
-      : ' · ' + E.length + (E.length === 1 ? ' Stichwort' : ' Stichwörter') + (neu ? ' · ' + neu + ' neu' + (typeof D.neuSeit === 'number' ? ' seit Tag ' + D.neuSeit : '') : '');
+      : ' · ' + E.length + (E.length === 1 ? ' Stichwort' : ' Stichwörter');
     var h = '<div class="glKopf"><p class="glT">' + esc(D.titel || 'Glossar') + '</p><p class="glS">' + esc(D.stand || '') + kopf + '</p></div>';
     if (!E.length) return h + '<p class="glLeer">Noch kein Stichwort. Fett gedruckte Wörter im Spiel landen hier.</p>';
     if (!D.auszug) {
@@ -299,7 +295,6 @@
         var n = E.filter(function (e) { return e.art === a; }).length;
         if (n) h += '<button type="button" class="glC" data-art="' + a + '" aria-pressed="false">' + ART[a][2] + ' <b>' + n + '</b></button>';
       });
-      if (neu) h += '<button type="button" class="glC" data-art="neu" aria-pressed="false">neu <b>' + neu + '</b></button>';
       h += '</div>';
     }
     var nr = 0;
@@ -342,9 +337,7 @@
     '.glZ .ti{flex-shrink:0;margin-top:4px;color:var(--ink2)}',
     '.glN{flex:1;min-width:0;display:block}.glN small{display:block;font-size:15px;font-style:italic;color:var(--ink2);line-height:1.3}',
     '.glH{font-style:italic;font-size:14px;color:var(--ink2);border:1px solid var(--linie);border-radius:4px;padding:0 5px;white-space:nowrap}',
-    '.glNeu{font-style:normal;font-variant:small-caps;font-size:14px;color:var(--rot);letter-spacing:.04em}',
     '.glGef{color:var(--rot);font-size:16px;vertical-align:-2px}',
-    '.glGefZ{color:var(--rot)}.glGefZ .ti{vertical-align:-2px}',
     '.glPlus{font-style:normal;color:var(--rot);font-size:17px;margin-top:1px}',
     '.glD{margin:2px 4px 10px 29px;padding:4px 0 2px 12px;border-left:2px solid var(--rot);display:flex;flex-direction:column;gap:8px;font-size:16px}',
     '.glW{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}',
@@ -370,7 +363,7 @@
     } catch (e) { return; }
   }
 
-  function einbauen(el, D) {
+  function einbauen(el, D, auf) {
     schriftLaden();
     el.className = 'gl';
     el.innerHTML = '<style>' + CSS + '</style><div class="glIn0">' + zeichne(D) + '</div>';
@@ -392,7 +385,7 @@
         var n = 0;
         Array.prototype.forEach.call(r.querySelectorAll('.glE'), function (li) {
           var e = E.filter(function (x) { return x.id === li.getAttribute('data-id'); })[0];
-          var ok = !!e && (art === '' || (art === 'neu' ? hatNeues(D, e) : e.art === art)) && (!suche || texte[e.id].indexOf(suche) >= 0);
+          var ok = !!e && (art === '' || e.art === art) && (!suche || texte[e.id].indexOf(suche) >= 0);
           li.hidden = !ok;
           if (ok) n++;
         });
@@ -432,6 +425,11 @@
     });
     if (typeof sendPrompt !== 'function') Array.prototype.forEach.call(el.querySelectorAll('[data-prompt]'), function (x) { x.remove(); });
     if (D.auszug && E.length === 1) oeffne(el.querySelector('.glE'), true);
+    // Ein bestimmter Eintrag soll offen sein (die Glossar-Seite liest ihn aus #id der Adresse)
+    if (auf) {
+      var ziel = el.querySelector('.glE[data-id="' + String(auf).replace(/"/g, '') + '"]');
+      if (ziel) { oeffne(ziel, true); if (ziel.scrollIntoView) ziel.scrollIntoView({ block: 'start' }); }
+    }
   }
 
   // Daten: der Text aus 02_glossar.md in <script type="text/plain" id="glossar-text"> (oder <pre id="glossar-text" hidden>),
@@ -492,7 +490,6 @@
     if (nurGlossar.length) hinweise.push('Namen, die nur im Glossar stehen (die Chronik des Spielstands nennt sie nicht): ' + nurGlossar.join('; '));
     var st = /tag\s+(\d+)/i.exec(D.stand || '');
     if (st && +st[1] !== heute) fehler.push('Stand „' + D.stand + '“ passt nicht zu heute (Tag ' + heute + ').');
-    if (typeof D.neuSeit === 'number' && D.neuSeit > heute) fehler.push('Lore: „neu seit Tag ' + D.neuSeit + '“ liegt nach heute (Tag ' + heute + ').');
     if (D.auszug && typeof D.gesamt !== 'number') hinweise.push('Auszug ohne „von N“: Der Kopf kann nicht sagen, wie viele Einträge das ganze Glossar hat.');
     // Gefahr ist eine Einschätzung nach der Stufe der Figur (Regelwerk 12.2): Die Stufe steht im Kopf und muss die heutige sein
     var mitGefahr = E.filter(function (e) { return e.gefahr; }).length, stufe = stufeAus(h.stand);
@@ -592,18 +589,66 @@
     return { fehler: fehler, hinweise: hinweise };
   }
 
+  // Dokumente für die Glossar-Seite (Artefakt mit Datenbank): je Eintrag ein Dokument glossar/<id>, dazu meta/glossar.
+  // Die Seite liest beide Sammlungen und zeichnet daraus denselben Tisch.
+  function alsDokumente(D) {
+    var E = sichtbar(D), aus = [];
+    E.forEach(function (e, i) {
+      var d = { reihe: i, name: e.name, art: e.art, wissen: e.wissen.filter(gueltig) };
+      ['kurz', 'haltung', 'gefahr', 'ort', 'post'].forEach(function (k) { if (e[k]) d[k] = e[k]; });
+      ['namen', 'logbuch', 'siehe'].forEach(function (k) { if (e[k] && e[k].length) d[k] = e[k]; });
+      if (e.spieler) d.spieler = true;
+      aus.push({ sammlung: 'glossar', id: e.id, daten: d });
+    });
+    var meta = { titel: D.titel || 'Glossar', stand: D.stand || '', heute: D.heute, figur: D.figur || '', anzahl: E.length };
+    if (typeof D.stufe === 'number') meta.stufe = D.stufe;
+    aus.push({ sammlung: 'meta', id: 'glossar', daten: meta });
+    return aus;
+  }
+  // Die Seite baut ihre Daten aus den Dokumenten wieder zusammen (auch die Prüfung kann das)
+  function ausDokumenten(meta, docs) {
+    var D = Object.assign({ titel: 'Glossar', eintraege: [] }, meta || {});
+    delete D.anzahl;
+    D.eintraege = (docs || []).slice().sort(function (a, b) { return (a.daten.reihe || 0) - (b.daten.reihe || 0); })
+      .map(function (d) { return Object.assign({ id: d.id }, d.daten); });
+    return D;
+  }
+
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { zeichne: zeichne, ausText: ausText, alsText: alsText, alsAuszug: alsAuszug, sichtbar: sichtbar, stufeAus: stufeAus, SCHEMA: SCHEMA, zusatz: zusatz, version: VERSION };
+    module.exports = { zeichne: zeichne, ausText: ausText, alsText: alsText, alsAuszug: alsAuszug, alsDokumente: alsDokumente, ausDokumenten: ausDokumenten, sichtbar: sichtbar, stufeAus: stufeAus, SCHEMA: SCHEMA, zusatz: zusatz, version: VERSION };
     // Aufruf: node glossar.js --auszug <Name> 02_glossar.md   (Text des Auszugs)
     //         node glossar.js --json 02_glossar.md            (das gelesene Objekt, zum Nachsehen)
     //         node glossar.js --text daten.json               (Objekt → Text, etwa beim Umstellen)
+    //         node glossar.js --db <ordner> 02_glossar.md     (Dokumente für die Glossar-Seite: <ordner>/glossar/<id>.json, <ordner>/meta/glossar.json)
+    //         node glossar.js --seite                         (die Glossar-Seite mit eingebautem glossar.js, zum Veröffentlichen)
     if (typeof require !== 'undefined' && require.main === module) {
-      var fs = require('fs'), args = process.argv.slice(2), was = args[0], datei = args[args.length - 1], roh = fs.readFileSync(datei, 'utf8');
+      var fs = require('fs'), path = require('path'), args = process.argv.slice(2), was = args[0];
+      if (was === '--seite') {
+        var vorlage = fs.readFileSync(path.join(__dirname, 'seite', 'glossar-seite.html'), 'utf8'), eigen = fs.readFileSync(__filename, 'utf8');
+        process.stdout.write(vorlage.replace('/*GLOSSAR_JS*/', function () { return eigen; }));
+        process.exit(0);
+      }
+      var datei = args[args.length - 1], roh = fs.readFileSync(datei, 'utf8');
       var jm = roh.match(/```json\s*([\s\S]*?)```/), D = jm || /^\s*\{/.test(roh) ? JSON.parse(jm ? jm[1] : roh) : null, P = D ? { D: D, probleme: [] } : ausText(roh);
       if (was === '--text') process.stdout.write(alsText(P.D));
       else if (was === '--json') { process.stdout.write(JSON.stringify(P.D, null, 1) + '\n'); if (P.probleme.length) console.error(P.probleme.join('\n')); }
       else if (was === '--auszug') { var A = alsAuszug(P.D, args[1]); if (!A) { console.error('Kein Eintrag „' + args[1] + '“.'); process.exit(1); } process.stdout.write(alsText(A)); }
-      else { console.error('Aufruf: node glossar.js --auszug <Name>|--json|--text <02_glossar.md>'); process.exit(2); }
+      else if (was === '--db') {
+        if (P.probleme.length) { console.error('Erst die Prüfung bestehen:\n' + P.probleme.join('\n')); process.exit(1); }
+        var ordner = args[1], docs = alsDokumente(P.D);
+        docs.forEach(function (d) {
+          var dir = path.join(ordner, d.sammlung);
+          fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(path.join(dir, d.id + '.json'), JSON.stringify(d.daten, null, 1) + '\n');
+        });
+        process.stdout.write(docs.map(function (d) { return d.sammlung + '/' + d.id; }).join('\n') + '\n');
+        console.error(docs.length + ' Dokumente in ' + ordner + ' (' + (docs.length - 1) + ' Einträge, 1 meta). Einspielen: ArtifactData batch, je Dokument set mit file_path; bestehende Dokumente mit if_version aus einem list davor.');
+      }
+      else { console.error('Aufruf: node glossar.js --auszug <Name>|--json|--text|--db <ordner> <02_glossar.md> | --seite'); process.exit(2); }
     }
-  } else (function warten(n) { if (!start() && n < 60) setTimeout(function () { warten(n + 1); }, 50); })(0);
+  } else {
+    // Im Browser: Haken für die Glossar-Seite, die ihre Daten aus der Datenbank holt und dann zeichnen lässt
+    window.GLOSSAR_TISCH = { einbauen: einbauen, ausText: ausText, ausDokumenten: ausDokumenten, version: VERSION };
+    (function warten(n) { if (!start() && n < 60) setTimeout(function () { warten(n + 1); }, 50); })(0);
+  }
 })();

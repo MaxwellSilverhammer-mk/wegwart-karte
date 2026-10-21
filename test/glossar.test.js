@@ -36,7 +36,7 @@ var SPOILER = [
 ].join('\n');
 var TEXT = [
   '# Glossar',
-  '*Stand: Tag 9 · neu seit Tag 7 · Gefahr nach Stufe 2 · Figur: Probefigur*',
+  '*Stand: Tag 9 · Gefahr nach Stufe 2 · Figur: Probefigur*',
   '',
   '### Personen',
   '- **Bodo** · Ort: Rohrdorf · siehe: Schwarzen Weiher',
@@ -83,7 +83,7 @@ function ok(bed, name, sonst) { console.log((bed ? 'ok  ' : 'FEHL') + ' ' + name
 // Grammatik und Rundlauf
 var P = glossar.ausText(TEXT);
 ok(P.probleme.length === 0, 'Text wird ohne Probleme gelesen', P.probleme.join(' | '));
-ok(P.D.heute === 9 && P.D.neuSeit === 7 && P.D.stufe === 2 && P.D.figur === 'Probefigur' && P.D.eintraege.length === 7, 'Kopfzeile: Tag, neu seit, Stufe, Figur; 7 Einträge');
+ok(P.D.heute === 9 && P.D.neuSeit === undefined && P.D.stufe === 2 && P.D.figur === 'Probefigur' && P.D.eintraege.length === 7, 'Kopfzeile: Tag, Stufe, Figur; 7 Einträge');
 var b = P.D.eintraege[0], wz = P.D.eintraege[2], jb = P.D.eintraege[3];
 ok(b.ort === 'Rohrdorf' && b.siehe[0] === 'Schwarzen Weiher' && b.kurz === 'Wirt der Alten Eiche in Rohrdorf' && b.wissen[1].bekannt === 'gehoert' && b.wissen[1].quelle === 'Bodo' && b.wissen[1].tag === 3, 'Eintrag Bodo: Ort, siehe, Kurzzeile, Posten mit Herkunft und Tag');
 ok(wz.spieler === true && wz.name === 'Wenzel Hartlieb' && wz.haltung === 'unklar' && wz.post.ort === 'Rohrdorf' && /Wirt/.test(wz.post.wie), '🎭, Haltung und Post werden gelesen');
@@ -93,6 +93,11 @@ var wieder = glossar.alsText(P.D), P2 = glossar.ausText(wieder);
 ok(JSON.stringify(P2.D) === JSON.stringify(P.D) && P2.probleme.length === 0, 'Rundlauf Text → Objekt → Text → Objekt bleibt gleich');
 var A = glossar.alsAuszug(P.D, 'Bodo'), AT = glossar.alsText(A), PA = glossar.ausText(AT);
 ok(PA.D.auszug === true && PA.D.gesamt === 7 && PA.D.eintraege.length === 1 && PA.D.eintraege[0].name === 'Bodo', 'Auszug als Text: „Auszug: 1 von 7“ und ein Eintrag');
+
+// Dokumente für die Glossar-Seite: Rundlauf Objekt → Dokumente → Objekt
+var docs = glossar.alsDokumente(P.D), meta = docs.filter(function (d) { return d.sammlung === 'meta'; })[0];
+var wieder2 = glossar.ausDokumenten(meta.daten, docs.filter(function (d) { return d.sammlung === 'glossar'; }));
+ok(docs.length === 8 && meta.daten.anzahl === 7 && meta.daten.stufe === 2 && wieder2.eintraege.length === 7 && wieder2.eintraege[0].id === 'bodo' && wieder2.eintraege[2].spieler === true && glossar.alsText(wieder2) === glossar.alsText(P.D), 'Dokumente: 7 Einträge und meta, aus den Dokumenten entsteht derselbe Text');
 
 // Saubere Daten gehen durch, auch der Auszug
 var r0 = pruefe(TEXT);
@@ -109,7 +114,6 @@ var sperren = {
   'Posten ohne Herkunft': nach(TEXT, 'Bodo', '  - Kennt den Weiher.'),
   'Selbst Gesehenes mit fremder Quelle': nach(TEXT, 'Bodo', '  - Kennt den Weiher. (gesehen, von Jost, Tag 3)'),
   'Lore: Tag nach heute': nach(TEXT, 'Jost', '  - Bringt Netze. (von Jost, Tag 12)'),
-  'Lore: neu seit nach heute': TEXT.replace('neu seit Tag 7', 'neu seit Tag 10'),
   'Stand liegt vor dem jüngsten Posten': TEXT.replace('Stand: Tag 9', 'Stand: Tag 7'),
   'Lore: Gefahr nach alter Stufe': TEXT.replace('Gefahr nach Stufe 2', 'Gefahr nach Stufe 1'),
   'Gefahr ohne Stufe im Kopf': TEXT.replace(' · Gefahr nach Stufe 2', ''),
