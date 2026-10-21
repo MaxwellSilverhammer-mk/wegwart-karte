@@ -101,6 +101,13 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
       $(t + '-teil').hidden = t !== teil;
       $('t-' + t).setAttribute('aria-selected', String(t === teil));
     });
+    // den gewählten Reiter in der schmalen Leiste sichtbar machen, ohne die Seite zu verschieben
+    var leiste = document.querySelector('nav'), reiter = $('t-' + teil);
+    if (leiste && reiter) {
+      var l = reiter.offsetLeft, r = l + reiter.offsetWidth;
+      if (l < leiste.scrollLeft) leiste.scrollLeft = Math.max(0, l - 8);
+      else if (r > leiste.scrollLeft + leiste.clientWidth) leiste.scrollLeft = r - leiste.clientWidth + 8;
+    }
     try { history.replaceState(null, '', '#' + teil); } catch (e) {}
     zeichne(teil);
   }
