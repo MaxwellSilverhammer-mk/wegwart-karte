@@ -7,12 +7,13 @@
  *
  * Grammatik, als Abschnitt der Spoilerdatei oder in einer eigenen Datei (beides gehört nie ins Repository):
  *   ## Wer weiß was
- *   *Stand: Tag 12 · Figur: Fürchtegott*
- *   ### Ssark
- *   - Fürchtegott fragte nach dem Grünen Mann und dem Hain. (erlebt, Tag 4)
- *   - Brask kommt mit zwei Booten nach Pfahlheim. (von Ksshar, Tag 5)
- *   ### Drau
- *   - Ein neuer Wegwart reitet sein Maultier. (Gerücht, Tag 9; der Zuckerkarren hielt am Versteck)
+ *   *Stand: Tag 9 · Figur: Probefigur*
+ *   ### Jost
+ *   - Die Probefigur fragt nach den Lichtern am Weiher. (erlebt, Tag 4)
+ *   ### Ortwin
+ *   - Die Probefigur fragt nach den Lichtern am Weiher. (von Jost, Tag 6; Treffen in der Kapelle)
+ *   - Ein neuer Wegwart reitet durch Rohrdorf. (Gerücht, Tag 7; die Fuhrleute reden darüber)
+ *   (die erfundene Welt aus test/wissensbuch.test.js; Beispiele aus einem laufenden Revier gehören nicht hierher)
  * Herkunft am Ende jeder Zeile: „erlebt“ (war dabei), „von X“ (X hat es erzählt: eine Figur des Buchs oder die
  * Spielerfigur), „Gerücht“ (hat es aufgeschnappt; nach „;“ steht, wo es herkam). Dazu der Welttag.
  *
