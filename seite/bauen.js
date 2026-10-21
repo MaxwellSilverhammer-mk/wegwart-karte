@@ -3,8 +3,9 @@
 // Karte und „Was bisher geschah“ aus der Datenbank der Seite; die Tische sind eingebaut (ein Artefakt lädt keine
 // Skripte von GitHub).
 //
-//   node seite/bauen.js --seite > buch.gebaut.html
-//       baut die Seite aus seite/buch.html, glossar.js, karte.js, inventar.js, questlog.js und seite/ikonen.svg
+//   node seite/bauen.js --seite [--titel "Fürchtegotts Buch"] > buch.gebaut.html
+//       baut die Seite aus seite/buch.html, glossar.js, karte.js, inventar.js, questlog.js und seite/ikonen.svg;
+//       --titel setzt den Titel, den die Seite vor dem Laden zeigt (sonst „Spielerbuch“; danach gilt titel aus meta/buch)
 //   node seite/bauen.js --db <ordner> [--stand "Stand: Tag 12"] [--stufe 3] [--titel "Fürchtegotts Buch"] <dateien …>
 //       schreibt die Dokumente der Datenbank nach <ordner>/<sammlung>/<id>.json; die Art jeder Datei erkennt es selbst:
 //       02_glossar.md (Glossar-Text)          -> glossar/<id>, meta/glossar
@@ -36,8 +37,13 @@ function slug(t) {
 // Text so in <script type="text/plain"> stellen, dass kein </script> ihn vorzeitig schließt
 function alsSkripttext(js) { return js.replace(/<\/script/gi, '<\\/script').replace(/<!--/g, '<\\!--'); }
 
-function seite() {
+function html(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function seite(titel) {
   var vorlage = lies(path.join(__dirname, 'buch.html'));
+  if (titel) {
+    vorlage = vorlage.replace('<title>Spielerbuch</title>', '<title>' + html(titel) + '</title>')
+      .replace('<h1 id="titel">Spielerbuch</h1>', '<h1 id="titel">' + html(titel) + '</h1>');
+  }
   var teile = { GLOSSAR_JS: 'glossar.js', KARTE_JS: 'karte.js', INVENTAR_JS: 'inventar.js', QUESTLOG_JS: 'questlog.js' };
   Object.keys(teile).forEach(function (k) {
     var marke = '/*' + k + '*/';
@@ -215,10 +221,10 @@ function batches(args) {
 
 if (require.main === module) {
   var a = process.argv.slice(2), was = a.shift();
-  if (was === '--seite') process.stdout.write(seite());
+  if (was === '--seite' && (a.length === 0 || (a.length === 2 && a[0] === '--titel'))) process.stdout.write(seite(a[1]));
   else if (was === '--db' && a.length >= 2) db(a);
   else if (was === '--zurueck' && a.length === 2) zurueck(a[0], a[1]);
   else if (was === '--batches' && a.length >= 1) batches(a);
-  else { console.error('Aufruf: node seite/bauen.js --seite | --db <ordner> [--stand …] [--stufe n] [--titel …] [--sl datei] <dateien …> | --zurueck <db-ordner> <zielordner> | --batches <ordner> [--alt <db-ordner>] [versionen …]'); process.exit(2); }
+  else { console.error('Aufruf: node seite/bauen.js --seite [--titel …] | --db <ordner> [--stand …] [--stufe n] [--titel …] [--sl datei] <dateien …> | --zurueck <db-ordner> <zielordner> | --batches <ordner> [--alt <db-ordner>] [versionen …]'); process.exit(2); }
 }
 module.exports = { seite: seite, abschnitte: abschnitte, slug: slug, zurueck: zurueck, versionenAus: versionenAus };

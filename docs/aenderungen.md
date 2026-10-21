@@ -20,7 +20,7 @@ Gegenüber 2.8 (20. Oktober 2026). Keine Regel ist entfallen; was nicht mehr im 
 
 ## Werkzeuge zum Stand von Regelwerk 3.0
 
-- `seite/buch.html`, `seite/bauen.js`: das Spielerbuch (`--seite`, `--db`, `--zurueck`, `--batches`). `--db` nimmt Spielleitungswissen nur über `--sl` an und lehnt Dateien ab, die keine Geschichte sind. `--batches` schreibt die Schreibvorgänge für ArtifactData `batch` mit Versionen, lässt Unverändertes weg und löscht Gestrichenes. Anker `#questlog` und `#inventar` gehen auch.
+- `seite/buch.html`, `seite/bauen.js`: das Spielerbuch (`--seite [--titel …]`, `--db`, `--zurueck`, `--batches`). Die Vorlage heißt „Spielerbuch“, bis `meta/buch` geladen ist, und bringt mit, was die Tische sonst von der Widget-Umgebung bekommen (Klasse `sr-only`, Textfarben); ohne das stand im Logbuch hinter jeder Etappe sichtbar „, erledigt“. `--db` nimmt Spielleitungswissen nur über `--sl` an und lehnt Dateien ab, die keine Geschichte sind. `--batches` schreibt die Schreibvorgänge für ArtifactData `batch` mit Versionen, lässt Unverändertes weg und löscht Gestrichenes. Anker `#questlog` und `#inventar` gehen auch.
 - `pruefen.js`: Weitere Markdown-Dateien ohne Daten (etwa `02_geschichte.md`) zählen als Teile des Spielstands. Die Spoilerdatei wird als Wissensbuch erkannt, auch wenn sie einen json-Block hat.
 - `wissensbuch.js`: Was die Spielerfigur weiß, belegt nur der Spielstand mit seinen Teilen, nie die Spoilerdatei, und nur bis zu dem Tag, an dem sie es erfuhr. Hinweise erkennen Personen auch am Rufnamen („Aske“ für „Mutter Aske“).
 - `glossar.js`: `--liste` für die Stichwortliste; der Fuß „Ganzes Glossar ↗“ eines Auszugs schickt „Glossar“; die eigene Glossar-Seite ist im Spielerbuch aufgegangen.

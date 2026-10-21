@@ -1,10 +1,13 @@
-<title>Fürchtegotts Buch</title>
+<title>Spielerbuch</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Spielerbuch: die Tische der Figur (Glossar, Logbuch, Gepäck, Karte) und „Was bisher geschah“ auf einem Tisch, eine Spalte.
    Vorlage für node seite/bauen.js: Die Platzhalter *_JS werden durch die Tische aus dem Repository ersetzt, SPRITE durch die Tabler-Zeichen. */
 :root{--tisch:#d9cfb9;--tischText:#3b3028;--tischMuted:#6b5c4c;--akzent:#8e3b22;--pg:#efe2c3;--pgRand:#b79d6e;--leiste:#cbbd9f}
+/* Was die Widget-Umgebung der Tische sonst mitbringt: Farben für Text und die Klasse für Text nur für Vorleseprogramme */
+:root{--text-primary:var(--tischText);--text-secondary:var(--tischMuted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--tisch:#241f1b;--tischText:#e8dfca;--tischMuted:#b9aa90;--akzent:#d98a6a;--pg:#d8c9a3;--pgRand:#8a7650;--leiste:#2f2823;color-scheme:dark}}
 :root[data-theme="dark"]{--tisch:#241f1b;--tischText:#e8dfca;--tischMuted:#b9aa90;--akzent:#d98a6a;--pg:#d8c9a3;--pgRand:#8a7650;--leiste:#2f2823;color-scheme:dark}
 html:root[data-theme="light"] .gl{--pg:#efe2c3}
@@ -36,7 +39,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
 </style>
 <!--SPRITE-->
 <main>
-  <h1 id="titel">Fürchtegotts Buch</h1>
+  <h1 id="titel">Spielerbuch</h1>
   <p class="kopf" id="stand">Das Buch wird aufgeschlagen …</p>
   <nav role="tablist" aria-label="Teile des Buchs">
     <button role="tab" id="t-glossar" aria-controls="glossar-teil" aria-selected="true">Glossar</button>

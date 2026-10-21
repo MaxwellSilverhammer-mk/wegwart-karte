@@ -40,6 +40,10 @@ var seite = cp.spawnSync(process.execPath, [bauen, '--seite'], { encoding: 'utf8
 pruef('Seite baut', seite.status === 0 && /<title>[^<]+<\/title>/.test(seite.stdout), seite.stderr);
 ['GLOSSAR_JS', 'KARTE_JS', 'INVENTAR_JS', 'QUESTLOG_JS', 'SPRITE'].forEach(function (k) { pruef('Platzhalter ' + k + ' ersetzt', seite.stdout.indexOf(k === 'SPRITE' ? '<!--SPRITE-->' : '/*' + k + '*/') < 0); });
 pruef('kein </script> in eingebauten Tischen', (seite.stdout.match(/<\/script>/g) || []).length === 5);
+pruef('Klasse sr-only und Textfarben der Widget-Umgebung definiert', /\.sr-only\{[^}]*clip:rect\(0,0,0,0\)/.test(seite.stdout) && /--text-primary:/.test(seite.stdout) && /--text-secondary:/.test(seite.stdout));
+pruef('Vorlage ohne Namen einer Figur', /<title>Spielerbuch<\/title>/.test(seite.stdout) && seite.stdout.indexOf('<h1 id="titel">Spielerbuch</h1>') >= 0);
+var seite2 = cp.spawnSync(process.execPath, [bauen, '--seite', '--titel', 'Probefigurs <Buch>'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+pruef('--titel setzt Titel und Überschrift', seite2.status === 0 && seite2.stdout.indexOf('<title>Probefigurs &lt;Buch&gt;</title>') >= 0 && seite2.stdout.indexOf('<h1 id="titel">Probefigurs &lt;Buch&gt;</h1>') >= 0, seite2.stderr);
 
 // Spielleitungswissen landet nie in einer Sammlung, die das Buch zeigt
 var falsch = schreib('03_spielleitung_SPOILER.md', '# SPOILER\n### Geheim\n- Der Wirt ist der Kultführer.\n');
