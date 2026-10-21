@@ -13,9 +13,9 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 ## Aufruf
 
 ```html
-<h2 class="sr-only">Karte: Hool-Hinterland</h2>
+<h2 class="sr-only">Karte: Rund um Rohrdorf</h2>
 <div id="karte">Karte lädt …</div>
-<script>var KARTE={titel:'Hool-Hinterland', stand:'Stand: Tag 8', orte:[…], wege:[…]}</script>
+<script>var KARTE={titel:'Rund um Rohrdorf', stand:'Stand: Tag 8', orte:[…], wege:[…]}</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/karte.js';document.head.appendChild(s);</script>
 ```
 
@@ -32,7 +32,7 @@ Die Datei wird aus einem Skript heraus nachgeladen, nicht über ein geschriebene
 | Feld | Inhalt |
 |---|---|
 | `titel`, `stand` | Kartusche mit Maßstab; `titelEcke`: `ol`, `ul` (Standard), `or`, `ur` |
-| `kartenquelle`, `trassenname` | Legendentexte für rote Tinte („Varrins Karte“) und die geplante Trasse |
+| `kartenquelle`, `trassenname` | Legendentexte für rote Tinte („Karte des Vogts“) und die geplante Trasse |
 | `ausschnitt` | `[xMin, yMin, xMax, yMax]`; Orte außerhalb erscheinen als Randzeiger mit Reisezeit |
 | `orte[]` | `id`, `name`, `x`, `y`, `art`, `bekannt`, `notiz`; `quelle` (wer es erzählt hat, Pflicht bei `gehoert`), `namen` (weitere Schreibweisen aus dem Spielstand, nur für die Prüfung); dazu `beschriftung` (Zeilenumbruch mit `\n`), `lage` (Wunschseite: `r`, `l`, `o`, `u`, `or`, `ol`, `ur`, `ul`), `rang` (2 = erst beim Zoomen), `zeigerLage: 'u'` (Randzeiger unter dem Weg) |
 | `wege[]` | `von` und `nach`, oder `von` und `bis: [x, y]`, oder `punkte`; dazu `art`, `bekannt`, `quelle`, `zeit`, `ueber` (Zwischenpunkte), `trasse` (geplanter Admiralsweg), `pfeil`, `rang`, `zeitBei` (0 bis 1), `zeitSeite` (1 oder −1) |
@@ -56,9 +56,9 @@ Pergament, Tinte und Gelände bleiben im hellen und dunklen Modus gleich, das Pe
 ## Gepäck
 
 ```html
-<h2 class="sr-only">Inventar: Fürchtegotts Gepäck</h2>
+<h2 class="sr-only">Inventar: Probefigurs Gepäck</h2>
 <div id="gepaeck">Gepäck lädt …</div>
-<script>var INVENTAR={titel:'Fürchtegotts Gepäck', stand:'Stand: Tag 8', geld:{ga:19, sm:9}, traeger:[…]}</script>
+<script>var INVENTAR={titel:'Probefigurs Gepäck', stand:'Stand: Tag 8', geld:{ga:3, sm:5}, traeger:[…]}</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/inventar.js';document.head.appendChild(s);</script>
 ```
 
@@ -76,7 +76,7 @@ Pergament, Tinte und Gelände bleiben im hellen und dunklen Modus gleich, das Pe
 ## Logbuch
 
 ```html
-<h2 class="sr-only">Questlog: Fürchtegotts Logbuch</h2>
+<h2 class="sr-only">Questlog: Probefigurs Logbuch</h2>
 <div id="logbuch">Logbuch lädt …</div>
 <script>var QUESTLOG={titel:'Logbuch', stand:'Stand: Tag 8', heute:8, frist:28, welttag:8, auftraege:[…]}</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/questlog.js';document.head.appendChild(s);</script>
@@ -97,9 +97,9 @@ Pergament, Tinte und Gelände bleiben im hellen und dunklen Modus gleich, das Pe
 Plant kurze und lange Rast. Trefferwürfel würfelt der Spieler einzeln wie am Tisch, das Lied der Erholung und Heilzauber würfelt der Kasten mit; Heldenmut lässt einen Trefferwürfel neu werfen. Dazu Essen, Versorgung von Tieren und Gefolge, Klassenfähigkeiten, Zauber während der kurzen Rast oder vor und nach der langen, und Zaubervorbereitung. Das Ergebnis geht als „Rast #nr · …“ an die Spielleitung; die Nummer teilt sich den Zähler mit dem Würfelkasten (Repository wegwart-wuerfel). Die Rast liegt hier, weil sie zu den Tischen des Spiels gehört; sie braucht keine Spoilerprüfung, denn sie zeigt nur Werte vom Bogen und den Zustand der Figur.
 
 ```html
-<h2 class="sr-only">Rast: Fürchtegott in Hollos Hütte</h2>
+<h2 class="sr-only">Rast: Probefigur in der Alten Eiche</h2>
 <div id="rast">Rastübersicht lädt …</div>
-<script>var RAST={nr:7,figur:'Fürchtegott',ort:'Hollos Hütte',tp:[15,21],tw:[2,3,8],kon:1,plaetze:[[3,4],[2,2]],lied:{name:'Lied der Erholung',w:6}}</script>
+<script>var RAST={nr:7,figur:'Probefigur',ort:'Alte Eiche',tp:[15,21],tw:[2,3,8],kon:1,plaetze:[[3,4],[2,2]],lied:{name:'Lied der Erholung',w:6}}</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/rast.js';document.head.appendChild(s);</script>
 ```
 
@@ -121,7 +121,7 @@ Plant kurze und lange Rast. Trefferwürfel würfelt der Spieler einzeln wie am T
 | `start` | `'lang'`, um mit der langen Rast zu öffnen |
 | `held` | `true`, wenn die Figur Heldenmut hat |
 
-Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 3+1 = 10 · Lied der Erholung W6: 4 · TP 8 → 21/21 · Trefferwürfel übrig 0/3 · isst eine Ration“ und „Rast #8 · Lange Rast · isst vorher eine Ration · danach Aid (Grad 2) auf Fürchtegott, Hollo und Pfeffer · Pfeffer versorgt (Hafer oder Weide)“. Die lange Rast ist ein Plan: Was in der Nacht geschieht und was am Morgen zurückkommt, erzählt die Spielleitung.
+Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 3+1 = 10 · Lied der Erholung W6: 4 · TP 8 → 21/21 · Trefferwürfel übrig 0/3 · isst eine Ration“ und „Rast #8 · Lange Rast · isst vorher eine Ration · danach Aid (Grad 2) auf die Probefigur, Jost und die Stute · Stute versorgt (Hafer oder Weide)“. Die lange Rast ist ein Plan: Was in der Nacht geschieht und was am Morgen zurückkommt, erzählt die Spielleitung.
 
 ## Glossar
 
@@ -133,29 +133,29 @@ Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Dat
 Aufruf im Widget, der Text unverändert zwischen den Tags:
 
 ```html
-<h2 class="sr-only">Glossar: was Fürchtegott weiß, Stand Tag 12</h2>
+<h2 class="sr-only">Glossar: was die Probefigur weiß, Stand Tag 9</h2>
 <div id="glossar">Glossar lädt … Falls nicht, frag nach dem Glossar als Text.</div>
 <script type="text/plain" id="glossar-text">
-*Stand: Tag 12 · Gefahr nach Stufe 3 · Figur: Fürchtegott*
+*Stand: Tag 9 · Gefahr nach Stufe 2 · Figur: Probefigur*
 
 ### Personen
-- **Ksshar** (verbündet) · auch: der Echsenmann vom Knüppeldamm · Ort: Schuppenkreis · Logbuch: Die Gelbkehlen · siehe: Ssark
-  Späher der Gelbkehlen, dein Vertrauter.
-  - Späher der Gelbkehlen, der Echsenmann vom Knüppeldamm. (gesehen, Tag 3)
-  - Hat Brasks Boote gesehen und die Köpfe gezählt. (von Ksshar, Tag 4)
+- **Bodo** (freundlich) · auch: der Wirt · Ort: Rohrdorf · Logbuch: Die Brücke bei Rohrdorf · siehe: Jost
+  Wirt der Alten Eiche in Rohrdorf.
+  - Wirt der Alten Eiche in Rohrdorf. (gesehen, Tag 3)
+  - Beim Schwarzen Weiher brennen nachts Lichter, zuletzt bei Vollmond. (von Bodo, Tag 3)
 </script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/glossar.js';document.head.appendChild(s);</script>
 ```
 
 | Zeile | Form |
 |---|---|
-| Kopf | `*Stand: Tag 12 · Gefahr nach Stufe 3 · Figur: Fürchtegott*`, beim Auszug dazu `Auszug: 1 von 64`. `Gefahr nach Stufe`: die Stufe der Figur, auf der 🩸 und ☠️ eingeschätzt sind (Regelwerk 12.2); Pflicht, sobald ein Zeichen vorkommt |
+| Kopf | `*Stand: Tag 9 · Gefahr nach Stufe 2 · Figur: Probefigur*`, beim Auszug dazu `Auszug: 1 von 7`. `Gefahr nach Stufe`: die Stufe der Figur, auf der 🩸 und ☠️ eingeschätzt sind (Regelwerk 12.2); Pflicht, sobald ein Zeichen vorkommt |
 | Rubrik | `### Personen`, `### Gruppen`, `### Orte`, `### Dinge`, `### Gerüchte` |
 | Eintrag | `- **Name** ☠️ (Haltung) · auch: …; … · Ort: … · Logbuch: …; … · siehe: …; … · Post: Ort – wie`. 🎭 vor dem Namen: Figur eines anderen Spielers. Hinter dem Namen 🩸 (harter Gegner) oder ☠️ (jenseits der Stufe). Haltung in Klammern: verbündet, freundlich, feindlich, gefangen, tot, vermisst, unklar; sie ist der Eindruck der Figur, nicht die Wahrheit. Felder trennt ` · `, Listen trennt `; ` (Namen und Titel tragen Kommas). `auch:` weitere Schreibweisen aus dem Spielstand (Suche, Querverweise, Stichwörter der anderen Tische), `Ort:` Name auf der Karte, `Logbuch:` Titel von Aufträgen, `siehe:` andere Einträge, `Post:` wo ein Brief die Person erreicht |
 | Kurzzeile | eingerückt, ohne `- `: eine Zeile, die in der Liste unter dem Namen steht |
 | Posten | `  - Text. (Herkunft, Tag n)`: ein bis zwei Sätze, Zitate in „…“. Herkunft: `gesehen`, `von X`, `gelesen: X`, `laut X` (eine Karte), `Gerücht`, `Gerücht von X`. Tag: der Welttag, an dem die Figur es erfuhr |
 
-Was vor der ersten Rubrik steht, übergeht der Tisch bis auf die Kopfzeile (Hinweise für die Spielleitung). Der Tisch zeigt die Posten nach Tag, jeden mit Herkunft; die Gefahr nur als Zeichen am Namen, dessen Beschriftung die Stufe nennt („jenseits deiner Stufe (eingeschätzt auf Stufe 3)“); die Haltung als Satz der Figur („Fürchtegott hält Brask für feindlich.“). Knöpfe: Orte haben **Karte ↗**, Dinge **Gepäck ↗**, Einträge mit `Logbuch:` **Logbuch ↗**. Spielhandlungen (nachfragen, einen Brief schreiben) gibt es im Glossar nicht; sie gehören an den Spieltisch (Regelwerk 5, 17.5).
+Was vor der ersten Rubrik steht, übergeht der Tisch bis auf die Kopfzeile (Hinweise für die Spielleitung). Der Tisch zeigt die Posten nach Tag, jeden mit Herkunft; die Gefahr nur als Zeichen am Namen, dessen Beschriftung die Stufe nennt („jenseits deiner Stufe (eingeschätzt auf Stufe 3)“); die Haltung als Satz der Figur („Die Probefigur hält Jaro Brandt für feindlich.“). Knöpfe: Orte haben **Karte ↗**, Dinge **Gepäck ↗**, Einträge mit `Logbuch:` **Logbuch ↗**. Spielhandlungen (nachfragen, einen Brief schreiben) gibt es im Glossar nicht; sie gehören an den Spieltisch (Regelwerk 5, 17.5).
 
 Node: `node glossar.js --auszug <Name> 02_glossar.md` (Text eines Auszugs), `--json 02_glossar.md` (das gelesene Objekt; Zeilen, die der Tisch nicht versteht, auf stderr), `--text daten.json` (Objekt als Text, zum Umstellen). Zur Not liest der Tisch statt des Textes ein Objekt `var GLOSSAR={…}` mit den Feldern aus `--json`.
 
@@ -171,7 +171,7 @@ Node: `node glossar.js --auszug <Name> 02_glossar.md` (Text eines Auszugs), `--j
 | `geschichte/<id>` | „Was bisher geschah“: `reihe`, `titel` (die Überschrift „Sitzung N, Tag …“), `text` (Markdown: Punkte, Unterpunkte, Zitate mit `>`, fett, kursiv) |
 | `sl/<id>` | Archiv der Spielleitung (`reihe`, `titel`, `text`), etwa Würfelprotokolle; das Buch zeigt es nicht |
 
-- Bauen: `node seite/bauen.js --seite --titel "Fürchtegotts Buch" > buch.gebaut.html` (`--titel` ist der Titel vor dem Laden, sonst „Spielerbuch“; baut `glossar.js`, `karte.js`, `inventar.js`, `questlog.js` und die Zeichen aus `seite/ikonen.svg`, Tabler Icons, MIT, ein). Veröffentlichen mit dem Artifact-Werkzeug und `capabilities: {db: {rules: [{path: "", read: "view", write: "owner"}, {path: "sl", read: "owner", write: "owner"}]}}`. Eine neue Fassung der Tische heißt: neu bauen, dieselbe Adresse neu veröffentlichen.
+- Bauen: `node seite/bauen.js --seite --titel "Probefigurs Buch" > buch.gebaut.html` (`--titel` ist der Titel vor dem Laden, sonst „Spielerbuch“; baut `glossar.js`, `karte.js`, `inventar.js`, `questlog.js` und die Zeichen aus `seite/ikonen.svg`, Tabler Icons, MIT, ein). Veröffentlichen mit dem Artifact-Werkzeug und `capabilities: {db: {rules: [{path: "", read: "view", write: "owner"}, {path: "sl", read: "owner", write: "owner"}]}}`. Eine neue Fassung der Tische heißt: neu bauen, dieselbe Adresse neu veröffentlichen.
 - Füllen: `node seite/bauen.js --db <ordner> 02_glossar.md 02_karte.json 02_inventar.json 02_questlog.json 02_geschichte.md --sl 03_archiv.md` schreibt `<ordner>/<sammlung>/<id>.json` (die Art jeder Datei erkennt es selbst; Karte, Gepäck und Logbuch als `.json` oder als Markdown mit json-Block; die Geschichte in Abschnitten `### Sitzung …` unter `# Was bisher geschah`, das Archiv in `## …`) und `meta/buch` (`--stand`, `--stufe`, `--titel` überschreiben). Spielleitungswissen nimmt es nur über `--sl` an: Dateien `03_…`, ein „# Archiv der Spielleitung“ oder ein Wissensbuch als gewöhnliche Datei lehnt es ab, ebenso eine Datei, die keine Geschichte ist.
 - Einspielen: `node seite/bauen.js --batches <ordner> --alt <db-ordner> versionen.txt` schreibt je Zeile ein `writes`-Array für ArtifactData `batch` (höchstens 50 Schreibvorgänge und etwa 900 KB je Batch): `set` mit `file_path` und, wo das Dokument schon besteht, `if_version`; Einträge, die es nicht mehr gibt, als `delete`. `--alt` (der Ordner, den `list` mit `out_dir` gefüllt hat) lässt unveränderte Dokumente weg. `versionen.txt` ist der Text der `list`-Ergebnisse davor (Zeilen `- "id"  750 bytes  version 3  "…/glossar/id.json"`), denn die Dateien von `out_dir` tragen keine Version; json `{"glossar/id": 3}` geht auch. `list` liefert ohne `query.limit` nur 100 Dokumente: für das Glossar `limit` 1000.
 - Zurück: `node seite/bauen.js --zurueck <db-ordner> <ordner>` liest, was ArtifactData mit `out_dir` gespeichert hat, und schreibt `02_glossar.md`, `02_karte.json`, `02_inventar.json`, `02_questlog.json`, `02_geschichte.md` und `03_archiv.md` zum Bearbeiten und Prüfen. Hin und zurück ändert nichts (geprüft).
@@ -182,12 +182,12 @@ Node: `node glossar.js --auszug <Name> 02_glossar.md` (Text eines Auszugs), `--j
 Kartentisch, Gepäck und Logbuch dürfen nur zeigen, was die Figur weiß. Für die Karte gibt es drei Sperren:
 
 1. **Kartendaten kommen aus dem Spielstand**, nie aus der Spoilerdatei. Alles, was im `KARTE`-Objekt steht, ist im Widget lesbar, auch ohne gezeichnet zu werden. Darum gibt es keine versteckten Felder: Die Prüfung lehnt jedes Feld ab, das die Tabelle oben nicht kennt.
-2. **Laufzeitsperre:** `karte.js` zeichnet nur Orte und Wege, deren `bekannt` `gesehen`, `karte` oder `gehoert` ist. Jeder Ort zeigt beim Antippen seine Herkunft: „Selbst gesehen.“, „Aus Varrins Karte.“ oder „Vom Hörensagen (Ssark).“
+2. **Laufzeitsperre:** `karte.js` zeichnet nur Orte und Wege, deren `bekannt` `gesehen`, `karte` oder `gehoert` ist. Jeder Ort zeigt beim Antippen seine Herkunft: „Selbst gesehen.“, „Aus der Karte des Vogts.“ oder „Vom Hörensagen (Bodo).“
 3. **Prüfung vor jeder Änderung:** `node pruefen.js kartendaten.js 02_spielstand.md 03_spielleitung_SPOILER.md` gibt die Daten frei oder sperrt sie. Die Spoilerdatei wird dabei nur gelesen, nie ausgegeben. Gesperrt wird, wenn
    - ein Ortsname (oder eine Schreibweise aus `namen`) nicht im Spielstand steht,
    - ein Wort oder eine Zahl aus Notizen, Beschriftungen, Gebiets- und Küstennamen nicht im Spielstand steht; steht es in der Spoilerdatei, sagt die Meldung das,
    - eine `id` ein Wort enthält, das nur die Spoilerdatei kennt,
-   - eine Reisezeit in keiner Spielstandzeile steht, die beide Orte und die Zahl mit Stunden nennt („Krummer Anker – Süßwasser 3 Stunden“, „vier Stunden“ zählt auch),
+   - eine Reisezeit in keiner Spielstandzeile steht, die beide Orte und die Zahl mit Stunden nennt („Rohrdorf – Mühlfurt 3 Stunden“, „vier Stunden“ zählt auch),
    - ein Weg ohne Zeit zwei Orte verbindet, die keine Spielstandzeile verbindet,
    - `gehoert` ohne `quelle` steht oder die Quelle nicht im Spielstand vorkommt,
    - ein Feld, eine Art oder ein Wert nicht erlaubt ist,
@@ -229,9 +229,9 @@ Das Glossar sagt, was die Figur weiß und woher. Das Wissensbuch sagt dasselbe f
 - Ein neuer Wegwart reitet durch Rohrdorf. (Gerücht, Tag 7; die Fuhrleute reden darüber)
 ```
 
-(Die erfundene Welt aus `test/wissensbuch.test.js`. Was in keiner Zeile einer Person steht, weiß sie nicht.)
+(Die erfundene Welt aus `test/wissensbuch.test.js`. Was zu Leben, Handwerk und Ort einer Person gehört, weiß sie ohnehin; von heiklen Dingen weiß sie nur, was in ihrem Abschnitt steht, Regelwerk 5.1.)
 
-Jede Zeile endet mit der Herkunft: `erlebt` (war dabei), `von X` (X hat es erzählt: eine Figur des Buchs oder die Spielerfigur), `Gerücht` (aufgeschnappt; nach `;` steht, woher). Dazu der Welttag; nach `;` darf ein Grund stehen. Dieselbe Sache steht in jedem Abschnitt in denselben Worten, denn die Prüfung vergleicht Wörter: Bei kurzen Sätzen müssen alle Inhaltswörter wiederkehren, bei längeren darf je fünf eines fehlen.
+Jede Zeile endet mit der Herkunft: `erlebt` (war dabei), `von X` (X hat es erzählt: eine Figur des Buchs oder die Spielerfigur), `Gerücht` (aufgeschnappt; nach `;` steht, woher). Dazu der Welttag; nach `;` darf ein Grund stehen. Wissen von vor Welttag 1 steht auf Tag 1 mit dem Grund „vor dem Auftrag“: `(erlebt, Tag 1; vor dem Auftrag)`. Dieselbe Sache steht in jedem Abschnitt in denselben Worten, denn die Prüfung vergleicht Wörter: Bei kurzen Sätzen müssen alle Inhaltswörter wiederkehren, bei längeren darf je fünf eines fehlen.
 
 Prüfung: `node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_geschichte.md 02_glossar.md` (die Spoilerdatei ist Daten und Spoilerdatei zugleich; das Glossar dazu, damit Wissen der Figur zählt). Gesperrt wird, wenn
 
@@ -240,9 +240,20 @@ Prüfung: `node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spiell
 
 Hinweise: `erlebt`, ohne dass eine Zeile des Spielstands oder der Spoilerdatei die Figur bei der Sache nennt (war sie dabei?); `von X` zwischen zwei Figuren des Reviers ohne eine Zeile, die beide zusammen nennt, und ohne Grund (wann haben sie gesprochen?); eine Figur, die weder Spielstand noch Spoilerdatei kennt. `test/wissensbuch.test.js` prüft das an der erfundenen Welt.
 
-Die Spielleitung führt das Buch beim Sitzungsende nach: Wer in einer Szene dabei war, bekommt sie als `erlebt`; wer etwas weitererzählt, gibt es mit `von` und Tag weiter. Im Spiel spricht ein NPC nur an, was in seinem Abschnitt steht.
+Die Spielleitung führt das Buch beim Sitzungsende nach: Wer in einer Szene dabei war, bekommt sie als `erlebt`; wer etwas weitererzählt, gibt es mit `von` und Tag weiter. Im Spiel spricht ein NPC heikle Dinge nur an, wenn sie in seinem Abschnitt stehen (Regelwerk 5.1).
 
 Wortvergleich: Wörter werden ohne Umlaute und Groß-/Kleinschreibung verglichen; Beugungen gelten als gleich, wenn Wortanfang und Länge nahe beieinander liegen („überfallen“ und „Überfall“, nicht „Hain“ und „Haken“). Wer einen Begriff neu einführt, trägt ihn zuerst in den Spielstand ein.
+
+## Werkzeuge holen
+
+Die Prüfung und das Spielerbuch laufen in der Arbeitsumgebung der Spielleitung (Node), im Stand `tische_stand` aus der Weltchronik:
+
+```sh
+curl -sL https://codeload.github.com/MaxwellSilverhammer-mk/wegwart-karte/tar.gz/<STAND> | tar xz   # legt wegwart-karte-<STAND>/ an
+# oder: git clone -q https://github.com/MaxwellSilverhammer-mk/wegwart-karte && git -C wegwart-karte checkout -q <STAND>
+```
+
+Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub selbst nicht (geprüft am 21.10.2026). Die Widgets im Chat laden dagegen über jsDelivr. Geht keins von beiden, gilt die Wortregel aus Regelwerk 4.8.
 
 ## Versionen
 

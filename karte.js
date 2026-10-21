@@ -3,9 +3,9 @@
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
- *   <h2 class="sr-only">Karte: Hool-Hinterland</h2>
+ *   <h2 class="sr-only">Karte: Rund um Rohrdorf</h2>
  *   <div id="karte">Karte lädt …</div>
- *   <script>var KARTE={titel:'Hool-Hinterland', orte:[…], wege:[…]}</script>
+ *   <script>var KARTE={titel:'Rund um Rohrdorf', orte:[…], wege:[…]}</script>
  *   <script src="https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/karte.js"></script>
  *
  * Weltraster: 1 Einheit = 1 Stunde zu Fuß (etwa 4,5 km). Monmurg liegt bei (0, 0),

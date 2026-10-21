@@ -3,7 +3,9 @@
  * Welttag, und die Prüfung, dass keine Figur etwas weiß, das nicht zu ihr gelangt ist. Version 1.0 (Entwurf)
  *
  * Das Gegenstück zum Glossar: Das Glossar sagt, was die Spielerfigur weiß und woher; das Wissensbuch sagt, was
- * die Leute des Reviers wissen und woher. Ein NPC spricht im Spiel nur an, was in seinem Abschnitt steht.
+ * die Leute des Reviers wissen und woher. Von heiklen Dingen spricht ein NPC im Spiel nur an, was in seinem Abschnitt
+ * steht; was zu Leben, Handwerk und Ort gehört, weiß er ohnehin (Regelwerk 5.1). Wissen von vor Welttag 1 steht auf
+ * Tag 1 mit dem Grund „vor dem Auftrag“.
  *
  * Grammatik, als Abschnitt der Spoilerdatei oder in einer eigenen Datei (beides gehört nie ins Repository):
  *   ## Wer weiß was
@@ -80,7 +82,7 @@ function fehlend(fakt, zeile) {
 function dieselbeSache(fakt, zeile) { var n = w.inhalt(fakt).length; return n > 0 && fehlend(fakt, zeile) <= Math.floor(n / 5); }
 // War die Figur dabei? Eine Zeile des Spielstands oder der Spoilerdatei nennt sie und beschreibt die Sache
 // (höchstens jedes dritte Wort fehlt) oder steht unter dem Tag der Sache und trägt die Hälfte der Wörter
-// Eine Person heißt im Text oft nur beim Rufnamen („Aske“ statt „Mutter Aske“): Titel zählen nicht mit
+// Eine Person heißt im Text oft nur beim Rufnamen („Bodo“ statt „Mutter Bodo“): Titel zählen nicht mit
 var TITEL = /^(mutter|grossmutter|großmutter|vater|grossvater|großvater|magister|prinz|prinzessin|feldwebel|hauptmann|bruder|schwester|herr|frau|kapitaen|kapitän|meister|meisterin|alte|alter|der|die|das)$/i;
 function namenVon(name) {
   var teile = String(name).split(/\s+/).filter(function (x) { return x.length >= 3 && !TITEL.test(x); });

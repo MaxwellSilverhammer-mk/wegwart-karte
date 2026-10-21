@@ -3,10 +3,10 @@
 // Karte und „Was bisher geschah“ aus der Datenbank der Seite; die Tische sind eingebaut (ein Artefakt lädt keine
 // Skripte von GitHub).
 //
-//   node seite/bauen.js --seite [--titel "Fürchtegotts Buch"] > buch.gebaut.html
+//   node seite/bauen.js --seite [--titel "Probefigurs Buch"] > buch.gebaut.html
 //       baut die Seite aus seite/buch.html, glossar.js, karte.js, inventar.js, questlog.js und seite/ikonen.svg;
 //       --titel setzt den Titel, den die Seite vor dem Laden zeigt (sonst „Spielerbuch“; danach gilt titel aus meta/buch)
-//   node seite/bauen.js --db <ordner> [--stand "Stand: Tag 12"] [--stufe 3] [--titel "Fürchtegotts Buch"] <dateien …>
+//   node seite/bauen.js --db <ordner> [--stand "Stand: Tag 12"] [--stufe 3] [--titel "Probefigurs Buch"] <dateien …>
 //       schreibt die Dokumente der Datenbank nach <ordner>/<sammlung>/<id>.json; die Art jeder Datei erkennt es selbst:
 //       02_glossar.md (Glossar-Text)          -> glossar/<id>, meta/glossar
 //       02_karte.md, 02_inventar.md, 02_questlog.md (json-Block oder .json) -> tische/karte, tische/gepaeck, tische/logbuch

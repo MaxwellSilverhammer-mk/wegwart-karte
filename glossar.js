@@ -4,19 +4,19 @@
  *
  * Aufruf in einem Visualizer-Widget: Die Spielleitung kopiert den Text aus 02_glossar.md unverändert
  * zwischen die beiden Tags; der Tisch liest ihn und zeichnet daraus das Pergament.
- *   <h2 class="sr-only">Glossar: was Fürchtegott weiß, Stand Tag 12</h2>
+ *   <h2 class="sr-only">Glossar: was die Probefigur weiß, Stand Tag 9</h2>
  *   <div id="glossar">Glossar lädt … Falls nicht, frag nach dem Glossar als Text.</div>
  *   <script type="text/plain" id="glossar-text">
- *   *Stand: Tag 12 · Gefahr nach Stufe 3 · Figur: Fürchtegott*
+ *   *Stand: Tag 9 · Gefahr nach Stufe 2 · Figur: Probefigur*
  *   ### Personen
- *   - **Ksshar** (verbündet) · Ort: Schuppenkreis · Logbuch: Die Gelbkehlen · siehe: Ssark
- *     Späher der Gelbkehlen, dein Vertrauter.
- *     - Späher der Gelbkehlen, der Echsenmann vom Knüppeldamm. (gesehen, Tag 3)
- *     - Hat Brasks Boote gesehen und die Köpfe gezählt. (von Ksshar, Tag 4)
+ *   - **Bodo** (freundlich) · Ort: Rohrdorf · Logbuch: Die Brücke bei Rohrdorf · siehe: Jost
+ *     Wirt der Alten Eiche in Rohrdorf.
+ *     - Wirt der Alten Eiche in Rohrdorf. (gesehen, Tag 3)
+ *     - Beim Schwarzen Weiher brennen nachts Lichter, zuletzt bei Vollmond. (von Bodo, Tag 3)
  *   <\/script>
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/glossar.js';document.head.appendChild(s);<\/script>
  *
- * Zwei Formen aus derselben Datei: der Auszug (ein Eintrag, Kopfzeile mit „Auszug: 1 von 64“) und das
+ * Zwei Formen aus derselben Datei: der Auszug (ein Eintrag, Kopfzeile mit „Auszug: 1 von 7“) und das
  * ganze Glossar (alle Einträge, ein Tipp klappt einen auf). Jeder Posten trägt seine Herkunft (selbst
  * gesehen, von wem gehört, gelesen, laut Karte, Gerücht) und den Welttag. Die Datei ist der Glossar-
  * Abschnitt des Spielstands in eigener Datei; sie wird vorher mit pruefen.js geprüft (README).
@@ -116,7 +116,7 @@
   var RUBRIK = {}, HALTUNG_WORT = {};
   REIHE.forEach(function (a) { RUBRIK[norm(ART[a][2])] = a; });
   Object.keys(HALTUNG).forEach(function (k) { HALTUNG_WORT[norm(HALTUNG[k])] = k; });
-  // Listen im Kopf trennt „; “, weil Titel und Namen Kommas tragen können („Magister Sevrin, der Rote Mann“)
+  // Listen im Kopf trennt „; “, weil Titel und Namen Kommas tragen können („Wenzel Hartlieb, der Wegwart“)
   function liste(s) { return String(s).split(/;\s*/).map(function (x) { return x.trim(); }).filter(Boolean); }
   function herkunftAus(s) {
     var m;
@@ -225,9 +225,37 @@
     });
     return aus.join('\n') + '\n';
   }
+  // Suche für „Glossar <Stichwort>“ (Regelwerk 4.6): erst genau (Kennung, Name, Beiname), dann ohne Artikel
+  // („Wirt“ für „der Wirt“), dann Wort für Wort („Hartlieb“ findet „Wenzel Hartlieb“), zuletzt Wortanfänge ab vier
+  // Buchstaben, Endungen abgeschnitten („Vogt“ findet „Brief des Vogts“, „Lichtern“ die „Lichter am Weiher“).
+  // Die erste Stufe mit Treffern entscheidet; passen dort mehrere Einträge, kommen sie als Auswahl zurück.
+  var ARTIKEL = { der: 1, die: 1, das: 1, den: 1, dem: 1, des: 1, ein: 1, eine: 1, einen: 1, einem: 1, einer: 1, eines: 1 };
+  function woerter(s) { return stichwort(s).split(/[^a-z0-9]+/).filter(function (w) { return w && !ARTIKEL[w]; }); }
+  function stamm(w) { return w.length >= 5 ? w.replace(/(en|er|es|em|e|n|s)$/, '') : w; }
+  function finde(D, anfrage) {
+    var E = sichtbar(D), q = stichwort(anfrage), qw = woerter(anfrage);
+    function namen(x) { return [x.name].concat(x.namen || []); }
+    var stufen = [
+      function (x) { return x.id === anfrage || namen(x).some(function (n) { return stichwort(n) === q; }); },
+      function (x) { return qw.length > 0 && namen(x).some(function (n) { return woerter(n).join(' ') === qw.join(' '); }); },
+      function (x) { return qw.length > 0 && namen(x).some(function (n) { var w = woerter(n); return qw.every(function (a) { return w.indexOf(a) >= 0; }); }); },
+      function (x) {
+        return qw.length > 0 && qw.every(function (a) { return a.length >= 4; }) && namen(x).some(function (n) {
+          var w = woerter(n);
+          return qw.every(function (a) { var s = stamm(a); return w.some(function (b) { return b.indexOf(s) === 0; }); });
+        });
+      }
+    ];
+    for (var i = 0; i < stufen.length; i++) {
+      var t = E.filter(stufen[i]);
+      if (t.length === 1) return { eintrag: t[0], auswahl: [] };
+      if (t.length > 1) return { eintrag: null, auswahl: t.map(function (x) { return x.name; }) };
+    }
+    return { eintrag: null, auswahl: [] };
+  }
   // Auszug: ein Eintrag mit Posten, aufgeklappt; die Kopfzeile sagt, wie viele Einträge das Glossar hat
   function alsAuszug(D, name) {
-    var E = sichtbar(D), e = E.filter(function (x) { return x.id === name || stichwort(x.name) === stichwort(name) || (x.namen || []).some(function (n) { return stichwort(n) === stichwort(name); }); })[0];
+    var E = sichtbar(D), e = finde(D, name).eintrag;
     if (!e) return null;
     var A = { titel: D.titel, stand: D.stand, heute: D.heute, stufe: D.stufe, figur: D.figur, auszug: true, gesamt: E.length, eintraege: [e] };
     Object.keys(A).forEach(function (k) { if (A[k] === undefined) delete A[k]; });
@@ -615,7 +643,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { zeichne: zeichne, ausText: ausText, alsText: alsText, alsAuszug: alsAuszug, alsDokumente: alsDokumente, ausDokumenten: ausDokumenten, sichtbar: sichtbar, stufeAus: stufeAus, SCHEMA: SCHEMA, zusatz: zusatz, version: VERSION };
+    module.exports = { zeichne: zeichne, ausText: ausText, alsText: alsText, alsAuszug: alsAuszug, finde: finde, alsDokumente: alsDokumente, ausDokumenten: ausDokumenten, sichtbar: sichtbar, stufeAus: stufeAus, SCHEMA: SCHEMA, zusatz: zusatz, version: VERSION };
     // Aufruf: node glossar.js --auszug <Name> 02_glossar.md   (Text des Auszugs)
     //         node glossar.js --json 02_glossar.md            (das gelesene Objekt, zum Nachsehen)
     //         node glossar.js --text daten.json               (Objekt → Text, etwa beim Umstellen)
@@ -640,7 +668,15 @@
         });
         process.stdout.write(zeilen.join('\n').replace(/^\n/, '') + '\n');
       }
-      else if (was === '--auszug') { var A = alsAuszug(P.D, args[1]); if (!A) { console.error('Kein Eintrag „' + args[1] + '“.'); process.exit(1); } process.stdout.write(alsText(A)); }
+      else if (was === '--auszug') {
+        var F = finde(P.D, args[1]);
+        if (!F.eintrag) {
+          console.error(F.auswahl.length ? 'Mehrere Einträge passen zu „' + args[1] + '“: ' + F.auswahl.join('; ') + '. Mit dem ganzen Namen noch einmal.'
+            : 'Kein Eintrag „' + args[1] + '“. Den Namen in der Stichwortliste des Spielstands nachsehen.');
+          process.exit(1);
+        }
+        process.stdout.write(alsText(alsAuszug(P.D, F.eintrag.id)));
+      }
       else if (was === '--db') {
         if (P.probleme.length) { console.error('Erst die Prüfung bestehen:\n' + P.probleme.join('\n')); process.exit(1); }
         var ordner = args[1], docs = alsDokumente(P.D);
@@ -656,7 +692,7 @@
     }
   } else {
     // Im Browser: Haken für das Spielerbuch, das seine Daten aus der Datenbank holt und dann zeichnen lässt
-    window.GLOSSAR_TISCH = { einbauen: einbauen, ausText: ausText, ausDokumenten: ausDokumenten, version: VERSION };
+    window.GLOSSAR_TISCH = { einbauen: einbauen, ausText: ausText, ausDokumenten: ausDokumenten, finde: finde, version: VERSION };
     (function warten(n) { if (!start() && n < 60) setTimeout(function () { warten(n + 1); }, 50); })(0);
   }
 })();

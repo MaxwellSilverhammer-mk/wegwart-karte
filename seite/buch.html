@@ -116,13 +116,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
   function oeffneGlossar(wer) {
     offenAuf = wer;
     if (!glossarD) return;
-    var n = String(wer).toLowerCase(), e = null;
+    var n = String(wer).toLowerCase(), e = null, auswahl = [];
     glossarD.eintraege.forEach(function (x) {
       if (e) return;
       if (x.id === wer || String(x.name).toLowerCase() === n || (x.namen || []).some(function (y) { return String(y).toLowerCase() === n; })) e = x;
     });
+    if (!e && window.GLOSSAR_TISCH && GLOSSAR_TISCH.finde) { var f = GLOSSAR_TISCH.finde(glossarD, wer); e = f.eintrag; auswahl = f.auswahl; }
     offenAuf = '';
-    if (!e) { hinweis('Dazu steht noch nichts im Glossar: „' + wer + '“'); return; }
+    if (!e) { hinweis(auswahl.length ? 'Mehrere Einträge passen: ' + auswahl.join(', ') + '.' : 'Dazu steht noch nichts im Glossar: „' + wer + '“'); return; }
     var b = document.querySelector('#glossar .glE[data-id="' + String(e.id).replace(/"/g, '') + '"] button.glZ');
     if (!b) return;
     if (b.getAttribute('aria-expanded') !== 'true') b.click();

@@ -94,6 +94,16 @@ ok(JSON.stringify(P2.D) === JSON.stringify(P.D) && P2.probleme.length === 0, 'Ru
 var A = glossar.alsAuszug(P.D, 'Bodo'), AT = glossar.alsText(A), PA = glossar.ausText(AT);
 ok(PA.D.auszug === true && PA.D.gesamt === 7 && PA.D.eintraege.length === 1 && PA.D.eintraege[0].name === 'Bodo', 'Auszug als Text: „Auszug: 1 von 7“ und ein Eintrag');
 
+// Suche für „Glossar <Stichwort>“: ohne Artikel, Teilnamen, Wortanfänge; mehrere Treffer als Auswahl
+function gefunden(q) { var f = glossar.finde(P.D, q); return f.eintrag ? f.eintrag.name : (f.auswahl.length ? 'Auswahl: ' + f.auswahl.join('; ') : ''); }
+ok(gefunden('Bodo') === 'Bodo' && gefunden('bodo') === 'Bodo', 'Suche: genau, auch klein geschrieben');
+ok(gefunden('der Jost') === 'Jost', 'Suche: ohne Artikel', gefunden('der Jost'));
+ok(gefunden('Hartlieb') === 'Wenzel Hartlieb' && gefunden('Brandt') === 'Jaro Brandt', 'Suche: ein Teil des Namens');
+ok(gefunden('Vogt') === 'Brief des Vogts' && gefunden('Lichtern') === 'Lichter am Weiher', 'Suche: Wortanfang mit abgeschnittener Endung');
+ok(gefunden('Weiher') === 'Auswahl: Schwarzer Weiher; Lichter am Weiher', 'Suche: mehrere Treffer als Auswahl', gefunden('Weiher'));
+ok(gefunden('Niemand') === '' && gefunden('Bo') === '', 'Suche: nichts Erfundenes, keine Treffer aus zwei Buchstaben', gefunden('Bo'));
+ok(glossar.alsAuszug(P.D, 'Hartlieb').eintraege[0].name === 'Wenzel Hartlieb', 'Auszug nimmt die Suche');
+
 // Dokumente für die Glossar-Seite: Rundlauf Objekt → Dokumente → Objekt
 var docs = glossar.alsDokumente(P.D), meta = docs.filter(function (d) { return d.sammlung === 'meta'; })[0];
 var wieder2 = glossar.ausDokumenten(meta.daten, docs.filter(function (d) { return d.sammlung === 'glossar'; }));

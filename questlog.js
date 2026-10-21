@@ -3,7 +3,7 @@
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
- *   <h2 class="sr-only">Questlog: Fürchtegotts Logbuch</h2>
+ *   <h2 class="sr-only">Questlog: Probefigurs Logbuch</h2>
  *   <div id="logbuch">Logbuch lädt …</div>
  *   <script>var QUESTLOG={titel:'Logbuch', stand:'Stand: Tag 8', heute:8, frist:28, welttag:8, auftraege:[…]}<\/script>
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/questlog.js';document.head.appendChild(s);<\/script>

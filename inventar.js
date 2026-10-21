@@ -3,9 +3,9 @@
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
- *   <h2 class="sr-only">Inventar: Fürchtegotts Gepäck</h2>
+ *   <h2 class="sr-only">Inventar: Probefigurs Gepäck</h2>
  *   <div id="gepaeck">Gepäck lädt …</div>
- *   <script>var INVENTAR={titel:'Fürchtegotts Gepäck', stand:'Stand: Tag 8', geld:{ga:19,sm:9}, traeger:[…]}<\/script>
+ *   <script>var INVENTAR={titel:'Probefigurs Gepäck', stand:'Stand: Tag 8', geld:{ga:3,sm:5}, traeger:[…]}<\/script>
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/inventar.js';document.head.appendChild(s);<\/script>
  *
  * Pergament wie der Kartentisch: Geldbeutel, Rationen, Traglast je Träger und die Dinge,

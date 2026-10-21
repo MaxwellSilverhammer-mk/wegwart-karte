@@ -3,9 +3,9 @@
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
- *   <h2 class="sr-only">Rast: Fürchtegott in Hollos Hütte</h2>
+ *   <h2 class="sr-only">Rast: Probefigur in der Alten Eiche</h2>
  *   <div id="rast">Rastübersicht lädt …</div>
- *   <script>var RAST={nr:7,figur:'Fürchtegott',tp:[21,21],tw:[2,3,8],kon:1, …}<\/script>
+ *   <script>var RAST={nr:7,figur:'Probefigur',tp:[21,21],tw:[2,3,8],kon:1, …}<\/script>
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/rast.js';document.head.appendChild(s);<\/script>
  *
  * Zeigt den Zustand der Figur und plant kurze und lange Rast: Trefferwürfel einzeln würfeln,
