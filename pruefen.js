@@ -4,7 +4,8 @@
 // Erkennt die Art an den Daten: Karte (orte, wege), Inventar (traeger), Questlog (auftraege), Glossar (Textform
 // mit Rubriken „### Personen“ … oder ein Objekt mit eintraege), Wissensbuch (Abschnitt „## Wer weiß was“, meist
 // in der Spoilerdatei selbst: node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_glossar.md).
-// Weitere Dateien nach den drei Pflichtdateien dienen den Querverweisen: Kartendaten, Gepäck, Logbuch und Glossar
+// Weitere Markdown-Dateien ohne Daten (etwa 02_geschichte.md) sind Teile des Spielstands und zählen wie er.
+// Weitere Dateien nach den drei Pflichtdateien dienen sonst den Querverweisen: Kartendaten, Gepäck, Logbuch und Glossar
 // der Figur und eine Figurenliste der Weltchronik (json: ["Name", …] oder {"figuren":[…]}). Das Glossar
 // (02_glossar.md) ist der Glossar-Abschnitt des Spielstands in eigener Datei und zählt für Karte, Gepäck und
 // Logbuch als Spielstand mit. Fehlen weitere Dateien, bleiben die Querverweise ungeprüft, und die Prüfung sagt das.
@@ -20,15 +21,19 @@ if (args.length < 3) {
 var glossarModul = require(path.join(__dirname, 'glossar.js')), wissensbuch = require(path.join(__dirname, 'wissensbuch.js'));
 function istGlossarText(text) { return /^###\s+(Personen|Gruppen|Orte|Dinge|Gerüchte)\s*$/m.test(text) && /^-\s+\*\*/m.test(text); }
 function istWissensbuch(text) { return /^##\s+Wer wei(ß|ss) was/mi.test(text); }
-function lade(datei) {
+function lade(datei, weitere) {
   var text = fs.readFileSync(datei, 'utf8');
   if (/\.json$/i.test(datei)) return { D: JSON.parse(text) };
   if (/\.js$/i.test(datei)) return { D: require(path.resolve(datei)) };
+  // Das Wissensbuch steht in der Spoilerdatei; die erkennt es zuerst, auch wenn sie anderswo einen json-Block hat
+  if (!weitere && istWissensbuch(text)) { var wb = wissensbuch.ausText(text); wb.wissensbuch = true; return { D: wb, text: text }; }
   // Markdown mit einem Block ```json … ```, einer Zeile var KARTE={…} (ebenso INVENTAR, QUESTLOG, GLOSSAR) oder, beim Glossar, Text
   var m = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(?:KARTE|INVENTAR|QUESTLOG|GLOSSAR)\s*=\s*(\{[\s\S]*\})\s*;?\s*(<\/script>|$)/);
   if (m) return { D: JSON.parse(m[1]) };
   if (istWissensbuch(text)) { var b = wissensbuch.ausText(text); b.wissensbuch = true; return { D: b, text: text }; }
   if (istGlossarText(text)) { var g = glossarModul.ausText(text); return { D: g.D, probleme: g.probleme, text: text }; }
+  // Eine weitere Markdown-Datei ohne Daten ist ein Teil des Spielstands (etwa 02_geschichte.md, „Was bisher geschah“ im Spielerbuch)
+  if (weitere && /\.md$/i.test(datei)) return { D: null, text: text, spielstandTeil: true };
   throw new Error('In ' + datei + ' steht kein json-Block, kein KARTE={…}, INVENTAR={…}, QUESTLOG={…} oder GLOSSAR={…}, kein Glossar-Text und kein Wissensbuch.');
 }
 function art(D) {
@@ -50,7 +55,14 @@ if (was === 'glossar') {
   quellen.spielstand += '\n\n' + (geladen.text || glossarModul.alsText(D));
 }
 args.slice(3).forEach(function (datei) {
-  var X = lade(datei), a = art(X.D);
+  var X = lade(datei, true), a = art(X.D);
+  if (X.spielstandTeil) {
+    // Weitere Teile des Spielstands zählen wie der Spielstand selbst, für Wörter, Belege, Namen und Quellen
+    quellen.spielstand += '\n\n' + X.text;
+    if (quellen.namenKorpus != null) quellen.namenKorpus += '\n\n' + X.text;
+    console.error('Weitere Datei ' + datei + ' als Teil des Spielstands gelesen.');
+    return;
+  }
   if (!a || a === was) { if (a !== 'wissensbuch') console.error('Weitere Datei ' + datei + ' nicht erkannt oder von derselben Art wie die geprüften Daten; übergangen.'); return; }
   quellen[a] = X.D;
   // Das Glossar ist Spielstand: Was dort steht, belegt Karte, Gepäck und Logbuch wie der Spielstand selbst

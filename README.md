@@ -6,7 +6,8 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, mit dem, was sie darüber weiß (Abschnitt „Gepäck“).
 - **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
-- **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt die **Glossar-Seite** (`seite/glossar-seite.html`), ein Artefakt mit Datenbank, das der Spieler jederzeit öffnet, ohne dass das Glossar durch den Chat läuft.
+- **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt das Glossar im Spielerbuch.
+- **Spielerbuch** (`seite/buch.html`, gebaut mit `seite/bauen.js`): eine Seite je Figur, ein Artefakt mit Datenbank, mit Glossar, Logbuch, Gepäck, Karte und „Was bisher geschah“; die Tische sind eingebaut (Abschnitt „Das Spielerbuch“).
 - **Wissensbuch** (`wissensbuch.js`, nur Prüfung): Wer weiß was im Revier, Figur für Figur mit Herkunft und Welttag, in der Spoilerdatei; die Prüfung sperrt Wissen ohne Weg (Abschnitt „Wissensbuch“).
 
 ## Aufruf
@@ -126,8 +127,8 @@ Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 
 
 Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Datei, als Text (Grammatik unten), den der Tisch selbst liest. Zwei Formen aus derselben Datei:
 
-- **Auszug** (Kopfzeile mit `Auszug: 1 von 64`): ein Eintrag mit allen Posten, aufgeklappt. Querverweise auf Einträge, die nicht mitkommen, fragen die Spielleitung („Glossar <Name> ↗“), der Fuß „Ganzes Glossar ↗“ ebenso. Das ist die Antwort auf **Glossar <Stichwort>** und auf die Knöpfe „Glossar … ↗“ der anderen Tische. `node glossar.js --auszug <Name> 02_glossar.md` schreibt den Text.
-- **Ganzes Glossar**: alle Einträge mit Kurzzeile, Haltung und Gefahrzeichen, nach Rubriken, mit Suche; ein Tipp klappt den Eintrag an Ort und Stelle auf, Querverweise springen hin. Als Widget nur auf Wunsch („Glossar alles“), weil die ganze Datei durch den Chat geht; die Antwort auf **Glossar** ohne Stichwort ist der Link zur Glossar-Seite (unten), die dieselbe Form zeigt.
+- **Auszug** (Kopfzeile mit `Auszug: 1 von 64`): ein Eintrag mit allen Posten, aufgeklappt. Querverweise auf Einträge, die nicht mitkommen, fragen die Spielleitung („Glossar <Name> ↗“), der Fuß „Ganzes Glossar ↗“ ebenso. Das ist die Antwort auf **Glossar <Stichwort>** und auf die Knöpfe „Glossar … ↗“ der anderen Tische. `node glossar.js --auszug "<Name>" 02_glossar.md` schreibt den Text (Anführungszeichen bei Namen mit Leerzeichen).
+- **Ganzes Glossar**: alle Einträge mit Kurzzeile, Haltung und Gefahrzeichen, nach Rubriken, mit Suche; ein Tipp klappt den Eintrag an Ort und Stelle auf, Querverweise springen hin. Als Widget nur auf Wunsch („Glossar hier“), weil die ganze Datei durch den Chat geht; die Antwort auf **Glossar** ohne Stichwort ist der Link zum Spielerbuch (unten), das dieselbe Form zeigt. Der Fuß „Ganzes Glossar ↗“ eines Auszugs schickt „Glossar“.
 
 Aufruf im Widget, der Text unverändert zwischen den Tags:
 
@@ -158,13 +159,23 @@ Was vor der ersten Rubrik steht, übergeht der Tisch bis auf die Kopfzeile (Hinw
 
 Node: `node glossar.js --auszug <Name> 02_glossar.md` (Text eines Auszugs), `--json 02_glossar.md` (das gelesene Objekt; Zeilen, die der Tisch nicht versteht, auf stderr), `--text daten.json` (Objekt als Text, zum Umstellen). Zur Not liest der Tisch statt des Textes ein Objekt `var GLOSSAR={…}` mit den Feldern aus `--json`.
 
-### Die Glossar-Seite
+## Das Spielerbuch
 
-`seite/glossar-seite.html` ist eine Seite je Spieler: ein Artefakt auf claude.ai mit eigener Datenbank (wie die Weltchronik, Regelwerk 18), privat, bis der Spieler sie teilt. Sie zeigt das ganze Glossar in derselben Form wie das Widget; `#<id>` in der Adresse (etwa `#magister-sevrin`) öffnet einen Eintrag. Die Daten liegen in zwei Sammlungen: `glossar/<id>` je Eintrag (`reihe`, `name`, `art`, `kurz`, `haltung`, `gefahr`, `namen`, `ort`, `logbuch`, `siehe`, `post`, `wissen[]`, `spieler`) und `meta/glossar` (`titel`, `stand`, `heute`, `stufe`, `figur`, `anzahl`).
+`seite/buch.html` ist das Spielerbuch einer Figur (Regelwerk 3.0, 4.7): ein Artefakt auf claude.ai mit eigener Datenbank, privat, bis der Spieler es teilt. Oben fünf Reiter: Glossar, Logbuch, Gepäck, Karte, Geschichte; die Tische sind dieselben wie im Chat (ohne die Rast), ihre Knöpfe „Glossar … ↗“ blättern im Buch. `#karte`, `#logbuch` (auch `#questlog`), `#gepaeck` (auch `#inventar`), `#geschichte` oder `#<glossar-id>` in der Adresse öffnen einen Teil oder einen Eintrag, wo die App den Anker weitergibt. Das Buch zeigt den Stand des letzten Sitzungsendes.
 
-- Veröffentlichen: `node glossar.js --seite > glossar-seite.gebaut.html` baut die Seite mit eingebautem `glossar.js` (ein Artefakt lädt keine Skripte von GitHub); die Spielleitung veröffentlicht die Datei mit dem Artifact-Werkzeug und `capabilities: {db: {}}`. Eine neue Fassung von `glossar.js` heißt: neu bauen, dieselbe Adresse neu veröffentlichen.
-- Füllen, beim Sitzungsende nach „FREIGEGEBEN“: `node glossar.js --db <ordner> 02_glossar.md` schreibt `<ordner>/glossar/<id>.json` und `<ordner>/meta/glossar.json`; die Spielleitung spielt sie mit ArtifactData ein (`batch`, je Dokument `set` mit `file_path`; für Dokumente, die es schon gibt, `if_version` aus einem `list` davor; gestrichene Einträge `delete`). Nichts davon läuft durch den Chat.
-- Antwort auf **Glossar**: der Link zur Seite. Auf **Glossar <Stichwort>** und die Knöpfe der anderen Tische weiter der Auszug als Widget (klein und im Spiel), oder der Link mit `#<id>`.
+| Sammlung/Dokument | Inhalt |
+|---|---|
+| `meta/buch` | `titel`, `stand`, `stufe`, `figur` |
+| `meta/glossar`, `glossar/<id>` | das Glossar: je Eintrag `reihe`, `name`, `art`, `kurz`, `haltung`, `gefahr`, `namen`, `ort`, `logbuch`, `siehe`, `post`, `wissen[]`, `spieler`; meta mit `titel`, `stand`, `heute`, `stufe`, `figur`, `anzahl` |
+| `tische/karte`, `tische/gepaeck`, `tische/logbuch` | die Objekte von Kartentisch, Gepäck und Logbuch, Felder wie oben |
+| `geschichte/<id>` | „Was bisher geschah“: `reihe`, `titel` (die Überschrift „Sitzung N, Tag …“), `text` (Markdown: Punkte, Unterpunkte, Zitate mit `>`, fett, kursiv) |
+| `sl/<id>` | Archiv der Spielleitung (`reihe`, `titel`, `text`), etwa Würfelprotokolle; das Buch zeigt es nicht |
+
+- Bauen: `node seite/bauen.js --seite > buch.gebaut.html` (baut `glossar.js`, `karte.js`, `inventar.js`, `questlog.js` und die Zeichen aus `seite/ikonen.svg`, Tabler Icons, MIT, ein). Veröffentlichen mit dem Artifact-Werkzeug und `capabilities: {db: {rules: [{path: "", read: "view", write: "owner"}, {path: "sl", read: "owner", write: "owner"}]}}`. Eine neue Fassung der Tische heißt: neu bauen, dieselbe Adresse neu veröffentlichen.
+- Füllen: `node seite/bauen.js --db <ordner> 02_glossar.md 02_karte.json 02_inventar.json 02_questlog.json 02_geschichte.md --sl 03_archiv.md` schreibt `<ordner>/<sammlung>/<id>.json` (die Art jeder Datei erkennt es selbst; Karte, Gepäck und Logbuch als `.json` oder als Markdown mit json-Block; die Geschichte in Abschnitten `### Sitzung …` unter `# Was bisher geschah`, das Archiv in `## …`) und `meta/buch` (`--stand`, `--stufe`, `--titel` überschreiben). Spielleitungswissen nimmt es nur über `--sl` an: Dateien `03_…`, ein „# Archiv der Spielleitung“ oder ein Wissensbuch als gewöhnliche Datei lehnt es ab, ebenso eine Datei, die keine Geschichte ist.
+- Einspielen: `node seite/bauen.js --batches <ordner> --alt <db-ordner> versionen.txt` schreibt je Zeile ein `writes`-Array für ArtifactData `batch` (höchstens 50 Schreibvorgänge und etwa 900 KB je Batch): `set` mit `file_path` und, wo das Dokument schon besteht, `if_version`; Einträge, die es nicht mehr gibt, als `delete`. `--alt` (der Ordner, den `list` mit `out_dir` gefüllt hat) lässt unveränderte Dokumente weg. `versionen.txt` ist der Text der `list`-Ergebnisse davor (Zeilen `- "id"  750 bytes  version 3  "…/glossar/id.json"`), denn die Dateien von `out_dir` tragen keine Version; json `{"glossar/id": 3}` geht auch. `list` liefert ohne `query.limit` nur 100 Dokumente: für das Glossar `limit` 1000.
+- Zurück: `node seite/bauen.js --zurueck <db-ordner> <ordner>` liest, was ArtifactData mit `out_dir` gespeichert hat, und schreibt `02_glossar.md`, `02_karte.json`, `02_inventar.json`, `02_questlog.json`, `02_geschichte.md` und `03_archiv.md` zum Bearbeiten und Prüfen. Hin und zurück ändert nichts (geprüft).
+- `node glossar.js --liste 02_glossar.md` schreibt die Stichwortliste für den Spielstand (je Eintrag Name, Haltung, Zeichen, Kurzzeile, `auch:`).
 
 ## Spoilerschutz
 
@@ -196,11 +207,13 @@ Dieselbe Prüfung, `node pruefen.js 02_inventar.md …`, `02_questlog.md …` od
 
 - **Glossar:** Die Datei ist selbst Spielstand (der Abschnitt „Glossar“ in eigener Datei); darum vergleicht die Maschine hier keine Wörter mit dem übrigen Spielstand, sondern prüft Form, Namen, Lore und Verweise. Gesperrt wird, wenn der Text eine Zeile hat, die der Tisch nicht versteht (Rubrik, Haltung, Feld, Posten ohne Herkunft, Eintrag vor der ersten Rubrik); ein Name, den der übrige Spielstand nicht nennt (auch nicht unter `auch:`), ein Wort trägt, das nur die Spoilerdatei kennt; eine Kurzzeile oder ein Posten ein Wort trägt, das in der Spoilerdatei fett oder in einer Überschrift steht (meist ein Name) und sonst nirgends im Spielstand; eine Quelle (`von X`, `gelesen: X`, `laut X`) weder im übrigen Spielstand noch als Eintrag im Glossar steht; ein Logbuch-Titel nicht im Spielstand vorkommt; Selbstgesehenes eine fremde Quelle nennt; ein Tag nach heute liegt oder es ihn nicht gibt; ein Gefahrzeichen vorkommt, ohne dass der Kopf `Gefahr nach Stufe N` trägt, oder diese Stufe nicht die heutige Stufe der Figur ist (Regelwerk 12.2: nach dem Aufstieg alle Zeichen neu einschätzen und die Stufe im Kopf anpassen); 🎭 bei der eigenen Figur steht oder bei einer, die nicht unter `figuren` in der Weltchronik steht (Figurenliste mitgeben); ein Name doppelt ist; `siehe:` auf sich selbst oder auf etwas zeigt, das es im Glossar nicht gibt; `Ort:` nicht in den Kartendaten oder `Logbuch:` nicht im Logbuch steht (Kartendaten, Gepäck und Logbuch als weitere Dateien mitgeben; ohne sie bleibt das ungeprüft und die Prüfung sagt es); ein Eintrag keinen gültigen Posten hat (der Tisch würde ihn verschweigen).
 
-Hinweise statt Sperren beim Glossar: Namen, die nur im Glossar stehen (Schlüsselwörter, die die Chronik des Spielstands nicht nennt); ein Gefahrzeichen, das sonst nirgends im Spielstand bei diesem Namen steht; ein Ort ohne Stelle auf der Karte, ein Ding ohne Stück im Gepäck; die Stufe der Figur im Spielstand nicht erkannt; eine Liste der Wörter, die außer im Glossar nur in der Spoilerdatei stehen, zum Überfliegen auf verirrte Namen. Was die Maschine nicht kann: einen wahren, aber nicht erlebten Posten erkennen, der mit gewöhnlichen Wörtern umschreibt, was die Spoilerdatei weiß. Das bleibt die Lektüre der Spielleitung vor dem Eintragen (Regelwerk 4.6).
+Hinweise statt Sperren beim Glossar: Namen, die nur im Glossar stehen (Schlüsselwörter, die die Chronik des Spielstands nicht nennt); ein Gefahrzeichen, das sonst nirgends im Spielstand bei diesem Namen steht; ein Ort ohne Stelle auf der Karte, ein Ding ohne Stück im Gepäck; die Stufe der Figur im Spielstand nicht erkannt; eine Liste der Wörter, die außer im Glossar nur in der Spoilerdatei stehen, zum Überfliegen auf verirrte Namen. Was die Maschine nicht kann: einen wahren, aber nicht erlebten Posten erkennen, der mit gewöhnlichen Wörtern umschreibt, was die Spoilerdatei weiß. Das bleibt die Lektüre der Spielleitung vor dem Eintragen (Regelwerk 4.8).
 
 Für Gepäck und Logbuch zählt `02_glossar.md` als Spielstand mit (als weitere Datei mitgeben): Ihre Glossar-Stichwörter müssen dort als Name oder unter `auch:` stehen, und ihre Sätze dürfen sich auf Posten des Glossars stützen.
 
-Aufruf mit Querverweisen: `node pruefen.js 02_glossar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_karte.md 02_inventar.md 02_questlog.md figuren.json` (`figuren.json`: `["Name", …]` der Figuren aus der Weltchronik); für die anderen Tische `node pruefen.js 02_inventar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_glossar.md`.
+Aufruf mit Querverweisen: `node pruefen.js 02_glossar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_geschichte.md 02_karte.json 02_inventar.json 02_questlog.json figuren.json` (`figuren.json`: `["Name", …]` der Figuren aus der Weltchronik); für die anderen Tische `node pruefen.js 02_inventar.json 02_spielstand.md 03_spielleitung_SPOILER.md 02_geschichte.md 02_glossar.md`.
+
+**Teile des Spielstands:** Weitere Markdown-Dateien ohne Daten (etwa `02_geschichte.md`, „Was bisher geschah“ aus dem Spielerbuch) zählen wie der Spielstand selbst: für Wörter, Belege, Namen und Quellen. So bleibt der immer geladene Spielstand klein, und die Prüfung sieht trotzdem alles, was die Figur weiß (`test/teile.test.js`).
 
 ### Wissensbuch: Wer weiß was
 
@@ -208,17 +221,19 @@ Das Glossar sagt, was die Figur weiß und woher. Das Wissensbuch sagt dasselbe f
 
 ```
 ## Wer weiß was
-*Stand: Tag 12 · Figur: Fürchtegott*
-### Ssark
-- Fürchtegott fuhr mit Fieber zum Hain des Grünen Mannes, um Bittermoos zu holen. (erlebt, Tag 11)
-### Kesten Drau
-- Fürchtegott fuhr mit Fieber zum Hain des Grünen Mannes, um Bittermoos zu holen. (von Ssark, Tag 12; am Schuppenkreis)
-- Ein neuer Wegwart reitet Draus Maultier. (Gerücht, Tag 9; vom Zuckerkarren)
+*Stand: Tag 9 · Figur: Probefigur*
+### Jost
+- Die Probefigur fragt nach den Lichtern am Weiher. (erlebt, Tag 4)
+### Ortwin
+- Die Probefigur fragt nach den Lichtern am Weiher. (von Jost, Tag 6; Treffen in der Kapelle)
+- Ein neuer Wegwart reitet durch Rohrdorf. (Gerücht, Tag 7; die Fuhrleute reden darüber)
 ```
+
+(Die erfundene Welt aus `test/wissensbuch.test.js`. Was in keiner Zeile einer Person steht, weiß sie nicht.)
 
 Jede Zeile endet mit der Herkunft: `erlebt` (war dabei), `von X` (X hat es erzählt: eine Figur des Buchs oder die Spielerfigur), `Gerücht` (aufgeschnappt; nach `;` steht, woher). Dazu der Welttag; nach `;` darf ein Grund stehen. Dieselbe Sache steht in jedem Abschnitt in denselben Worten, denn die Prüfung vergleicht Wörter: Bei kurzen Sätzen müssen alle Inhaltswörter wiederkehren, bei längeren darf je fünf eines fehlen.
 
-Prüfung: `node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_glossar.md` (die Spoilerdatei ist Daten und Spoilerdatei zugleich; das Glossar dazu, damit Wissen der Figur zählt). Gesperrt wird, wenn
+Prüfung: `node pruefen.js 03_spielleitung_SPOILER.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_geschichte.md 02_glossar.md` (die Spoilerdatei ist Daten und Spoilerdatei zugleich; das Glossar dazu, damit Wissen der Figur zählt). Gesperrt wird, wenn
 
 - `von X` keine Kette hat: X hat dieselbe Sache nicht in seinem Abschnitt (oder erst später), hat sie der Spielerfigur nicht erzählt (kein Posten „von X“ im Glossar), oder ist die Spielerfigur und wusste sie laut Glossar und Spielstand nicht; X ist niemand (kein Abschnitt, keine Quelle im Glossar, nicht die Figur); die Kette läuft im Kreis,
 - ein Gerücht keinen Grund hat, ein Tag nach dem Stand liegt, eine Zeile keine Herkunft hat, eine Figur zwei Abschnitte hat, der Spielstand fehlt.
@@ -231,4 +246,4 @@ Wortvergleich: Wörter werden ohne Umlaute und Groß-/Kleinschreibung verglichen
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Glossar 1.0 (Entwurf), Wissensbuch 1.0 (Entwurf).
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.0; seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.

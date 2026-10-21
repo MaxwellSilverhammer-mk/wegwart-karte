@@ -74,6 +74,8 @@ var sperren = {
   'Kette im Kreis': SPOILER.replace('- Jost fischt nachts nicht mehr. (erlebt, Tag 4)', '- Jost fischt nachts nicht mehr. (von Bodo, Tag 5)').replace('(von Probefigur, Tag 5)', '(von Jost, Tag 5)'),
   'Von der Spielerfigur, die es nie erfuhr': SPOILER.replace('(Gerücht, Tag 7; die Fuhrleute reden darüber)', '(von Probefigur, Tag 7)'),
   'Früher gewusst als die Quelle': SPOILER.replace('(von Jost, Tag 6)', '(von Jost, Tag 2)'),
+  'Von der Spielerfigur, was nur die Spoilerdatei weiß': SPOILER.replace('### Ortwin\n', '### Ortwin\n- Jost ist ein Spitzel des Kults. (von Probefigur, Tag 8)\n'),
+  'Von der Spielerfigur vor dem Tag, an dem sie es erfuhr': SPOILER.replace('(von Probefigur, Tag 5)', '(von Probefigur, Tag 3)'),
   'Gerücht ohne Grund': SPOILER.replace('(Gerücht, Tag 7; die Fuhrleute reden darüber)', '(Gerücht, Tag 7)'),
   'Tag nach dem Stand': SPOILER.replace('(Gerücht, Tag 7; die Fuhrleute reden darüber)', '(Gerücht, Tag 12; die Fuhrleute reden darüber)'),
   'Zeile ohne Herkunft': SPOILER.replace('(Gerücht, Tag 7; die Fuhrleute reden darüber)', ''),
@@ -97,6 +99,8 @@ var rH = pruefe(SPOILER.replace('### Ortwin\n', '### Ortwin\n- Die Probefigur fr
 ok(rH.ok && rH.hinweise.some(function (h) { return /Ortwin/.test(h) && /dabei/.test(h); }), 'Hinweis: „erlebt“ ohne Zeile, die die Figur bei der Sache nennt', rH.fehler.join(' | ') + rH.hinweise.join(' | '));
 var rN = pruefe(SPOILER.replace('### Ortwin', '### Hagen'));
 ok(rN.hinweise.some(function (h) { return /Hagen/.test(h) && /neue Figur/.test(h); }), 'Hinweis: Figur, die weder Spielstand noch Spoilerdatei nennt');
+var rT = pruefe(SPOILER.replace('### Bodo', '### Mutter Bodo'));
+ok(rT.ok && !rT.hinweise.some(function (h) { return /Mutter Bodo/.test(h) && /dabei/.test(h); }), 'Rufname genügt: „Mutter Bodo“ ist im Spielstand „Bodo“', rT.fehler.join(' | ') + rT.hinweise.join(' | '));
 var rS = pruefe(SPOILER.replace('*Stand: Tag 9 · Figur: Probefigur*\n', ''));
 ok(rS.hinweise.some(function (h) { return /ungeprüft/.test(h); }), 'Hinweis: ohne Stand bleiben die Tage ungeprüft');
 

@@ -20,8 +20,8 @@
  * ganze Glossar (alle Einträge, ein Tipp klappt einen auf). Jeder Posten trägt seine Herkunft (selbst
  * gesehen, von wem gehört, gelesen, laut Karte, Gerücht) und den Welttag. Die Datei ist der Glossar-
  * Abschnitt des Spielstands in eigener Datei; sie wird vorher mit pruefen.js geprüft (README).
- * Dieselbe Datei füllt die Glossar-Seite (seite/glossar-seite.html, Artefakt mit Datenbank): node glossar.js --db
- * schreibt die Dokumente, die die Spielleitung beim Sitzungsende mit ArtifactData einspielt.
+ * Dieselbe Datei füllt das Spielerbuch (seite/buch.html, Artefakt mit Datenbank): node glossar.js --db oder
+ * node seite/bauen.js --db schreibt die Dokumente, die die Spielleitung beim Sitzungsende mit ArtifactData einspielt.
  */
 (function () {
   'use strict';
@@ -306,7 +306,7 @@
       h += '</ul></section>';
     });
     h += '<p class="glLeer glNix" hidden>Nichts gefunden.</p>';
-    if (D.auszug) h += '<p class="glQ"><button type="button" class="glK" data-prompt="Glossar alles">Ganzes Glossar ↗</button></p>';
+    if (D.auszug) h += '<p class="glQ"><button type="button" class="glK" data-prompt="Glossar">Ganzes Glossar ↗</button></p>';
     return h;
   }
 
@@ -470,7 +470,7 @@
       (e.namen || []).forEach(function (n) { if (typeof n === 'string' && !byName[stichwort(n)]) byName[stichwort(n)] = e; });
     });
     // Spoilerwörter: ein Wort, das die Spoilerdatei kennt und der übrige Spielstand nicht. Kurze Wörter zählen nur
-    // wörtlich (sonst sperrt „fern“ wegen „Ferne“), längere auch gebeugt („Xochatlans“).
+    // wörtlich (sonst sperrt „fern“ wegen „Ferne“), längere auch gebeugt („Ortwins“ zu „Ortwin“).
     var wSpExakt = {}, wRest = typeof q.namenKorpus === 'string' && h.wortschatz ? h.wortschatz(q.namenKorpus) : null;
     if (typeof q.spoiler === 'string' && h.woerterVon) h.woerterVon(q.spoiler).forEach(function (x) { wSpExakt[x] = true; });
     function spoilerWort(w) { return !!(wRest && h.wSpoiler && (wSpExakt[w] || (w.length >= 6 && h.kennt(h.wSpoiler, w))) && !h.kennt(wRest, w)); }
@@ -620,18 +620,26 @@
     //         node glossar.js --json 02_glossar.md            (das gelesene Objekt, zum Nachsehen)
     //         node glossar.js --text daten.json               (Objekt → Text, etwa beim Umstellen)
     //         node glossar.js --db <ordner> 02_glossar.md     (Dokumente für die Glossar-Seite: <ordner>/glossar/<id>.json, <ordner>/meta/glossar.json)
-    //         node glossar.js --seite                         (die Glossar-Seite mit eingebautem glossar.js, zum Veröffentlichen)
+    //         node glossar.js --liste 02_glossar.md           (Stichwortliste für den Spielstand: je Eintrag Name, Haltung, Zeichen und Kurzzeile)
+    //         Die Seite mit dem Glossar ist das Spielerbuch: node seite/bauen.js --seite
     if (typeof require !== 'undefined' && require.main === module) {
       var fs = require('fs'), path = require('path'), args = process.argv.slice(2), was = args[0];
-      if (was === '--seite') {
-        var vorlage = fs.readFileSync(path.join(__dirname, 'seite', 'glossar-seite.html'), 'utf8'), eigen = fs.readFileSync(__filename, 'utf8');
-        process.stdout.write(vorlage.replace('/*GLOSSAR_JS*/', function () { return eigen; }));
-        process.exit(0);
-      }
+      if (was === '--seite') { console.error('Die Glossar-Seite ist jetzt das Spielerbuch: node seite/bauen.js --seite'); process.exit(2); }
       var datei = args[args.length - 1], roh = fs.readFileSync(datei, 'utf8');
       var jm = roh.match(/```json\s*([\s\S]*?)```/), D = jm || /^\s*\{/.test(roh) ? JSON.parse(jm ? jm[1] : roh) : null, P = D ? { D: D, probleme: [] } : ausText(roh);
       if (was === '--text') process.stdout.write(alsText(P.D));
       else if (was === '--json') { process.stdout.write(JSON.stringify(P.D, null, 1) + '\n'); if (P.probleme.length) console.error(P.probleme.join('\n')); }
+      else if (was === '--liste') {
+        var RUBRIK = { person: 'Personen', gruppe: 'Gruppen', ort: 'Orte', ding: 'Dinge', geruecht: 'Gerüchte' }, zeilen = [], vorher = '';
+        sichtbar(P.D).forEach(function (e) {
+          var r = RUBRIK[e.art] || e.art;
+          if (r !== vorher) { zeilen.push('', '**' + r + ':**'); vorher = r; }
+          zeilen.push('- ' + (e.spieler ? '🎭 ' : '') + e.name + (e.gefahr ? ' ' + (e.gefahr === 'toedlich' ? '☠️' : '🩸') : '') +
+            (e.haltung && HALTUNG[e.haltung] ? ' (' + HALTUNG[e.haltung] + ')' : '') + (e.kurz ? ': ' + e.kurz.replace(/\.$/, '') : '') +
+            (e.namen && e.namen.length ? ' · auch: ' + e.namen.join('; ') : ''));
+        });
+        process.stdout.write(zeilen.join('\n').replace(/^\n/, '') + '\n');
+      }
       else if (was === '--auszug') { var A = alsAuszug(P.D, args[1]); if (!A) { console.error('Kein Eintrag „' + args[1] + '“.'); process.exit(1); } process.stdout.write(alsText(A)); }
       else if (was === '--db') {
         if (P.probleme.length) { console.error('Erst die Prüfung bestehen:\n' + P.probleme.join('\n')); process.exit(1); }
@@ -644,10 +652,10 @@
         process.stdout.write(docs.map(function (d) { return d.sammlung + '/' + d.id; }).join('\n') + '\n');
         console.error(docs.length + ' Dokumente in ' + ordner + ' (' + (docs.length - 1) + ' Einträge, 1 meta). Einspielen: ArtifactData batch, je Dokument set mit file_path; bestehende Dokumente mit if_version aus einem list davor.');
       }
-      else { console.error('Aufruf: node glossar.js --auszug <Name>|--json|--text|--db <ordner> <02_glossar.md> | --seite'); process.exit(2); }
+      else { console.error('Aufruf: node glossar.js --auszug <Name>|--json|--text|--liste|--db <ordner> <02_glossar.md>'); process.exit(2); }
     }
   } else {
-    // Im Browser: Haken für die Glossar-Seite, die ihre Daten aus der Datenbank holt und dann zeichnen lässt
+    // Im Browser: Haken für das Spielerbuch, das seine Daten aus der Datenbank holt und dann zeichnen lässt
     window.GLOSSAR_TISCH = { einbauen: einbauen, ausText: ausText, ausDokumenten: ausDokumenten, version: VERSION };
     (function warten(n) { if (!start() && n < 60) setTimeout(function () { warten(n + 1); }, 50); })(0);
   }

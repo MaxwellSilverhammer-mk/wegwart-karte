@@ -155,7 +155,7 @@ ok(glossar.sichtbar(D2).length === 7 && html.indexOf('Ortwin') < 0, 'Laufzeitspe
 ok(html.indexOf('🎭 Wenzel Hartlieb') >= 0 && html.indexOf('eingeschätzt auf Stufe 2') >= 0 && html.indexOf('Nachfragen') < 0 && html.indexOf('Brief an') < 0, 'Zeichnen: 🎭, Gefahr mit Stufe, keine Spielhandlungen im Tisch');
 ok(html.indexOf('data-prompt="Questlog"') >= 0 && html.indexOf('data-prompt="Karte"') >= 0 && html.indexOf('data-prompt="Inventar"') >= 0, 'Zeichnen: Knöpfe zu Logbuch, Karte und Gepäck');
 var hA = glossar.zeichne(PA.D);
-ok(hA.indexOf('data-prompt="Glossar Schwarzen Weiher"') >= 0 && hA.indexOf('Auszug: 1 von 7 Einträgen') >= 0 && hA.indexOf('data-prompt="Glossar alles"') >= 0, 'Auszug: Verweis nach draußen fragt die Spielleitung, Knopf zum ganzen Glossar');
+ok(hA.indexOf('data-prompt="Glossar Schwarzen Weiher"') >= 0 && hA.indexOf('Auszug: 1 von 7 Einträgen') >= 0 && hA.indexOf('data-prompt="Glossar"') >= 0, 'Auszug: Verweis nach draußen fragt die Spielleitung, Knopf zum ganzen Glossar');
 
 console.log(fehlgeschlagen ? fehlgeschlagen + ' Prüfungen fehlgeschlagen' : 'Alle Prüfungen bestanden');
 process.exit(fehlgeschlagen ? 1 : 0);

@@ -79,9 +79,16 @@ function fehlend(fakt, zeile) {
 function dieselbeSache(fakt, zeile) { var n = w.inhalt(fakt).length; return n > 0 && fehlend(fakt, zeile) <= Math.floor(n / 5); }
 // War die Figur dabei? Eine Zeile des Spielstands oder der Spoilerdatei nennt sie und beschreibt die Sache
 // (höchstens jedes dritte Wort fehlt) oder steht unter dem Tag der Sache und trägt die Hälfte der Wörter
+// Eine Person heißt im Text oft nur beim Rufnamen („Aske“ statt „Mutter Aske“): Titel zählen nicht mit
+var TITEL = /^(mutter|grossmutter|großmutter|vater|grossvater|großvater|magister|prinz|prinzessin|feldwebel|hauptmann|bruder|schwester|herr|frau|kapitaen|kapitän|meister|meisterin|alte|alter|der|die|das)$/i;
+function namenVon(name) {
+  var teile = String(name).split(/\s+/).filter(function (x) { return x.length >= 3 && !TITEL.test(x); });
+  return [name].concat(teile.length > 1 || teile[0] !== name ? teile : []);
+}
+function genannt(text, name) { var t = w.norm(text); return namenVon(name).some(function (nm) { return w.kommtVor(t, nm); }); }
 function dabei(name, fakt, tag, zeile) {
   var n = w.inhalt(fakt).length;
-  if (!n || !w.kommtVor(w.norm(zeile.text), name)) return false;
+  if (!n || !genannt(zeile.text, name)) return false;
   var f = fehlend(fakt, zeile.text);
   if (f <= Math.floor(n / 3)) return true;
   return typeof tag === 'number' && zeile.tag === tag && f <= Math.floor(n / 2);
@@ -113,6 +120,8 @@ function pruefe(B, quellen) {
   var byName = {};
   B.figuren.forEach(function (f) { byName[w.norm(f.name).trim()] = f; });
   var zeilenStand = zeilenMitTag(stand + '\n' + spoilerRest);
+  // Was die Spielerfigur selbst weiß, belegt nur der Spielstand (mit seinen Teilen), nie die Spoilerdatei
+  var zeilenNurStand = zeilenMitTag(stand);
   // Posten des Glossars: was die Spielerfigur weiß (mit Tag), und wer es ihr gesagt hat (Quelle)
   var posten = [];
   if (G) G.eintraege.forEach(function (e) { (e.wissen || []).forEach(function (x) { if (x && x.text) posten.push({ text: x.text, tag: x.tag, quelle: x.quelle || '', bekannt: x.bekannt }); }); });
@@ -120,7 +129,7 @@ function pruefe(B, quellen) {
     // Die Spielerfigur: ein Posten des Glossars bis zu diesem Tag, sonst eine Zeile des Spielstands
     if (figur && w.norm(name).trim() === w.norm(figur).trim()) {
       if (posten.some(function (p) { return dieselbeSache(fakt, p.text) && (typeof p.tag !== 'number' || typeof tag !== 'number' || p.tag <= tag); })) return 'glossar';
-      if (zeilenStand.some(function (z) { return dieselbeSache(fakt, z.text); })) return 'spielstand';
+      if (zeilenNurStand.some(function (z) { return dieselbeSache(fakt, z.text) && (typeof z.tag !== 'number' || typeof tag !== 'number' || z.tag <= tag); })) return 'spielstand';
       return null;
     }
     // Eine Figur des Reviers: hat es der Spielerfigur selbst erzählt (Posten „von X“ im Glossar) …
@@ -158,7 +167,7 @@ function pruefe(B, quellen) {
         else {
           var r = wurzel(f, z, []);
           // Zwei Figuren des Reviers: Steht nirgends, dass sie sich getroffen haben, fragt die Prüfung nach, wenn kein Grund dabeisteht
-          if (byName[w.norm(z.von).trim()] && !z.grund && !zeilenStand.some(function (zl) { return w.kommtVor(w.norm(zl.text), f.name) && w.kommtVor(w.norm(zl.text), z.von); })) hinweise.push(wo + ': „von ' + z.von + '“, aber keine Zeile des Spielstands oder der Spoilerdatei nennt ' + f.name + ' und ' + z.von + ' zusammen. Wann haben sie gesprochen? (Grund nach „;“ eintragen.)');
+          if (byName[w.norm(z.von).trim()] && !z.grund && !zeilenStand.some(function (zl) { return genannt(zl.text, f.name) && genannt(zl.text, z.von); })) hinweise.push(wo + ': „von ' + z.von + '“, aber keine Zeile des Spielstands oder der Spoilerdatei nennt ' + f.name + ' und ' + z.von + ' zusammen. Wann haben sie gesprochen? (Grund nach „;“ eintragen.)');
           if (r.kreis) fehler.push(wo + ': Die Kette läuft im Kreis; irgendwer muss es erlebt oder gehört haben.');
           else if (r.fehlt) fehler.push('Begründung fehlt: ' + wo + ' „von ' + z.von + '“, aber ' + r.fehlt + ' weiß das selbst nicht' + (typeof z.tag === 'number' ? ' (bis Tag ' + z.tag + ')' : '') + ': keine Zeile in seinem Abschnitt, kein Posten im Glossar' + (r.fehlt === figur ? ', keine Zeile im Spielstand' : '') + '.');
         }
