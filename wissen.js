@@ -124,7 +124,12 @@ function pruefe(D, schema, quellen, zusatz) {
   if (!stand.trim()) melde(fehler, 'Spielstand fehlt: Ohne ihn lässt sich nichts belegen.');
   if (!spoiler.trim()) melde(fehler, 'Spoilerdatei fehlt: Ohne sie keine Freigabe.');
   var wStand = wortschatz(stand), wSpoiler = wortschatz(spoiler), nStand = norm(stand), E = einheiten(stand);
-  var glossar = glossarStichwoerter(stand), pStand = paarSatz(stand, 3), pSpoiler = paarSatz(spoiler, 1);
+  // Namen und Quellen müssen in diesem Korpus stehen; ohne eigenen ist es der Spielstand selbst
+  var nNamen = quellen.namenKorpus ? norm(String(quellen.namenKorpus)) : nStand;
+  // Glossar-Stichwörter: aus der mitgegebenen Glossardatei (02_glossar.md), sonst aus dem Abschnitt „## Glossar“ des Spielstands
+  var glossar = Array.isArray(quellen.glossarNamen) ? quellen.glossarNamen.map(function (x) { return norm(x).trim(); }) : glossarStichwoerter(stand);
+  if (glossar && !glossar.length) glossar = null;
+  var pStand = paarSatz(stand, 3), pSpoiler = paarSatz(spoiler, 1);
   if (!D || typeof D !== 'object' || Array.isArray(D)) return { ok: false, fehler: ['Daten fehlen oder sind kein Objekt.'], hinweise: [], zaehl: zaehl };
 
   var F = schema.felder, W = schema.wahl || {}, P = schema.pflicht || {};
@@ -166,7 +171,7 @@ function pruefe(D, schema, quellen, zusatz) {
     var nf = (schema.namen || {})[typ];
     if (nf && typeof o[nf] === 'string') {
       var formen = [o[nf]].concat(Array.isArray(o.namen) ? o.namen : []).filter(function (f) { return typeof f === 'string'; });
-      if (!formen.some(function (f) { return kommtVor(nStand, f); })) melde(fehler, wo + ': Der Name steht nicht im Spielstand (Schreibweise in „namen“ ergänzen oder zuerst in den Spielstand eintragen)');
+      if (!formen.some(function (f) { return kommtVor(nNamen, f); })) melde(fehler, wo + ': Der Name steht nicht im Spielstand (Schreibweise in „namen“ ergänzen oder zuerst in den Spielstand eintragen)');
     }
     // Belege: längere Texte brauchen eine tragende Stelle im Spielstand
     var bf = (schema.belege || {})[typ] || {};
@@ -191,7 +196,7 @@ function pruefe(D, schema, quellen, zusatz) {
         v.split(/,\s*|\s+und\s+/).forEach(function (teil) {
           teil = teil.trim();
           if (!teil || ALLGEMEIN.indexOf(norm(teil)) >= 0 || ALLGEMEIN.indexOf(teil.toLowerCase()) >= 0) return;
-          if (!kommtVor(nStand, teil)) melde(fehler, wo + ' (' + k + '): „' + teil + '“ steht nicht im Spielstand');
+          if (!kommtVor(nNamen, teil)) melde(fehler, wo + ' (' + k + '): „' + teil + '“ steht nicht im Spielstand');
         });
       });
     });
@@ -216,7 +221,7 @@ function pruefe(D, schema, quellen, zusatz) {
   });
 
   if (typeof zusatz === 'function') {
-    var z = zusatz(D, { stand: stand, nStand: nStand, norm: norm, kommtVor: kommtVor, zahlBekannt: zahlBekannt, kennt: kennt, wStand: wStand, woerterVon: woerterVon, quellen: quellen }) || {};
+    var z = zusatz(D, { stand: stand, nStand: nStand, nNamen: nNamen, norm: norm, kommtVor: kommtVor, zahlBekannt: zahlBekannt, kennt: kennt, wStand: wStand, wSpoiler: wSpoiler, wortschatz: wortschatz, woerterVon: woerterVon, inhalt: inhalt, quellen: quellen }) || {};
     (z.fehler || []).forEach(function (f) { melde(fehler, f); });
     (z.hinweise || []).forEach(function (h) { melde(hinweise, h); });
   }

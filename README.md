@@ -6,7 +6,7 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, mit dem, was sie darüber weiß (Abschnitt „Gepäck“).
 - **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
-- **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher.
+- **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher.
 
 ## Aufruf
 
@@ -123,31 +123,39 @@ Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 
 
 ## Glossar
 
-Eine Datei `02_glossar.md`, drei Formen des Tisches:
+Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Datei, als Text (Grammatik unten), den der Tisch selbst liest. Zwei Formen aus derselben Datei:
 
-- **Stichwortliste** (`liste: true`): alle Stichwörter mit Kurzzeile, Haltung, Gefahrzeichen und „neu“, nach Rubriken, mit Suche. Ein Tipp auf ein Stichwort schickt „Glossar <Name>“ an die Spielleitung. Das ist die Antwort auf den Befehl **Glossar**: klein (rund 150 Byte je Eintrag), damit sie schnell da ist.
-- **Auszug** (`auszug: true`, `gesamt`, `auf`): ein Eintrag mit allen Posten, aufgeklappt; Querverweise auf Einträge, die nicht mitkommen, fragen die Spielleitung („Glossar <Name> ↗“). Das ist die Antwort auf **Glossar <Stichwort>** und auf die Knöpfe der anderen Tische.
-- **Ganzes Glossar** (ohne beides): alle Einträge mit Posten; Querverweise öffnen an Ort und Stelle. Nur auf Wunsch, weil die Spielleitung die ganze Datei ausgeben muss.
+- **Auszug** (Kopfzeile mit `Auszug: 1 von 64`): ein Eintrag mit allen Posten, aufgeklappt. Querverweise auf Einträge, die nicht mitkommen, fragen die Spielleitung („Glossar <Name> ↗“), der Fuß „Ganzes Glossar ↗“ ebenso. Das ist die Antwort auf **Glossar <Stichwort>** und auf die Knöpfe „Glossar … ↗“ der anderen Tische. `node glossar.js --auszug <Name> 02_glossar.md` schreibt den Text.
+- **Ganzes Glossar**: alle Einträge mit Kurzzeile, Haltung, Gefahrzeichen und „neu“, nach Rubriken, mit Suche; ein Tipp klappt den Eintrag an Ort und Stelle auf, Querverweise springen hin. Das ist die Antwort auf **Glossar** ohne Stichwort, wenn die Figur alles sehen will (die Spielleitung fragt vorher, ob ein Eintrag oder alles). Die ganze Datei geht dabei durch den Chat, darum nur auf Wunsch.
+
+Aufruf im Widget, der Text unverändert zwischen den Tags:
 
 ```html
 <h2 class="sr-only">Glossar: was Fürchtegott weiß, Stand Tag 12</h2>
 <div id="glossar">Glossar lädt … Falls nicht, frag nach dem Glossar als Text.</div>
-<script>var GLOSSAR={titel:'Glossar', stand:'Stand: Tag 12', heute:12, neuSeit:9, figur:'Fürchtegott', liste:true, eintraege:[…]}</script>
+<script type="text/plain" id="glossar-text">
+*Stand: Tag 12 · neu seit Tag 9 · Gefahr nach Stufe 3 · Figur: Fürchtegott*
+
+### Personen
+- **Ksshar** (verbündet) · auch: der Echsenmann vom Knüppeldamm · Ort: Schuppenkreis · Logbuch: Die Gelbkehlen · siehe: Ssark
+  Späher der Gelbkehlen, dein Vertrauter.
+  - Späher der Gelbkehlen, der Echsenmann vom Knüppeldamm. (gesehen, Tag 3)
+  - Hat Brasks Boote gesehen und die Köpfe gezählt. (von Ksshar, Tag 4)
+</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/glossar.js';document.head.appendChild(s);</script>
 ```
 
-| Feld | Inhalt |
+| Zeile | Form |
 |---|---|
-| `titel`, `stand`, `heute` | Kopf; `heute` ist der Tag, wie das Abenteuer ihn zählt |
-| `neuSeit` | Welttag, ab dem Posten als „neu“ gelten (der erste Tag der letzten Sitzung) |
-| `figur` | Name der Figur, für den Hinweis unter „Nachfragen“ |
-| `liste`, `auszug`, `gesamt`, `auf` | Form des Tisches (oben); `gesamt` ist die Zahl aller Einträge, `auf` die id des aufgeklappten Eintrags |
-| `eintraege[]` | `id`, `name`, `art` (`person`, `gruppe`, `ort`, `ding`, `geruecht`); dazu `namen` (weitere Schreibweisen aus dem Spielstand, auch für die Suche), `kurz` (eine Zeile für die Liste), `spieler` (true: Figur eines anderen Spielers, der Tisch setzt 🎭), `haltung` (`verbuendet`, `freund`, `feind`, `gefangen`, `tot`, `vermisst`, `unklar`), `gefahr` (`hart` 🩸, `toedlich` ☠️), `ort` (Name des Orts auf der Karte), `logbuch` (Titel von Aufträgen), `siehe` (Namen anderer Einträge), `post` (`ort`, `wie`: wo ein Brief die Person erreicht), `wissen[]`; in der Stichwortliste statt `wissen` nur `neu` |
-| `wissen[]` | `text` (ein Posten, ein bis zwei Sätze; Zitate in „…“), `bekannt` (`gesehen`, `gehoert`, `gelesen`, `karte`, `geruecht`), `quelle` (Pflicht bei `gehoert`, `gelesen` und `karte`: wer, welches Schriftstück, welche Karte), `tag` (Welttag, an dem die Figur es erfuhr) |
+| Kopf | `*Stand: Tag 12 · neu seit Tag 9 · Gefahr nach Stufe 3 · Figur: Fürchtegott*`, beim Auszug dazu `Auszug: 1 von 64`. `neu seit`: Posten ab diesem Welttag gelten als neu. `Gefahr nach Stufe`: die Stufe der Figur, auf der 🩸 und ☠️ eingeschätzt sind (Regelwerk 12.2); Pflicht, sobald ein Zeichen vorkommt |
+| Rubrik | `### Personen`, `### Gruppen`, `### Orte`, `### Dinge`, `### Gerüchte` |
+| Eintrag | `- **Name** ☠️ (Haltung) · auch: …; … · Ort: … · Logbuch: …; … · siehe: …; … · Post: Ort – wie`. 🎭 vor dem Namen: Figur eines anderen Spielers. Hinter dem Namen 🩸 (harter Gegner) oder ☠️ (jenseits der Stufe). Haltung in Klammern: verbündet, freundlich, feindlich, gefangen, tot, vermisst, unklar; sie ist der Eindruck der Figur, nicht die Wahrheit. Felder trennt ` · `, Listen trennt `; ` (Namen und Titel tragen Kommas). `auch:` weitere Schreibweisen aus dem Spielstand (Suche, Querverweise, Stichwörter der anderen Tische), `Ort:` Name auf der Karte, `Logbuch:` Titel von Aufträgen, `siehe:` andere Einträge, `Post:` wo ein Brief die Person erreicht |
+| Kurzzeile | eingerückt, ohne `- `: eine Zeile, die in der Liste unter dem Namen steht |
+| Posten | `  - Text. (Herkunft, Tag n)`: ein bis zwei Sätze, Zitate in „…“. Herkunft: `gesehen`, `von X`, `gelesen: X`, `laut X` (eine Karte), `Gerücht`, `Gerücht von X`. Tag: der Welttag, an dem die Figur es erfuhr |
 
-Die Posten stehen in der Reihenfolge, in der die Figur sie erfuhr (nach `tag`). Zwei Knöpfe gehen ins Spiel: **Nachfragen ↗** schreibt das Schlüsselwort (die Figur fragt jemanden in der Szene, Regelwerk 5), **Brief an … ↗** schreibt „Brief an <Name>“ (Regelwerk 17.5), wenn der Eintrag `post` hat. Orte haben **Karte ↗**, Dinge **Gepäck ↗**, Einträge mit `logbuch` **Logbuch ↗**.
+Was vor der ersten Rubrik steht, übergeht der Tisch bis auf die Kopfzeile (Hinweise für die Spielleitung). Der Tisch zeigt die Posten nach Tag, jeden mit Herkunft und, ab `neu seit`, mit „neu“; die Gefahr mit der Stufe („jenseits deiner Stufe · eingeschätzt auf Stufe 3“); die Haltung als Satz der Figur („Fürchtegott hält Brask für feindlich.“). Knöpfe: Orte haben **Karte ↗**, Dinge **Gepäck ↗**, Einträge mit `Logbuch:` **Logbuch ↗**. Spielhandlungen (nachfragen, einen Brief schreiben) gibt es im Glossar nicht; sie gehören an den Spieltisch (Regelwerk 5, 17.5).
 
-Ableitungen aus der Datei (Node): `node glossar.js --liste 02_glossar.md` erzeugt die Stichwortliste (sie steht als zweiter json-Block in `02_glossar.md`), `--auszug <id>` einen Auszug, `--text` die Textfassung für Spieler ohne Widget, zugleich die Form des Abschnitts „Glossar“ im Spielstand.
+Node: `node glossar.js --auszug <Name> 02_glossar.md` (Text eines Auszugs), `--json 02_glossar.md` (das gelesene Objekt; Zeilen, die der Tisch nicht versteht, auf stderr), `--text daten.json` (Objekt als Text, zum Umstellen). Zur Not liest der Tisch statt des Textes ein Objekt `var GLOSSAR={…}` mit den Feldern aus `--json`.
 
 ## Spoilerschutz
 
@@ -169,19 +177,21 @@ Die Prüfung läuft nur bei der Spielleitung (Node). Spielstand und Spoilerdatei
 
 ### Gepäck, Logbuch und Glossar
 
-Dieselbe Prüfung, `node pruefen.js 02_inventar.md …`, `02_questlog.md …` oder `02_glossar.md …`, erkennt die Art an den Daten (`traeger`, `auftraege` oder `eintraege`) und nutzt `wissen.js`. Gesperrt wird, wenn
+Dieselbe Prüfung, `node pruefen.js 02_inventar.md …`, `02_questlog.md …` oder `02_glossar.md …`, erkennt die Art an den Daten (`traeger`, `auftraege`; beim Glossar der Text mit seinen Rubriken) und nutzt `wissen.js`. Gesperrt wird, wenn
 
 - ein Wort oder eine Zahl nicht im Spielstand steht oder nur in der Spoilerdatei; ein Feld, eine Art oder ein Wert nicht erlaubt ist (wie bei der Karte),
-- ein Name (Ding, Träger) nicht im Spielstand steht; eine Quelle, ein Gegenüber beim Wort oder ein Glossar-Stichwort fehlt (Stichwörter müssen im Glossar des Spielstands stehen),
+- ein Name (Ding, Träger) nicht im Spielstand steht; eine Quelle, ein Gegenüber beim Wort oder ein Glossar-Stichwort fehlt (Stichwörter müssen im Glossar stehen: `02_glossar.md` als weitere Datei, sonst der Abschnitt „Glossar“ des Spielstands),
 - **Belegprüfung:** ein Satz aus Notiz, Text, Etappe, Termin oder Wort keine Zeile im Spielstand hat, die mindestens 70 % seiner Inhaltswörter trägt (Wortlaut eines Schriftstücks: 90 %). So lässt sich aus verstreuten Wörtern nichts Neues zusammensetzen,
 - **Wortpaare:** ein Satz zwei benachbarte Inhaltswörter mit der Spoilerdatei teilt, die der Spielstand nicht in derselben Reihenfolge nah beieinander hat („verrät … Figur“, „versunkene Kapelle“),
 - **Lore-Check (Logbuch):** ein Termin mit `mond` oder mit „Vollmond“/„Dunkelmond“ im Text nicht auf diese Mondphase fällt, `stand` nicht zu `heute` passt, die Stufengrenze in `ep` nicht Regelwerk 11.1 entspricht, EP, Frist, heute oder ein Termintag nicht im Spielstand stehen (einen Termin, den der Weltkalender festlegt, belegt der Mond).
 
-- **Glossar:** ein Stichwort nicht fett im Abschnitt „Glossar“ des Spielstands steht; ein Posten `gehoert`, `gelesen` oder `karte` ohne Quelle ist oder Selbstgesehenes eine fremde Quelle nennt; ein Tag nach heute liegt oder nicht im Spielstand steht; `gefahr` ein Zeichen trägt, das im Spielstand nicht bei diesem Namen steht (🩸, ☠️); `spieler` eine Figur meint, die nicht unter `figuren` in der Weltchronik steht (Figurenliste als weitere Datei mitgeben), oder die eigene Figur; `siehe`, `ort` oder `logbuch` auf etwas zeigen, das es im Glossar, in den Kartendaten oder im Logbuch nicht gibt (Kartendaten, Gepäck und Logbuch als weitere Dateien mitgeben; ohne sie bleibt das ungeprüft und die Prüfung sagt es); die Stichwortliste (zweiter json-Block) vom Glossar abweicht; ein Eintrag keinen gültigen Posten hat (der Tisch würde ihn verschweigen).
+- **Glossar:** Die Datei ist selbst Spielstand (der Abschnitt „Glossar“ in eigener Datei); darum vergleicht die Maschine hier keine Wörter mit dem übrigen Spielstand, sondern prüft Form, Namen, Lore und Verweise. Gesperrt wird, wenn der Text eine Zeile hat, die der Tisch nicht versteht (Rubrik, Haltung, Feld, Posten ohne Herkunft, Eintrag vor der ersten Rubrik); ein Name, den der übrige Spielstand nicht nennt (auch nicht unter `auch:`), ein Wort trägt, das nur die Spoilerdatei kennt; eine Kurzzeile oder ein Posten ein Wort trägt, das in der Spoilerdatei fett oder in einer Überschrift steht (meist ein Name) und sonst nirgends im Spielstand; eine Quelle (`von X`, `gelesen: X`, `laut X`) weder im übrigen Spielstand noch als Eintrag im Glossar steht; ein Logbuch-Titel nicht im Spielstand vorkommt; Selbstgesehenes eine fremde Quelle nennt; ein Tag nach heute liegt oder es ihn nicht gibt; `neu seit` nach heute liegt; ein Gefahrzeichen vorkommt, ohne dass der Kopf `Gefahr nach Stufe N` trägt, oder diese Stufe nicht die heutige Stufe der Figur ist (Regelwerk 12.2: nach dem Aufstieg alle Zeichen neu einschätzen und die Stufe im Kopf anpassen); 🎭 bei der eigenen Figur steht oder bei einer, die nicht unter `figuren` in der Weltchronik steht (Figurenliste mitgeben); ein Name doppelt ist; `siehe:` auf sich selbst oder auf etwas zeigt, das es im Glossar nicht gibt; `Ort:` nicht in den Kartendaten oder `Logbuch:` nicht im Logbuch steht (Kartendaten, Gepäck und Logbuch als weitere Dateien mitgeben; ohne sie bleibt das ungeprüft und die Prüfung sagt es); ein Eintrag keinen gültigen Posten hat (der Tisch würde ihn verschweigen).
 
-Hinweise, die nicht sperren: Geld oder Traglast weichen vom Spielstand ab, ein Termin liegt nach der Frist, der Aufstieg ist fällig, der Monat steht nicht im Spielstand, ein Ort des Glossars hat noch keine Stelle auf der Karte, ein Ding des Glossars liegt nicht im Gepäck. `test/wissen.test.js` und `test/glossar.test.js` prüfen das an einer erfundenen Welt.
+Hinweise statt Sperren beim Glossar: Namen, die nur im Glossar stehen (Schlüsselwörter, die die Chronik des Spielstands nicht nennt); ein Gefahrzeichen, das sonst nirgends im Spielstand bei diesem Namen steht; ein Ort ohne Stelle auf der Karte, ein Ding ohne Stück im Gepäck; die Stufe der Figur im Spielstand nicht erkannt; eine Liste der Wörter, die außer im Glossar nur in der Spoilerdatei stehen, zum Überfliegen auf verirrte Namen. Was die Maschine nicht kann: einen wahren, aber nicht erlebten Posten erkennen, der mit gewöhnlichen Wörtern umschreibt, was die Spoilerdatei weiß. Das bleibt die Lektüre der Spielleitung vor dem Eintragen (Regelwerk 4.6).
 
-Aufruf mit Querverweisen: `node pruefen.js 02_glossar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_karte.md 02_inventar.md 02_questlog.md figuren.json` (`figuren.json`: `["Name", …]` der Figuren aus der Weltchronik).
+Für Gepäck und Logbuch zählt `02_glossar.md` als Spielstand mit (als weitere Datei mitgeben): Ihre Glossar-Stichwörter müssen dort als Name oder unter `auch:` stehen, und ihre Sätze dürfen sich auf Posten des Glossars stützen.
+
+Aufruf mit Querverweisen: `node pruefen.js 02_glossar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_karte.md 02_inventar.md 02_questlog.md figuren.json` (`figuren.json`: `["Name", …]` der Figuren aus der Weltchronik); für die anderen Tische `node pruefen.js 02_inventar.md 02_spielstand.md 03_spielleitung_SPOILER.md 02_glossar.md`.
 
 Wortvergleich: Wörter werden ohne Umlaute und Groß-/Kleinschreibung verglichen; Beugungen gelten als gleich, wenn Wortanfang und Länge nahe beieinander liegen („überfallen“ und „Überfall“, nicht „Hain“ und „Haken“). Wer einen Begriff neu einführt, trägt ihn zuerst in den Spielstand ein.
 
