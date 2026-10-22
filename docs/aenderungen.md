@@ -1,6 +1,13 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.1 (22. Oktober 2026)
+
+Gegenüber 3.0 (21. Oktober 2026). Zwei Änderungen, sonst gleich.
+
+- **Würfelkasten 1.1** (6.1, 6.2): neue Art `art:'wurf'` für Würfe, die nur zählen, ohne Schaden, Farbe und Animation, mit `einheit` für das, was die Zahl zählt. Anlass: Sleep lief bisher als „Schaden“, gemeint waren die Trefferpunkte, die einschlafen. Neue Adresse: Commit `3d5d64a805af778d4cb382d64f896f12b0af4415` in wegwart-wuerfel; alle anderen Arten verhalten sich wie in 1.0 (geprüft in Chromium mit Probe, Angriff, Schaden mit und ohne Typ, Heilung, Heldenmut). Ein einzelner W20 ohne SG bleibt `probe` ohne `sg`.
+- **Richtwerte** (21.1, 21.3): Der Spielstand zählt ohne die Stichwortliste, weiter etwa 50.000 Zeichen; die Spoilerdatei bleibt unter etwa 100.000 statt 80.000. Begründung: Die Richtwerte sind Kosten- und Übersichtsgrenzen, keine technische Grenze. Regelwerk, Spielstand und Spoilerdatei zusammen sind rund 240.000 Zeichen; erst wenn das Projektwissen sich dem Kontextfenster nähert, blendet Claude es nur noch per Suche ein, und das liegt ein Vielfaches entfernt. Die Stichwortliste ins Spielerbuch auszulagern spart in einer Spielsitzung nichts, weil die Spielleitung sie für jede Antwort braucht (Fettdruck, Haltung, Beinamen) und sie dann zu Beginn lesen müsste; es kostet einen Schritt mehr, eine Ausfallstelle und den Beleg, den pruefen.js aus ihr zieht. Die Liste wird aus dem Glossar erzeugt und wächst mit ihm, darum zählt sie nicht gegen den Kern.
 
 ## Regelwerk 3.0 (21. Oktober 2026)
 
