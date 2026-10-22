@@ -1,6 +1,12 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.2 (22. Oktober 2026)
+
+Gegenüber 3.1 (22. Oktober 2026). Eine Änderung, sonst gleich; Tische, Würfelkasten und `tische_stand` bleiben, wie sie sind.
+
+- **Klang** (3.2, neu): Musik zum Spiel, freiwillig. Wer sie will, trägt im Spielstand unter „## Klang“ je Stimmung einen Link zu einer eigenen Playlist ein; ohne diesen Abschnitt gibt es keine Klangzeilen. Acht Stimmungen, für alle Tische gleich: Weg, Wildnis, Lager, Schenke, Stadt, Unheil, Kampf, Nachklang; wie sie klingen, entscheidet der Spieler für sein Revier. Die Klangzeile „🎶 [Stimmung](Link)“ steht nach der Ortszeile, oder allein, wenn die Stimmung ohne Ortswechsel kippt; höchstens eine je Antwort, keine, solange die Stimmung schon läuft, „🎶 Stille“ ohne Link ist erlaubt. Sie folgt der Wahrnehmung der Figur, nicht dem Wissen der Spielleitung, damit die Musik keinen verdeckten Wurf verrät: Ein unbemerkter Hinterhalt bleibt bei „Weg“, bis er zuschlägt. Anlass: Keine Spielleitung kann Musik selbst abspielen (der Spotify-Konnektor sucht und legt Playlists an, startet aber nichts); ein Link, den der Spieler antippt, geht überall und kostet zwei Tipps. Querverweise in 3 (Ortszeile, Zeichen 🎶), 3.1 (stille Prüfung) und 21.1 (Abschnitt „Klang“ im Spielstand).
 
 ## Regelwerk 3.1 (22. Oktober 2026)
 
