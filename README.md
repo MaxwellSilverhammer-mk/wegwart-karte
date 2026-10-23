@@ -6,6 +6,7 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, mit dem, was sie darüber weiß (Abschnitt „Gepäck“).
 - **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
+- **Handel** (`handel.js`): Händlertisch mit einer Waage: Ware antippen oder auf die Schalen ziehen, die Münzen mit Wechselgeld legt der Tisch selbst auf; Daten in der Form des Gepäcks (Abschnitt „Handel“).
 - **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt das Glossar im Spielerbuch.
 - **Spielerbuch** (`seite/buch.html`, gebaut mit `seite/bauen.js`): eine Seite je Figur, ein Artefakt mit Datenbank, mit Glossar, Logbuch, Gepäck, Karte und „Was bisher geschah“; die Tische sind eingebaut (Abschnitt „Das Spielerbuch“).
 - **Wissensbuch** (`wissensbuch.js`, nur Prüfung): Wer weiß was im Revier, Figur für Figur mit Herkunft und Welttag, in der Spoilerdatei; die Prüfung sperrt Wissen ohne Weg (Abschnitt „Wissensbuch“).
@@ -122,6 +123,32 @@ Plant kurze und lange Rast. Trefferwürfel würfelt der Spieler einzeln wie am T
 | `held` | `true`, wenn die Figur Heldenmut hat |
 
 Beispielnachrichten: „Rast #7 · Kurze Rast · Trefferwürfel 2 × W8+1: 5+1, 3+1 = 10 · Lied der Erholung W6: 4 · TP 8 → 21/21 · Trefferwürfel übrig 0/3 · isst eine Ration“ und „Rast #8 · Lange Rast · isst vorher eine Ration · danach Aid (Grad 2) auf die Probefigur, Jost und die Stute · Stute versorgt (Hafer oder Weide)“. Die lange Rast ist ein Plan: Was in der Nacht geschieht und was am Morgen zurückkommt, erzählt die Spielleitung.
+
+## Handel
+
+Der Händlertisch ist eine Waage auf Pergament. Links liegt, was die Figur gibt, rechts, was der Händler gibt. Antippen legt ein Stück auf die Schale, Antippen auf der Schale nimmt es zurück; mit der Maus lässt es sich sofort ziehen, mit dem Finger nach kurzem Halten, damit der Chat sich weiter scrollen lässt. Die Waage kippt nach dem Wert der Ware, dann legt der Tisch die Münzen selbst auf, mit Wechselgeld aus Beutel und Kasse, bis sie im Lot steht. Reicht der Beutel nicht, bleibt sie schief; reicht die Kasse nicht, bleibt der Händler den Rest schuldig. „Handschlag“ schickt das Ergebnis als „Handel #nr · …“ an die Spielleitung, „Feilschen“ den Korb, um jeden Betrag; die Nummer teilt sich den Zähler mit dem Würfelkasten. Die Regeln dazu stehen im Regelwerk (10.1, 4.9).
+
+```html
+<h2 class="sr-only">Handel: Probefigur bei Ilse in Rohrdorf</h2>
+<div id="handel">Auslage lädt … Falls nicht, schreib Handel.</div>
+<script>var HANDEL={nr:4,ort:'Rohrdorf',stand:'Stand: Tag 8',haendler:{name:'Ilse',art:'Krämerin',kasse:{ga:3,sm:18,km:40},waren:[…]},gepaeck:{geld:{ga:12,sm:3},traeger:[…]}}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/handel.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `nr` | Nummer wie beim Würfelkasten |
+| `ort`, `stand`, `hinweis` | Kopf des Pergaments; `hinweis` ist ein Satz der Spielleitung, etwa zu Preisen vor Ort |
+| `haendler` | `name`, `kurz` (Rufname für „Ilse gibt“), `art` (Krämerin, Wirt …), `kasse` (Münzen wie im Gepäck: was der Händler heute zahlen kann), `waren[]`, `gefeilscht` (`true`, wenn in diesem Besuch schon gefeilscht wurde; dann fehlt der Knopf), `glossar` (Stichwort für den Knopf „Glossar …“) |
+| `waren[]` | `name`, `art` (wie im Gepäck), `preis` (Münzen `{ga, sm, km}`, Text „1 GA 5 SM“ oder eine Zahl in Goldadmiralen), `anzahl` (ohne: genug), `kg` (je Stück), `notiz` |
+| `gepaeck` | das Gepäck der Figur in der Form von `tische/gepaeck` (inventar.js): `geld`, `traeger[]` mit `dinge[]`. Träger der Art `lager` zählen nicht. Dazu je Ding `ankauf`: was dieser Händler dafür zahlt, und `ankaufNotiz`. Ohne `ankauf` kauft er es nicht; der Tisch zeigt es eingeklappt. |
+| `korb` | `{kauft: {Name: Anzahl}, verkauft: {Name: Anzahl}}`: legt Waren schon auf die Waage, etwa nach dem Feilschen |
+
+- Die Preise rechnet die Spielleitung vorher aus (Liste, Ort, Neigung, Feilschen); der Tisch rechnet nur zusammen. Neigung, Härte und Lager des Händlers kommen nicht in die Daten, denn alles in den Daten kann der Spieler lesen (Regelwerk 4.8). Die Kasse zeigt der Tisch offen.
+- Gekauftes zählt für die Traglast der Figur (`staerke`, `faktor` am Träger der Art `figur`, wie im Gepäck).
+- Wechselgeld: Wer genau zahlen kann, zahlt genau; sonst der kleinste Betrag, zu dem es Wechselgeld gibt, mit den wenigsten Münzen. Kann keiner wechseln, bleibt der Rest beim Händler. Ein Händler zahlt nie zu viel: Kann er nicht genau zahlen, bleibt er den Rest schuldig.
+
+Beispielnachrichten: „Handel #4 · bei Ilse, Rohrdorf · kauft 2 × Ration (1 GA), Kerze (1 KM) · verkauft Kartenspiel (2 SM, 5 KM) · zahlt 1 GA · bekommt 2 SM, 4 KM zurück · Beutel danach 11 GA, 5 SM, 4 KM · trägt danach 16,5 kg (unbelastet)“ und „Handel #5 · feilscht bei Ilse, Rohrdorf · Korb: kauft Kerze (1 KM) · Wert 1 KM gegen nichts“. Nach dem Feilschen stellt die Spielleitung den Würfelkasten (Überzeugen) und danach den Tisch neu, mit den neuen Preisen, dem Korb und `gefeilscht: true`. Der Händlertisch braucht wie die Rast keine Prüfung durch pruefen.js; die Spielleitung liest Waren und Notizen selbst gegen die Spoilerdatei. Ins Spielerbuch kommt er nicht. `test/handel.test.js` prüft die Rechnung an der erfundenen Welt (`test/handel-beispiel.js`).
 
 ## Glossar
 
@@ -257,4 +284,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.0; seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.0; seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
