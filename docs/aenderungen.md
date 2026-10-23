@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.3 (23. Oktober 2026)
+
+Gegenüber 3.2 (22. Oktober 2026). Eine Erweiterung, sonst gleich. Neuer Stand der Tische: `0e3e46b4020606aa063e2f811aa149d0259e0806` (neu ist nur handel.js mit Beispiel und Tests; alle anderen Dateien sind dieselben wie in `1a8b277`). Der Würfelkasten bleibt.
+
+- **Handel** (10.1, neu): Kaufen, Verkaufen, Tauschen und Feilschen bei Händlern, die einen Vorrat und eine Kasse haben (Spoilerdatei, Abschnitt „## Händler“). Preise nach der Liste des PHB 2014 in Münzen der Hold, mit Zuschlag nach Ort. Verkaufen nach den Büchern: unbeschädigte Ausrüstung die Hälfte, Waffen und Rüstung von Gegnern selten verkäuflich, Edelsteine, Kunst und Handelsware voller Wert (PHB 2014, „Selling Treasure“), Magisches nach der Tabelle des DMG 2014 („Selling Magic Items“); für Diebesgut kennen die Bücher keinen Preis, wer es verkauft, hinterlässt eine Spur. Der Händler zahlt nur, was in seiner Kasse liegt, sonst Ware oder Schuldschein. Zwei Hausregeln: Der Preis folgt der Neigung des Händlers (8.3) und dem Auftreten, je ein Zehntel; Feilschen geht bei jedem Händler und um jeden Betrag, einmal je Händler und Besuch, mit Überzeugen gegen SG 10 + Härte (2 bis 8), gelungen ein Zehntel, glänzend ein Fünftel. Vorrat und Nachschub laufen beim Weltzug mit (8.3).
+- **Händlertisch** (4.9, neu): handel.js, eine Waage auf Pergament. Ware antippen oder ziehen (Maus sofort, Finger nach kurzem Halten); die Waage kippt nach dem Wert, dann legt der Tisch Münzen und Wechselgeld aus Beutel und Kasse auf, bis sie im Lot steht. „Handschlag“ und „Feilschen“ schicken eine Zeile „Handel #nr · …“. Die Daten haben die Form des Gepäcks (`tische/gepaeck`) mit `ankauf` je Ding. Keine Prüfung durch pruefen.js, nicht im Spielerbuch.
+- **Befehl Handel** (4, 4.1) und Befehlszeile; Auslage als Text mit ⚖️, wenn der Tisch nicht lädt (3, 10.1). Querverweise in 3 (Spieltisch, zweite Zeile), 4.2 (Tabelle, `tische_stand`), 4.4 (Herkunft von Gekauftem), 6.2 (Nummern), 8.3 (Weltzug), 17.3 (der Laden einer Schlüsselfigur bleibt offen), 18 (`handel` in der Chronik), 21.1 bis 21.3 und 22.
+- Anlass: Wunsch des Weltenhüters nach Händlern mit Inventar und Geld, Kaufen und Verkaufen. Entschieden hat er: Feilschen immer möglich, Verkaufsregeln wie in den Büchern, Neigungsstaffel, Händlertisch mit Waage und Ziehen.
 
 ## Regelwerk 3.2 (22. Oktober 2026)
 
@@ -30,6 +39,10 @@ Gegenüber 2.8 (20. Oktober 2026). Keine Regel ist entfallen; was nicht mehr im 
 - **Weltchronik** (18): meta/welt mit Glossar, `tische_stand` und `spielerbuch`; `buch` unter figuren; `eingetragen` unter chronik; zu Sitzungsbeginn gezielt lesen (Einträge mit `eingetragen` am oder nach dem letzten Abgleich, Post nach `an` und `ankunft.ort`); das Datum des Abgleichs kommt beim Sitzungsende in den Spielstand (21.3); Ids für Tage vor Welttag 1. Der Wortlaut von Briefen steht im Gepäck, als Beleg in der Geschichte und, abgeschickt, in der Chronik (21.1).
 - **Einstieg** (22): Spielerbuch, Uhren und Wissensbuch beim Anlegen einer Figur; Umstieg laufender Figuren (22.2).
 - Diese Liste stand im Entwurf als Anhang im Regelwerk. Sie liegt jetzt hier, damit sie nicht jede Nachricht mitlädt.
+
+## Werkzeuge zum Stand von Regelwerk 3.3
+
+- `handel.js` (neu): der Händlertisch (README, Abschnitt „Handel“). Wechselgeld mit begrenzten Münzen (kleinster Betrag, zu dem es Wechselgeld gibt, dann die wenigsten Münzen); ein Händler zahlt nie zu viel und bleibt sonst schuldig. `test/handel.test.js` prüft die Rechnung an der erfundenen Welt (`test/handel-beispiel.js`).
 
 ## Werkzeuge zum Stand von Regelwerk 3.0
 
