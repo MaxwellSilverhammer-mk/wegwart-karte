@@ -7,6 +7,7 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
 - **Handel** (`handel.js`): Händlertisch mit einer Waage: Ware antippen oder auf die Schalen ziehen, die Münzen mit Wechselgeld legt der Tisch selbst auf; Daten in der Form des Gepäcks (Abschnitt „Handel“).
+- **Titel** (`titel.js`): Titelbildschirm zu Beginn einer Sitzung, ein Ölgemälde, das sich selbst malt, mit Menü und Spielständen, ein Platz je Figur (Abschnitt „Titel“).
 - **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt das Glossar im Spielerbuch.
 - **Spielerbuch** (`seite/buch.html`, gebaut mit `seite/bauen.js`): eine Seite je Figur, ein Artefakt mit Datenbank, mit Glossar, Logbuch, Gepäck, Karte und „Was bisher geschah“; die Tische sind eingebaut (Abschnitt „Das Spielerbuch“).
 - **Wissensbuch** (`wissensbuch.js`, nur Prüfung): Wer weiß was im Revier, Figur für Figur mit Herkunft und Welttag, in der Spoilerdatei; die Prüfung sperrt Wissen ohne Weg (Abschnitt „Wissensbuch“).
@@ -150,6 +151,31 @@ Der Händlertisch ist eine Waage auf Pergament. Links liegt, was die Figur gibt,
 
 Beispielnachrichten: „Handel #4 · bei Ilse, Rohrdorf · kauft 2 × Ration (1 GA), Kerze (1 KM) · verkauft Kartenspiel (2 SM, 5 KM) · zahlt 1 GA · bekommt 2 SM, 4 KM zurück · Beutel danach 11 GA, 5 SM, 4 KM · trägt danach 16,5 kg (unbelastet)“ und „Handel #5 · feilscht bei Ilse, Rohrdorf · Korb: kauft Kerze (1 KM) · Wert 1 KM gegen nichts“. Nach dem Feilschen stellt die Spielleitung den Würfelkasten (Überzeugen) und danach den Tisch neu, mit den neuen Preisen, dem Korb und `gefeilscht: true`. Der Händlertisch braucht wie die Rast keine Prüfung durch pruefen.js; die Spielleitung liest Waren und Notizen selbst gegen die Spoilerdatei. Ins Spielerbuch kommt er nicht. `test/handel.test.js` prüft die Rechnung an der erfundenen Welt (`test/handel-beispiel.js`).
 
+## Titel
+
+Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemälde malt sich selbst, grob bis fein: eine Bucht der Hold am Abend, ein Schiff vor der untergehenden Sonne, Weg und Steg im Vordergrund, zuletzt die Goldlettern „Hold der Seeprinzen“. Darunter das Menü: **Spiel laden** öffnet die Spielstände, ein Platz je Figur mit Datum und Lunas Phase, Ort, Frist und Erfahrung, dazu ein freier Platz; „Laden“ schickt „Spiel laden: <Name>“. Daneben stehen der Link zum Spielerbuch, die Befehle als Knöpfe (jeder schickt sein Wort) und „Wie wird gespielt?“, das „(Wie wird gespielt?)“ schickt. Das Menü geht sofort; das Bild braucht auf dem Handy etwa zehn Sekunden, bei reduzierter Bewegung erscheint es fertig.
+
+```html
+<h2 class="sr-only">Titelbildschirm: Hold der Seeprinzen</h2>
+<div id="titel">Titelbild lädt … Falls nicht, schreib „Spiel laden“.</div>
+<script>var TITEL={fuss:'Regelwerk 3.6 · Welttag 9 · 9. Patchwall 576 CY', buch:'https://claude.ai/artifact/…', befehle:['Questlog','Glossar','Karte','Inventar'], figuren:[{name:'Probefigur', zeile:'Barde 2 · Wegwart', ort:'Rohrdorf, Alte Eiche', datum:'9. Patchwall 576', tageszeit:'Abend', welttag:9, frist:[9,28,'Die Brücke bei Rohrdorf'], ep:[450,900,3,300], sitzung:4, held:true}]}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/titel.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `figuren[]` | je eigener Figur ein Platz: `name` (Pflicht), `zeile` (Klasse und Stufe, Herkunft), `ort`, `datum`, `tageszeit`, `welttag` (daraus Lunas Phase, Regelwerk 8.1), `frist: [heute, Frist, wofür]`, `ep: [Stand, Grenze, nächste Stufe, Grenze der jetzigen Stufe]` (der Balken läuft von der jetzigen Stufe an), `sitzung` (die zuletzt beendete), `held` (`true` bei Heldenmut), `laden` (was „Laden“ schickt, sonst „Spiel laden: <name>“) |
+| `buch` | Link zum Spielerbuch; ohne ihn fehlt der Knopf |
+| `befehle` | Befehle als Knöpfe, z. B. `['Questlog', 'Glossar', 'Karte', 'Inventar']` |
+| `fuss` | eine Zeile unter dem Menü, etwa Regelwerk, Welttag und Datum |
+| `einfuehrung` | `false` blendet „Wie wird gespielt?“ aus (für Spieler ohne Einführung, Regelwerk 4.1) |
+| `frei` | Text des freien Platzes (sonst „Für eine neue Figur oder einen Nachfolger“); `false` blendet ihn aus |
+
+- Was in `TITEL` steht, kann der Spieler lesen: nur eigene Figuren, nur aus dem Spielstand (Regelwerk 4.8, 4.10). pruefen.js prüft den Titel nicht.
+- Im Chat stehen nur die vier Zeilen. Szene, Malwerk (Pinselstriche in vier Lagen nach Hertzmann, Relief, Lasur und Firnis) und Lettern stecken ganz in `titel.js`; die Lettern sind aus IM Fell (Igino Marini, SIL Open Font License 1.1) als Pfade eingebacken und brauchen keine Schrift. Das Menü nutzt IM Fell English von Google Fonts, das `titel.js` selbst nachlädt, sonst Georgia. `canvas[data-fertig]` zeigt, dass das Bild fertig ist.
+- Ohne `sendPrompt` (etwa in einer Vorschau außerhalb des Chats) sagt ein Hinweis, was ein Knopf im Spiel schicken würde.
+- `node test/titel.test.js` lädt den Titel mit diesem Aufruf in Chromium (Playwright) und prüft Menü, Spielstände, Nachrichten und das fertige Bild an einer erfundenen Figur.
+
 ## Glossar
 
 Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Datei, als Text (Grammatik unten), den der Tisch selbst liest. Zwei Formen aus derselben Datei:
@@ -287,4 +313,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
