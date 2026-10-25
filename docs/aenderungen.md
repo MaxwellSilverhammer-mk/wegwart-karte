@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.6 (25. Oktober 2026)
+
+Gegenüber 3.5 (25. Oktober 2026). Ein neuer Tisch und zwei kleine Regeln zur Denkzeile. Neuer Stand der Tische: `82596d597682feebeb75225e54279d3d823135ba` (neu ist nur titel.js mit Test; die übrigen Tische und das Spielerbuch sind dieselben wie in `1e8a189`, das Spielerbuch muss nicht neu gebaut werden). Der Würfelkasten bleibt. Das Regelwerk wächst von 99.587 auf 103.908 Zeichen, die Werkstatt von 28.009 auf 28.144.
+
+- **Titelbildschirm** (4.10 neu, dazu 3.3, 4, 4.1, 4.2, 21.3, W 18, W 21.4, W 22): Jede Sitzung beginnt mit einem Titelbild, einem Ölgemälde der Hold, das sich selbst malt, mit den Goldlettern „Hold der Seeprinzen“. Darunter ein Menü mit Spiel laden, Spielerbuch, Befehlen und „Wie wird gespielt?“; Spiel laden öffnet die Spielstände, ein Platz je eigener Figur mit Datum, Mond, Ort, Frist, EP und Heldenmut. „Laden“ schickt „Spiel laden: <Name>“, und erst darauf folgen Gemälde, Rückblick, Befehlszeile und Klangzeile. Der Titel ist ein Tisch wie die anderen (titel.js, `var TITEL`): Im Chat stehen nur die vier Zeilen, das Gemälde steckt im Repository. Daten nur aus dem Spielstand, nur eigene Figuren. Er entfällt nach einem Zwischenhalt, wenn die Sitzung schon mit „Spiel laden“ beginnt, und auf Wunsch („ohne Titelbild“). In der ersten Sitzung zeigt er die neue Figur, nachdem die Spielleitung alles angelegt hat.
+- **Neutrale Arbeitsschritte** (6.1): Was die App über der Antwort zeigt (Code-Schritte, Lesen, Schreiben), beschreibt die Spielleitung neutral („Würfe der Spielleitung“, „Nachrechnen“, „Spielstand lesen“), nie danach, wer worauf würfelt oder was sie nachschlägt.
+- **Denkzeile** (4.1): Die Einführung sagt, dass die App zeigt, woran die Spielleitung gerade arbeitet, und dass das verraten kann, wohin eine Antwort geht; wer sich überraschen lassen will, liest erst die fertige Antwort. Dieselbe Erklärung gibt es jederzeit auf „(Wie wird gespielt?)“.
+- Anlass: Wünsche des Weltenhüters. Die Denkzeile verriet oft, wohin eine Antwort geht; abschalten oder unkenntlich machen lässt sie sich nicht, darum neutrale Schritte und ein Hinweis. Für den Titel gab es Recherche zu gemalter Schrift (Schildermalergold mit Kontur, Schlagschatten und Lichtkante, IM Fell als Schrift alter Titelblätter) und eine Vorschau, nach der Weg und Steg im Vordergrund in echter Perspektive neu gebaut wurden. Beschlossen hat der Weltenhüter alle drei Punkte.
 
 ## Regelwerk 3.5 (25. Oktober 2026)
 
