@@ -1,6 +1,13 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.4 (25. Oktober 2026)
+
+Gegenüber 3.3 (23. Oktober 2026). Eine Änderung, sonst gleich; Tische, Würfelkasten und `tische_stand` bleiben, wie sie sind.
+
+- **Schreiben in Artefakt-Datenbanken** (4.7, 18, 21.3): „no approval record … retry“ heißt, nichts ist geschrieben; derselbe Aufruf geht unverändert noch einmal, der dritte Versuch nach einem anderen Schritt, danach ein letzter nach der Chronik, sonst Archiv und Vermerk unter „Jetzt“ (Chronik: Chroniknachtrag). `version_mismatch` wird nie wiederholt, sondern neu gelesen und eingearbeitet. Nie ohne `if_version`, nie auf eine frisch gelesene Version mit altem Inhalt. Die Batches stehen in batches.jsonl. Vor einem Freigabedialog sagt die Spielleitung, was geschrieben wird.
+- Anlass: Sitzung 10, drei Batches ins Spielerbuch scheiterten zuerst und gingen unverändert wiederholt durch. Tests vom 25. Oktober an einer Wegwerf-Datenbank: Ohne Dialog trat der Fehler nie auf; Gescheitertes schreibt nichts, Batches sind atomar, und ohne `if_version` lehnt der Server ab. Darum ist die Wiederholung gefahrlos. Ob ein `get` vorher vorbeugt, ist offen und darum keine Regel. ArtifactData kennt kein `force`.
 
 ## Regelwerk 3.3 (23. Oktober 2026)
 
