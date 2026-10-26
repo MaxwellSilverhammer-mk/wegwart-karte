@@ -1,6 +1,16 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.8 (26. Oktober 2026)
+
+Gegenüber 3.7 (26. Oktober 2026). Neuer Stand der Tische: `478e3752647c9f451204335bab31e48b59cd4881` (neu sind inventar.js 2.1, wissen.js mit dem Feldtyp `raster`, seite/pixel.js und seite/pixel-sammlung.js mit Test; das Spielerbuch muss neu gebaut werden). Der Würfelkasten bleibt.
+
+- **Ikonen 32 × 32** (4.4): Die Sammlung ist neu gezeichnet, doppelt so fein, mit Licht und Schatten nach Material, und wächst von 51 auf 69 Ikonen (neu unter anderem Bogen, Axt, Speer, Schild, Kettenhemd, Köcher, Buch, Ring, Juwel, Flasche, Fackel, Trommel, Horn, Schlafsack, Zettel, Bündel). Antippen zeigt die Ikone in doppelter Größe.
+- **Eigene Ikonen** (4.4): Besondere Stücke (mit Namen, Geschichte, Zeichen oder sichtbarem Zustand) tragen eine eigene Ikone im Feld `pixel`, ein Raster aus 32 Zeilen zu 32 Zeichen. Darauf kommt nur, was die Figur an dem Ding gesehen hat; ändert es sich sichtbar, wird die Ikone neu gezeichnet. Die Prüfung prüft Form und Farben, das Bild liest die Spielleitung selbst.
+- **Neue Dinge bekommen ihre Ikone sofort** (3.1, 4.4, W 4.4, W 21.3, W 21.4): Kommt ein Ding ins Gepäck, zeichnet die Spielleitung in derselben Antwort seine Ikone mit seite/pixel.js und zeigt sie als Karte „Neu im Gepäck“, ein Bild wie das Ortsgemälde, am Ende der Erzählung vor dem Spieltisch. Ins Spielerbuch kommt sie beim Sitzungsende; bis dahin steht das Raster in den Notizen und in der Übergabe.
+- **Im Chat ohne `pixel`** (4.2, 4.4, 4.9): Inventar hier und Händlertisch bekommen die Gepäckdaten ohne eigene Ikonen, denn jede kostete dort einige hundert Token; dort zeigen die Dinge Ikonen der Sammlung.
+- Anlass: Wunsch des Weltenhüters nach feineren Ikonen mit mehr Charakter für besondere Stücke und nach einer Ikone für jedes Ding, das ins Gepäck kommt. Fürchtegott hat 26 eigene Ikonen bekommen, gezeichnet nach Spielstand und Glossar. Beschlossen hat der Weltenhüter.
 
 ## Regelwerk 3.7 (26. Oktober 2026)
 
