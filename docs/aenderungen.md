@@ -2,6 +2,10 @@
 
 Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
 
+## Nachbesserung titel.js (26. Oktober 2026)
+
+Keine Regeländerung. In der Android-App mit hellem Design waren die Knöpfe des Titelbildschirms (Spiel laden, die Befehle, „Wie wird gespielt?“) dunkel auf dunklem Grund: Die Chat-Ansicht zwingt Knöpfen ihre eigene Schriftfarbe auf, Links und Text bleiben unberührt. titel.js setzt die Farben der Knöpfe und der Spielstandkarten jetzt zusätzlich mit `!important` und als Textfüllfarbe. Gilt, sobald der Weltenhüter den neuen Stand in `meta/welt` und 4.2 einträgt; die übrigen Tische und das Spielerbuch sind unverändert.
+
 ## Regelwerk 3.6 (25. Oktober 2026)
 
 Gegenüber 3.5 (25. Oktober 2026). Ein neuer Tisch und zwei kleine Regeln zur Denkzeile. Neuer Stand der Tische: `82596d597682feebeb75225e54279d3d823135ba` (neu ist nur titel.js mit Test; die übrigen Tische und das Spielerbuch sind dieselben wie in `1e8a189`, das Spielerbuch muss nicht neu gebaut werden). Der Würfelkasten bleibt. Das Regelwerk wächst von 99.587 auf 103.908 Zeichen, die Werkstatt von 28.009 auf 28.144.

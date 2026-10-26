@@ -57,7 +57,22 @@ css.textContent='#titel{max-width:1040px;margin:0 auto;font-family:"IM Fell Engl
 +'#titel .ts-zurueck{font-family:"IM Fell English SC",Georgia,serif;font-size:18px;color:#d9b866;padding:8px 14px;min-height:44px;border-radius:6px}'
 +'#titel .ts-sicht{animation:tsauf .35s ease-out}@keyframes tsauf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}'
 +'#titel .ts-hinweis{font-size:14px;font-style:italic;color:#c4ad80;text-align:center;padding:10px 6px 2px}'
-+'@media (prefers-reduced-motion:reduce){#titel .ts-sicht{animation:none}}';
++'@media (prefers-reduced-motion:reduce){#titel .ts-sicht{animation:none}}'
+/* Die Chat-Ansicht der Android-App (helles Design) zwingt Knöpfen ihre eigene Schriftfarbe auf.
+   Darum stehen die Farben aller Knöpfe und ihres Inhalts hier noch einmal mit !important, auch als Textfüllfarbe. */
++'#titel button,#titel button *{-webkit-text-fill-color:currentColor!important}'
++'#titel .ts-haupt{color:#ecc66c!important}'
++'#titel .ts-cmd,#titel .ts-zurueck{color:#d9b866!important}'
++'#titel .ts-klein{color:#b8a27a!important}'
++'#titel .ts-haupt:hover,#titel .ts-cmd:hover,#titel .ts-klein:hover,#titel .ts-zurueck:hover{color:#fff0c4!important}'
++'#titel button.ts-slot{color:#2b1d10!important}'
++'#titel .ts-slot .ts-name{color:#2b1d10!important}'
++'#titel .ts-slot .ts-zeile,#titel .ts-slot .ts-ort{color:#4a3620!important}'
++'#titel .ts-slot .ts-datum,#titel .ts-slot .ts-balken,#titel .ts-slot .ts-sfuss{color:#5b4428!important}'
++'#titel .ts-slot .ts-laden{color:#7a4410!important}'
++'#titel button.ts-leer{color:#a8946c!important}'
++'#titel .ts-leer .ts-name{color:#b8a27a!important}'
++'#titel .ts-leer .ts-zeile{color:#8f7d5c!important}';
 root.appendChild(css);
 var cv=document.createElement('canvas');cv.width=1040;cv.height=780;cv.className='ts-bild';cv.setAttribute('role','img');
 cv.setAttribute('aria-label','Ölgemälde: Abend über einer Bucht der Hold. Ein Schiff liegt vor Anker vor der untergehenden Sonne, links führt ein Weg an einem toten Baum und einem Wegweiser vorbei zu einem Steg, am fernen Ufer eine Stadt mit Leuchtturm. Darüber in goldenen Lettern: Hold der Seeprinzen.');
