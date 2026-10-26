@@ -152,6 +152,13 @@ function pruefe(D, schema, quellen, zusatz) {
     if (typ === 'zahl') { if (typeof v !== 'number' || !isFinite(v) || v < 0) melde(fehler, wo + ': muss eine Zahl ab 0 sein'); return; }
     if (typ === 'zahlen') { if (!Array.isArray(v) || !v.every(function (x) { return typeof x === 'number' && isFinite(x); })) melde(fehler, wo + ': muss eine Liste aus Zahlen sein'); return; }
     if (typ === 'ja') { if (typeof v !== 'boolean') melde(fehler, wo + ': muss true oder false sein'); return; }
+    // Ein Pixelraster (Ikone): Zeilen gleicher Länge mit | verbunden, keine Wörter; die Farben prüft der Tisch selbst
+    if (typ === 'raster') {
+      if (typeof v !== 'string' || !/^[^|\s]+(\|[^|\s]+)+$/.test(v)) { melde(fehler, wo + ': muss ein Raster sein (Zeilen mit | verbunden)'); return; }
+      var reihen = v.split('|');
+      if (reihen.some(function (r) { return r.length !== reihen.length; })) melde(fehler, wo + ': Raster ist nicht quadratisch (' + reihen.length + ' Zeilen)');
+      return;
+    }
   }
   function objekt(o, typ, wo) {
     var wurzel = typ === schema.wurzel;
