@@ -4,7 +4,7 @@ Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `r
 
 ## Nachbesserung titel.js (26. Oktober 2026)
 
-Keine Regeländerung. In der Android-App mit hellem Design waren die Knöpfe des Titelbildschirms (Spiel laden, die Befehle, „Wie wird gespielt?“) dunkel auf dunklem Grund: Die Chat-Ansicht zwingt Knöpfen ihre eigene Schriftfarbe auf, Links und Text bleiben unberührt. titel.js setzt die Farben der Knöpfe und der Spielstandkarten jetzt zusätzlich mit `!important` und als Textfüllfarbe. Gilt, sobald der Weltenhüter den neuen Stand in `meta/welt` und 4.2 einträgt; die übrigen Tische und das Spielerbuch sind unverändert.
+Keine Regeländerung. In der Android-App mit hellem Design waren die Knöpfe des Titelbildschirms (Spiel laden, die Befehle, „Wie wird gespielt?“) dunkel auf dunklem Grund: Die Chat-Ansicht zwingt Knöpfen ihre eigene Schriftfarbe auf, Links und Text bleiben unberührt. titel.js setzt die Farben der Knöpfe und der Spielstandkarten jetzt zusätzlich mit `!important` und als Textfüllfarbe (Stand `5d31fd7`). Danach war die Spielstandkarte noch unlesbar, weil die App auch den hellen Hintergrund des Knopfs schluckt; seitdem ist sie dunkel mit heller Schrift und goldenen Balken, sodass sie auch ohne eigenen Hintergrund lesbar bleibt. Gilt, sobald der Weltenhüter den neuen Stand in `meta/welt` und 4.2 einträgt; die übrigen Tische und das Spielerbuch sind unverändert.
 
 ## Regelwerk 3.6 (25. Oktober 2026)
 

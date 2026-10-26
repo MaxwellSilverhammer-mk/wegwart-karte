@@ -38,19 +38,19 @@ css.textContent='#titel{max-width:1040px;margin:0 auto;font-family:"IM Fell Engl
 +'#titel .ts-fuss{font-size:13px;color:#8f7d5c;margin-top:6px;text-align:center}'
 +'#titel .ts-kopf{font-family:"IM Fell English SC",Georgia,serif;font-size:22px;color:#ecc66c;margin:2px 0 2px}'
 +'#titel .ts-unter{font-size:14px;font-style:italic;color:#a8946c;margin-bottom:10px}'
-+'#titel .ts-slot{display:block;box-sizing:border-box;width:100%;max-width:440px;text-align:left;background:#eadcb8;color:#2b1d10;border:1px solid #8a6a3a;border-radius:6px;padding:11px 14px 12px;margin:0 0 10px}'
-+'#titel button.ts-slot:hover{background:#f2e6c6}'
++'#titel .ts-slot{display:block;box-sizing:border-box;width:100%;max-width:440px;text-align:left;background:#2a1f15;color:#e6d6ae;border:1px solid #a8864a;border-radius:6px;padding:11px 14px 12px;margin:0 0 10px}'
++'#titel button.ts-slot:hover{background:#35281b!important;border-color:#ecc66c}'
 +'#titel .ts-slot span{display:block}'
-+'#titel .ts-datum{font-size:14px;color:#5b4428;display:flex!important;align-items:center;gap:7px}'
++'#titel .ts-datum{font-size:14px;color:#c4ad80;display:flex!important;align-items:center;gap:7px}'
 +'#titel .ts-mond{width:18px;height:18px;flex:none}'
-+'#titel .ts-name{font-family:"IM Fell English SC",Georgia,serif;font-size:23px;line-height:1.15;margin:3px 0 1px;color:#2b1d10}'
-+'#titel .ts-zeile{font-size:15px;color:#4a3620}'
-+'#titel .ts-ort{font-size:15px;color:#4a3620;font-style:italic;margin-bottom:6px}'
-+'#titel .ts-balken{font-size:13px;color:#5b4428;margin-top:5px}'
-+'#titel .ts-spur{height:5px;background:#cdb88d;border-radius:3px;margin-top:3px;overflow:hidden}'
-+'#titel .ts-spur i{display:block;height:100%;background:#8c5a1a}'
-+'#titel .ts-sfuss{display:flex!important;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;color:#5b4428;margin-top:9px;border-top:1px solid rgba(138,106,58,.35);padding-top:7px}'
-+'#titel .ts-laden{font-family:"IM Fell English SC",Georgia,serif;font-size:17px;color:#7a4410;white-space:nowrap}'
++'#titel .ts-name{font-family:"IM Fell English SC",Georgia,serif;font-size:23px;line-height:1.15;margin:3px 0 1px;color:#ecc66c}'
++'#titel .ts-zeile{font-size:15px;color:#e6d6ae}'
++'#titel .ts-ort{font-size:15px;color:#d8c69c;font-style:italic;margin-bottom:6px}'
++'#titel .ts-balken{font-size:13px;color:#c4ad80;margin-top:5px}'
++'#titel .ts-spur{height:5px;background:#4a3a26;border-radius:3px;margin-top:3px;overflow:hidden}'
++'#titel .ts-spur i{display:block;height:100%;background:#d9b866}'
++'#titel .ts-sfuss{display:flex!important;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;color:#c4ad80;margin-top:9px;border-top:1px solid rgba(168,134,74,.4);padding-top:7px}'
++'#titel .ts-laden{font-family:"IM Fell English SC",Georgia,serif;font-size:17px;color:#ecc66c;white-space:nowrap}'
 +'#titel .ts-leer{background:none;border:1px dashed rgba(168,134,74,.55);color:#a8946c}'
 +'#titel .ts-leer .ts-name{color:#b8a27a;font-size:19px}'
 +'#titel .ts-leer .ts-zeile{color:#8f7d5c;font-style:italic}'
@@ -58,19 +58,20 @@ css.textContent='#titel{max-width:1040px;margin:0 auto;font-family:"IM Fell Engl
 +'#titel .ts-sicht{animation:tsauf .35s ease-out}@keyframes tsauf{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}'
 +'#titel .ts-hinweis{font-size:14px;font-style:italic;color:#c4ad80;text-align:center;padding:10px 6px 2px}'
 +'@media (prefers-reduced-motion:reduce){#titel .ts-sicht{animation:none}}'
-/* Die Chat-Ansicht der Android-App (helles Design) zwingt Knöpfen ihre eigene Schriftfarbe auf.
-   Darum stehen die Farben aller Knöpfe und ihres Inhalts hier noch einmal mit !important, auch als Textfüllfarbe. */
+/* Die Chat-Ansicht der Android-App (helles Design) zwingt Knöpfen ihre eigene Schrift- und Hintergrundfarbe auf.
+   Darum stehen die Farben aller Knöpfe und ihres Inhalts hier noch einmal mit !important, auch als Textfüllfarbe,
+   und die Spielstandkarte ist dunkel mit heller Schrift: Fällt ihr Hintergrund weg, bleibt sie trotzdem lesbar. */
 +'#titel button,#titel button *{-webkit-text-fill-color:currentColor!important}'
 +'#titel .ts-haupt{color:#ecc66c!important}'
 +'#titel .ts-cmd,#titel .ts-zurueck{color:#d9b866!important}'
 +'#titel .ts-klein{color:#b8a27a!important}'
 +'#titel .ts-haupt:hover,#titel .ts-cmd:hover,#titel .ts-klein:hover,#titel .ts-zurueck:hover{color:#fff0c4!important}'
-+'#titel button.ts-slot{color:#2b1d10!important}'
-+'#titel .ts-slot .ts-name{color:#2b1d10!important}'
-+'#titel .ts-slot .ts-zeile,#titel .ts-slot .ts-ort{color:#4a3620!important}'
-+'#titel .ts-slot .ts-datum,#titel .ts-slot .ts-balken,#titel .ts-slot .ts-sfuss{color:#5b4428!important}'
-+'#titel .ts-slot .ts-laden{color:#7a4410!important}'
-+'#titel button.ts-leer{color:#a8946c!important}'
++'#titel button.ts-slot{color:#e6d6ae!important;background:#2a1f15!important}'
++'#titel .ts-slot .ts-name{color:#ecc66c!important}'
++'#titel .ts-slot .ts-zeile{color:#e6d6ae!important}#titel .ts-slot .ts-ort{color:#d8c69c!important}'
++'#titel .ts-slot .ts-datum,#titel .ts-slot .ts-balken,#titel .ts-slot .ts-sfuss{color:#c4ad80!important}'
++'#titel .ts-slot .ts-laden{color:#ecc66c!important}'
++'#titel .ts-slot.ts-leer{color:#a8946c!important;background:none!important}'
 +'#titel .ts-leer .ts-name{color:#b8a27a!important}'
 +'#titel .ts-leer .ts-zeile{color:#8f7d5c!important}';
 root.appendChild(css);
@@ -85,9 +86,9 @@ function send(t){if(typeof sendPrompt==='function'){sendPrompt(t);return true;}h
 function fmt(n){return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 function mondName(a){return a==0?'Dunkelmond':a<7?'zunehmende Sichel':a==7?'erstes Viertel':a<14?'zunehmender Mond':a==14?'Vollmond':a<21?'abnehmender Mond':a==21?'letztes Viertel':'abnehmende Sichel';}
 function mond(wt){var c=document.createElement('canvas');c.width=36;c.height=36;c.className='ts-mond';var a=((wt-25)%28+28)%28,f=a/28;c.setAttribute('role','img');c.setAttribute('aria-label','Luna: '+mondName(a));
-var x=c.getContext('2d'),r=15,k=Math.cos(2*Math.PI*f),zu=f<0.5,si=k>0;x.fillStyle='#5b4428';x.beginPath();x.arc(18,18,r,0,6.3);x.fill();
-if(a!=0){x.fillStyle='#fbf1d0';x.beginPath();x.arc(18,18,r-1,-Math.PI/2,Math.PI/2,!zu);x.ellipse(18,18,(r-1)*Math.abs(k),r-1,0,Math.PI/2,-Math.PI/2,zu===si);x.fill();}
-x.strokeStyle='#5b4428';x.lineWidth=1.5;x.beginPath();x.arc(18,18,r,0,6.3);x.stroke();return c;}
+var x=c.getContext('2d'),r=15,k=Math.cos(2*Math.PI*f),zu=f<0.5,si=k>0;x.fillStyle='#120d09';x.beginPath();x.arc(18,18,r,0,6.3);x.fill();
+if(a!=0){x.fillStyle='#f3e3b4';x.beginPath();x.arc(18,18,r-1,-Math.PI/2,Math.PI/2,!zu);x.ellipse(18,18,(r-1)*Math.abs(k),r-1,0,Math.PI/2,-Math.PI/2,zu===si);x.fill();}
+x.strokeStyle='#a8864a';x.lineWidth=1.5;x.beginPath();x.arc(18,18,r,0,6.3);x.stroke();return c;}
 function balken(t,q){var w=el('span','ts-balken',t),s=el('span','ts-spur'),i=document.createElement('i');i.style.width=Math.round(Math.max(0,Math.min(1,q))*100)+'%';s.appendChild(i);w.appendChild(s);return w;}
 function zeig(n){inn.textContent='';n.classList.add('ts-sicht');inn.appendChild(n);}
 function menue(){var m=el('div');m.style.cssText='display:flex;flex-direction:column;align-items:center;width:100%';
