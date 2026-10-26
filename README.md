@@ -316,4 +316,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.0 (Ikonen und Werte), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.0 (Ikonen und Werte, seit Regelwerk 3.7), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.

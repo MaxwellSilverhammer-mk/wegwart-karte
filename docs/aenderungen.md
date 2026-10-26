@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.7 (26. Oktober 2026)
+
+Gegenüber 3.6 (25. Oktober 2026, mit der Nachbesserung von titel.js). Ein neuer Stand der Tische: `92c55359b72975d6b07e6cc1294dfa318cc1d05f` (neu ist inventar.js 2.0 mit seite/pixel.js und Test; das Spielerbuch muss neu gebaut werden, damit es das neue Gepäck zeigt). Der Würfelkasten bleibt. Die Werkstatt ändert sich nur im Kopf.
+
+- **Gepäck 2.0** (4, 4.4): Jedes Ding hat eine Pixel-Ikone (16 × 16, im Stil alter Taktikspiele wie Fire Emblem; 51 Ikonen, geraten aus Art und Namen oder gesetzt mit `ikone`). Rechts in der Zeile steht der wichtigste Wert wie die Haltbarkeit im Taktikspiel: Vorrat (Ladungen, Munition, Meter Seil, Seiten Tinte), sonst Schaden, sonst RK; eine Anzahl steht an der Ikone, der Zustand unter dem Namen. Antippen öffnet ein Wertefenster: Angriff, Schaden, Zweihändig, Reichweite, RK, Vorrat, Gewicht, Wirkung, Zustand, Merkmale, bei Schriftstücken der Wortlaut (eingeklappt), der Glossarknopf. Neue Felder: `ikone`, `angriff`, `schaden`, `zweihand`, `reichweite`, `rk`, `merkmale`, `vorrat`, `einheit`, `wirkung`, `zustand`.
+- **Keine Erzählung im Gepäck** (4.4): `notiz`, `herkunft` und `quelle` zeigt das Gepäck nicht mehr; was die Figur über ein Ding weiß und woher es stammt, steht im Glossar. Die Felder bleiben für den Händlertisch und die Spielleitung erlaubt.
+- **Werte nachführen** (4.4): Werte kommen aus Bogenauszug und Spielstand; Waffen, die der Bogen nicht kennt, bekommen ihre Werte nach PHB mit den Boni der Figur zuerst im Spielstand. Verbrauch und Zustand führt die Spielleitung beim Sitzungsende nach.
+- Anlass: Wunsch des Weltenhüters. Das Gepäck doppelte das Glossar; im Spiel zählen Ladungen, Munition, Meter Seil und Schadenswürfel mehr als die Geschichte eines Dings. Beschlossen hat der Weltenhüter.
 
 ## Nachbesserung titel.js (26. Oktober 2026)
 
