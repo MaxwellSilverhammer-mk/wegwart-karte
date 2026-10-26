@@ -9,13 +9,16 @@
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/inventar.js';document.head.appendChild(s);<\/script>
  *
  * Pergament wie der Kartentisch: Geldbeutel, Rationen, Traglast je Träger und die Dinge,
- * die die Figur bei sich hat. Wer ein Ding antippt, sieht, was die Figur darüber weiß.
+ * die die Figur bei sich hat, jedes mit einer Pixel-Ikone. Die Zeile zeigt rechts den wichtigsten Wert
+ * (Vorrat, Schaden, RK, Anzahl), wer ein Ding antippt, sieht seine Werte: Angriff, Schaden, Reichweite,
+ * Merkmale, Vorrat, Wirkung, Zustand, bei Schriftstücken den Wortlaut. Was die Figur über ein Ding weiß
+ * und woher es stammt, steht im Glossar; der Tisch zeigt notiz, herkunft und quelle nicht (seit 2.0).
  * Die Daten kommen aus dem Spielstand und werden vorher mit pruefen.js geprüft (README).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.0';
+  var VERSION = '2.0';
 
   /* ---------- Arten und Gruppen ---------- */
   // Art → [Tabler-Icon, Gruppe]
@@ -41,6 +44,112 @@
   ];
   var WERT = { pm: 10, ga: 1, em: 0.5, sm: 0.1, km: 0.01 };
 
+  /* ---------- Pixel-Ikonen (16 × 16, aus seite/pixel.js) ---------- */
+  // Jede Zeile ein Rasterstreifen, '.' durchsichtig, Buchstaben nach FARBEN. Neu zeichnen: node seite/pixel.js
+  var FARBEN = {"k":"#1d1a24","s":"#e4e8ef","S":"#a3aec0","d":"#5f6a7e","w":"#c8894a","W":"#7a4a24","g":"#f2c94c","G":"#b07d1e","r":"#c8412f","R":"#7d1f16","l":"#a8693c","L":"#6b3f22","p":"#f4ead2","P":"#cdb98e","b":"#4a7cc4","B":"#253f78","n":"#5ea152","N":"#2f6230","o":"#efe6c8","O":"#b9aa83","f":"#ffae2a","F":"#fff2a6","c":"#9a9ca8","C":"#5e606b","h":"#d2bb80","H":"#8f7748","e":"#2c3350","m":"#8e866f","M":"#5e584a","t":"#3d8c8a","T":"#1f5654","y":"#f6e27a"};
+  var IKONEN = {
+      "schwert": ".............kk.|............kssk|............ksSk|...........ksSk.|..........ksSk..|.........ksSk...|........ksSk....|...kk..ksSk.....|..kGgkksSk......|...kGgsSk.......|...kWWgk........|..kWWkGgk.......|.kWWk.kGgk......|kGgk...kk.......|kgGk............|.kk.............",
+      "dolch": "................|................|.............k..|............ksk.|...........ksSk.|..........ksSk..|.....k...ksSk...|....kGk.ksSk....|.....kGksSk.....|.....kkGkk......|....kLlkGk......|...kLlk.k.......|..kLlk..........|.kgGk...........|..kk............|................",
+      "saebel": "................|.............kk.|............ksSk|............ksSk|...........ksSk.|...........ksSk.|..........ksSk..|.........ksSk...|.....k..ksSk....|....kgkksSk.....|.....kgkkk......|.....kWWk.......|....kWWkgk......|...kWWk.k.......|..kgkk..........|...k............",
+      "kolben": "................|...........k....|.........kkdkk..|........kSSsSSk.|........kSsSSSk.|.......kdSSSSSdk|........kSSSSSk.|........kSSSSSk.|.......kwWkdkk..|......kwWk.k....|.....kwWk.......|....kwWk........|...kwWk.........|..kwWk..........|.kdkk...........|..k.............",
+      "armbrust": "................|..............k.|.............ksk|.....kk.....ksk.|....kcWk...ksk..|....kcwWk.kWwk..|....kckwWkWwk...|...kck.kwWwk....|...kck.kWwWk....|...kckkWwkwWk...|...kckWwk.kwWk..|..kckWwk...kwWk.|..kcWwk.....kwk.|..kcwk.......k..|...kk...........|................",
+      "bolzen": "................|.............k..|...........kksk.|..........kSsk..|..........kwSk..|.........kwkk...|........kwk.....|.......kwk......|......kwk.......|.....kwk........|....kwk.........|..kkwk..........|.krwk...........|.kRrk...........|..kk............|................",
+      "glefe": "............k...|...........ksk..|..........kssk..|.........ksSsk..|........ksSSk...|........ksSk....|.........kWk....|........kWk.....|.......kWk......|......kWk.......|.....kWk........|....kWk.........|...kWk..........|..kWk...........|.kWk............|..k.............",
+      "ruestung": "................|................|..kkk......kkk..|.klllkkkkkklllk.|.klllllLllllllk.|.klglllLllllglk.|.klllglLlgllllk.|.klllllLllllllk.|..kklllLllllkk..|...klglLlgllk...|...klllLllllk...|...klllLllllk...|...klglLlgllk...|...klllLllllk...|....kkkkkkkk....|................",
+      "kleidung": "................|................|................|..kkkk....kkkk..|.kbbbbkkkkbbbbk.|.kbbbbbBBbbbbbk.|.kbbbbbBbbbbbbk.|.kbbbbbbbbbbbbk.|.kbbbbbbbbbbbbk.|.kbbbbbbbbbbbbk.|..kkLLLLLLLLkk..|...kbbbbbbbbk...|...kbbbbbbbbk...|...kbbbbbbbbk...|....kkkkkkkk....|................",
+      "mantel": ".kkkWWWWWWWWkkk.|kWWWWWWWWWWWWWWk|.kkkkMmmmmMkkkk.|....kMCCkmMk....|....kMCCkmMk....|....kMmmmmMk....|...kMmmmmmmMk...|...kMmmmMmmMk...|..kMmmmmMmmmMk..|..kMmmmmMmmmMk..|..kMmmmmMmmmMk..|..kMmmmmMmmmMk..|..kMmmmmMmmmMk..|..kMMMMMMMMMMk..|...kkkkkkkkkk...|................",
+      "kostuem": "................|..kk........kk..|.kggkkkkkkkkggk.|.kggknnnnnnkggk.|..kknnnnnnnnkk..|..knnnnnnnnnnk..|..knkkknnkkknk..|.knnkkknnkkknnk.|.knnnnnnnnnnnnk.|.knnnnnnnnnnnnk.|..kknnnnnnnnkk..|....kNNNNNNk....|.....kkkkkk.....|................|................|................",
+      "laute": "............kkk.|...........kLLLk|...........kLLLk|...........kLLLk|..........kWPkk.|.........kWPk...|....kkkkkWPk....|...kwwwwWPk.....|..kwwwwwPk......|.kwwwwwwPwk.....|.kwwWkkPwwk.....|.kwwwkPwwwk.....|.kwwwPwwwwk.....|..kwPwwwwk......|...kwwwwk.......|....kkkk........",
+      "floete": "................|................|..kkkkkkkkkkkk..|.kWWWWWWWWWWWWk.|.khhHHhhHHhhHHk.|.krrrrrrrrrrrrk.|.kRRRRRRRRRRRRk.|.khhHHhhHHhhHHk.|.khhHHhhHHhhkk..|.khhHHhhHHkk....|.khhHHhhkk......|.khhHHkk........|.khhkk..........|..kk............|................|................",
+      "seil": "................|................|................|....kkkkkkkk....|...khhhhhhhhk...|..khhHHHHHHhhk..|..khHHkkkkHHhk..|.khhHk....kHhhk.|.khHk......kHhk.|.khhHk....kHhhk.|..khHHkkkkHHhk..|..khhHHHHHHhhk..|...khhhhhhhhkhk.|....kkkkkkkkkhk.|.............khk|..............k.",
+      "kerze": "................|.......kk.......|......kffk......|......kffk......|......kFFk......|......kffk......|......kkkk......|.....kpppPk.....|.....kpppPk.....|.....kpppPk.....|.....kpppPk.....|.....kpppPk.....|.....kpppPk.....|....kkpppPkk....|...kGGGGGGGGk...|....kkkkkkkk....",
+      "laterne": ".......kk.......|......kSSk......|.....kddddk.....|....kkddddkk....|...kddddddddk...|....kGGGGGGk....|....kGFFFFGk....|....kGFffFGk....|....kGFffFGk....|....kGFffFGk....|....kGFffFGk....|....kGFFFFGk....|....kGGGGGGk....|...kddddddddk...|....kkkkkkkk....|................",
+      "decke": "................|................|.....kkkkkkkk...|...kkrrrggrrRk..|..krrRrrggrRRRk.|..krrRrrggrRRRk.|.krrrRrrggrRRRk.|.krrrRrrggrRRRk.|.krrrRrrggRRRRRk|.krrrRrrggrRRRk.|.krrrRrrggrRRRk.|..krrRrrggrRRRk.|..krrRrrggrRRRk.|...kkrrrggrrRk..|.....kkkkkkkk...|................",
+      "netz": "................|................|...k..k..k..k...|..kckkckkckkck..|.kckcckcckcckck.|.kckcckcckcckck.|..kckkckkckkck..|.kckcckcckcckck.|.kckcckcckcckck.|..kckkckkckkck..|.kckcckcckcckck.|.kckcckcckcckck.|..kckkckkckkck..|...k..k..k..k...|................|................",
+      "rucksack": "......kkkk......|.....kLLLLk.....|....kkllllkk....|...kllllllllk...|..kllllllllllk..|..kllllllllllk..|..kllllllllllk..|..klLLLLLLLLlk..|..klLLLggLLLlk..|..klLLLggLLLlk..|..kllllllllllk..|..kllLLLLLLllk..|..kllLLLLLLllk..|..kllLLLLLLllk..|..kllllllllllk..|...kkkkkkkkkk...",
+      "schlauch": "......kkkk......|.....kWWWWk.....|......kLLk......|......kLLk......|......kLLk......|.....kkLLkk.....|...kkllllllkk...|..kLLLLLLLLLLk..|..kllwlllllllk..|..kllllllllllk..|..kllllllllllk..|..kllllllllllk..|...kllllllllk...|....kllllllk....|.....kkkkkk.....|................",
+      "werkzeug": "................|................|......kkkkkk....|....kkmmmmmmk...|...kmmMmmmmmmk..|..kmmmmmmMmmmk..|.kmmMmmmmmmmmMk.|.kmmmmmmmmmMMk..|..kMMMMMMMMMk...|...kkkkkkkkk....|................|................|................|................|................|................",
+      "striegel": "................|................|................|................|....kkkkkkkk....|..kkWWWWWWWWkk..|.kwwwwwwwwwwwwk.|.kwwwwwwwwwwwwk.|.kwwwwwwwwwwwwk.|.kWWWWWWWWWWWWk.|.kHkHkHkHkHkHk..|.kHkHkHkHkHkHk..|.kHkHkHkHkHkHk..|..k.k.k.k.k.k...|................|................",
+      "boot": "................|..........k.....|.........kwk....|........kwk.....|........kwk.....|.......kwWk.....|.k....kwkWk...k.|kwkkkkkwkWkkkkwk|kwwwwwwwwwwwwwwk|.kWwwwwwwwwwwWk.|..kWWwWWWWWWWk..|.kkkwkkkkkkkkkk.|kttttttttttttttk|kttttttttttttttk|.kkkkkkkkkkkkkk.|................",
+      "wasser": "................|.......kk.......|......kttk......|.....kttttk.....|.....ktkktk.....|....kttttttk....|...kttttttttk...|...kttttttttk...|..ktttsttttttk..|..kttttttttttk..|...kttttttttk...|...kttttttttk...|...kttttttttk...|....kttttttk....|.....kkkkkk.....|................",
+      "ration": "................|................|................|................|................|....kkkkkkkk....|..kkgggWggggkk..|.kwgWgggWgWggwk.|.kgggWggWggWggk.|kwwggWgggggWgwwk|.kwwggggggggwwk.|.kwwwwwwwwwwwwk.|..kkwwwwwwwwkk..|....kkkkkkkk....|................|................",
+      "fisch": "................|................|................|................|..............kk|....kkkkkkk..kSS|..kkSSSSSSSkkSSk|.kSkSSSSSSSSSSk.|.kSSSsssssSSSSk.|.ksshhhhhhhhsSSk|..kkSsssssSkkkSS|....kkkkkkk...kk|................|................|................|................",
+      "kraut": "................|.......k.k......|......knknk.....|.....knkNk......|......kNnk......|.....kLLLLk.....|....khhhhhhk....|....kllllllk....|...kllllllllk...|..kllwlllllllk..|..kllllllllllk..|..kllllllllllk..|...kllllllllk...|....kllllllk....|.....kkkkkk.....|................",
+      "schale": "................|................|................|................|................|....kkkkkkkk....|..kkmmmmmmmmkk..|.kmmMMMMMMMMmmk.|kmmMMMMMMMMMMmmk|.kOOOOOOOOOOOOk.|..kOoOoOoOoOOk..|...kOOOOOOOOk...|....kkOOOOkk....|......kkkk......|................|................",
+      "trank": "......kkkk......|.....kWWWWk.....|.....kWWWWk.....|.....kttttk.....|.....kttttk.....|.....kttttk.....|.....kttttk.....|....kttttttk....|...kttttttttk...|...kttstttttk...|..ktttsttttttk..|...kttttttttk...|...kttttttttk...|....kttttttk....|.....kkkkkk.....|................",
+      "brief": "................|................|................|.kkkkkkkkkkkkkk.|kPppppppppppppPk|kpPppppppppppPpk|kppPppppppppPppk|kpppPPppppPPpppk|kpppppPrrPpppppk|kppppprRrrpppppk|kpppppprrppppppk|kppppppppppppppk|kPPPPPPPPPPPPPPk|.kkkkkkkkkkkkkk.|................|................",
+      "siegel": "................|..kkkkkkkkkkkk..|.kpppppppppppPk.|.kpppppppppppPk.|.kppPPPPPPPPpPk.|.kpppppppppppPk.|.kppPPPPPPPPpPk.|.kpppppppppppPk.|.kppPPPPPppppPk.|.kppppppprrrrPk.|.kppppppprgrrPk.|.kppppppprrRrPk.|.kppppppprrrrPk.|.kpppppppbpbpPk.|..kkkkkkbkkkbk..|.......kbk.kbk..",
+      "rolle": "................|..kkkkkkkkkkkk..|.kPPPPPPPPPPPPk.|..kPpppppppppk..|..kPpppppppppk..|..kPpPPPPPPppk..|..kPpppppppppk..|..kPpPPPPPPPpk..|..kPpppppppppk..|..kPpPPPPPpppk..|..kPpppppppppk..|..kPpPPPPPPppk..|..kPpppppppppk..|.kPPPPPPPPPPPPk.|..kkkkkkkkkkkk..|................",
+      "karte": "................|................|.kkkkkkkkkkkkkk.|kpppPppppPpppppk|kpppPppppPpppppk|kpnnPpppbPbbpppk|kpnnnpppbbbppppk|kppnPpppbPpprppk|kpppPppppPprrrpk|kpppPppppPpprppk|kPPPPPPPPPPPPPPk|.kkkkkkkkkkkkkk.|................|................|................|................",
+      "tinte": ".............kk.|............kppk|...........kpkPk|...........kpPk.|....kkkk..kpPk..|...kWWWWkkpPk...|...keeeekpkPk...|...keeeekpPk....|...keeeepPk.....|..keeeepPk......|.keebeeeeek.....|.keeeeeeeek.....|.keeeeeeeek.....|..keeeeeek......|...kkkkkk.......|................",
+      "feder": "............kk..|...........kppk.|..........kppPk.|.........kppPk..|........kppPk...|.......kppPk....|......kppPk.....|.....kppPk......|....kpPPk.......|....kPPk........|...kPkk.........|..kek...........|...k............|................|................|................",
+      "wachs": "................|................|................|.......k........|......kRk.......|...kkkkkRkkkk...|..krrrrrrRrrRk..|..krFFFFrrrrRk..|..krrrrrrrrrRk..|..krrrrrrrrrRk..|..kRRRRRRRRRRk..|..kRRRRRRRRRRk..|..kRRRRRRRRRRk..|...kkkkkkkkkk...|................|................",
+      "kohle": "................|................|.............k..|............kek.|...........keCk.|..........keCk..|.........keCk...|........keCk....|.......keCk.....|......keCk......|.....keCk.......|....keCk........|...keCk.........|..keCk..........|.keek...........|..kk............",
+      "beutel": "................|......kkkk......|.....kllllk.....|.....kllllk.....|.....kLLLLk.....|.....kLLLLk.....|....kggggggk....|...kllllllllk...|..kllwlllllllk..|..klllwllllllk..|.kllllllllllllk.|..klllllllgllk..|..kllllllgGglk..|...kllllllglk...|....kllllllk....|.....kkkkkk.....",
+      "muenze": "................|................|.....kkkkkk.....|....kggggggk....|...kggggggggk...|..kgggGGGGgggk..|..kggGggggGggk..|..kggGgrggGggk..|..kggGggggGggk..|..kggGggggGggk..|..kgggGGGGgggk..|...kggggggggk...|....kggggggk....|.....kkkkkk.....|................|................",
+      "schluessel": "................|................|...kkkk.........|..kGGGGk........|.kGGkkGGk.......|.kGGkkGGk.......|.kGGkkGGk.......|..kGGGGGk.......|...kkkkgGk......|.......kgGk..k..|........kgGkkGk.|.........kgGGk..|..........kgGk..|.........kGGgGk.|..........kkkk..|................",
+      "band": "................|................|................|....kkk..kkk....|...knnnkknnnk...|..knnnnNNnnnnk..|.knnNnnNNnnNnnk.|..knnnnNNnnnnk..|...knnnnnnnnk...|....kknkknkk....|.....knkknk.....|....knk..knk....|....knk..knk....|...knk....knk...|...knk....knk...|....k......k....",
+      "band-blau": "................|................|................|....kkk..kkk....|...kbbbkkbbbk...|..kbbbbBBbbbbk..|.kbbBbbBBbbBbbk.|..kbbbbBBbbbbk..|...kbbbbbbbbk...|....kkbkkbkk....|.....kbkkbk.....|....kbk..kbk....|....kbk..kbk....|...kbk....kbk...|...kbk....kbk...|....k......k....",
+      "flagge": "................|...kkkkkkkkkk...|..kWbbbbbbBBBk..|..kWbbbbbbBBBBk.|..kWbbsssbBBBBk.|..kWbbsssbBBBBk.|..kWbbsssbBBBBk.|..kWBBBBBBBBBBk.|..kWBBBBBBBBBk..|..kWkkkkkkkkk...|..kWk...........|..kWk...........|..kWk...........|..kWk...........|..kWk...........|...k............",
+      "perle": "................|................|......kkkk......|....kknnnnkk....|...knnnnnnnnk...|...knssnnnnnk...|..knnnnnnNNnnk..|..knNnnnnNNNnk..|..knNnnnkNNNnk..|..knNNNkkkNNnk..|...kNNkkkkNNk...|...knNNNNNNnk...|....kknnnnkk....|......kkkk......|................|................",
+      "scheibe": "................|......kkkk......|....kkooookk....|...kooooooook...|..kooooooooook..|..kooooooooook..|.koooookkoooook.|.kookooooookOok.|.kooooooooooOok.|.kooooooooooOok.|..kOoooooooOOk..|..koOoooooOOok..|...koOOOOOOok...|....kkooookk....|......kkkk......|................",
+      "kompass": "......kkkk......|.....kGGGGk.....|.....kGGGGk.....|....kkGGGGkk....|...kGGGttGGGk...|..kGGttppCtGGk..|..kGtppprpCtGk..|.kGGtppprpCtGGk.|.kGtppprpppCtGk.|.kGtppprpppptGk.|.kGGtppCppptGGk.|..kGtpCpppptGk..|..kGGttppttGGk..|...kGGGttGGGk...|....kkGGGGkk....|......kkkk......",
+      "seide": "................|................|..........k.....|......k..kRk....|.....krk.kRk.k..|.....krkkRk.krk.|....krk.kRkkrk..|....krkkRkkrrk..|...krk.kRrrrk...|...krkkRrkkrk...|..krkkkrkkrk....|..krkrrkkrk.....|.krkrkRkkrk.....|..krkRkkrk......|...k.k..k.......|................",
+      "schwimmer": "................|................|................|.kkkkkkkkkkkkkk.|khhhhhhhhhhhhhhk|.kkhkkkkhkkkwwwk|.kwwwk.khk.kwWwk|.kwWwkkwwwkkwwwk|.kwwwkkwWwkkwwwk|.kwwwkkwwwkkwwwk|.kwwwkkwwwk.kkk.|..kkk.kwwwk.....|.......kkk......|................|................|................",
+      "tuch": "................|................|..kkkkkkkkkkk...|.kpppppppppppk..|.kppppppppppppk.|.kppMpppppppPpk.|.kpppppppMppppk.|.kpPppppMMppppk.|.kppppppppppPpk.|.kpppppPppppppk.|..kpppppppPpppk.|...kPPPPPPPPPk..|....kkkkkkkkk...|................|................|................",
+      "karten": "................|......kkkkkkkk..|.....kPPPPPPPPk.|..kkkkppppppppk.|.kppppppppppppk.|.kppppppprppppk.|.kppppppprrpppk.|.kppppppprrpppk.|.kpppppppprpppk.|.kppppppppppppk.|.kppkkppppppppk.|.kppkpppppppppk.|.kppppppppkkkk..|.kppppppppk.....|..kkkkkkkk......|................",
+      "punkt": "................|................|................|................|......kkkk......|.....kcccck.....|....kcscccck....|....kcccccck....|....kcccccck....|....kcccccck....|.....kcccck.....|......kkkk......|................|................|................|................"
+  };
+  // Ikone nach Art und Namen raten, wenn das Ding keine „ikone“ trägt
+  var RATEN = [
+    [/dolch|messer/i, 'dolch'], [/krumms|säbel|saebel/i, 'saebel'], [/schwert|klinge/i, 'schwert'], [/kolben|keule|knüppel/i, 'kolben'],
+    [/armbrust/i, 'armbrust'], [/bolzen|köcher|pfeil/i, 'bolzen'], [/glefe|speer|pike/i, 'glefe'],
+    [/mantel|umhang/i, 'mantel'], [/flöte|pfeife/i, 'floete'], [/laute|harfe|fiedel/i, 'laute'],
+    [/laterne/i, 'laterne'], [/kerze|fackel/i, 'kerze'], [/netz/i, 'netz'], [/striegel|bürste/i, 'striegel'],
+    [/tinte/i, 'tinte'], [/feder/i, 'feder'], [/wachs/i, 'wachs'], [/kohle|stift|kreide/i, 'kohle'],
+    [/siegelbrief|urkunde/i, 'siegel'], [/karte/i, 'karte'], [/schlüssel/i, 'schluessel'], [/kompass/i, 'kompass'],
+    [/blaues band/i, 'band-blau'], [/band/i, 'band'], [/flagge|banner|wimpel/i, 'flagge'], [/perle|stein\b|edelstein/i, 'perle'],
+    [/scheibe/i, 'scheibe'], [/seide|faser/i, 'seide'], [/schwimmer/i, 'schwimmer'], [/münz|beutel mit/i, 'beutel'],
+    [/aal|fisch/i, 'fisch'], [/schlauch|wasser/i, 'schlauch'], [/schlamm|salbe|schale/i, 'schale'], [/kraut|kräuter/i, 'kraut'],
+    [/tuch|leinen/i, 'tuch'], [/wetzstein|schleifstein/i, 'werkzeug'], [/rucksack|tasche/i, 'rucksack']
+  ];
+  var ARTIKONE = {
+    waffe: 'schwert', ruestung: 'ruestung', kleidung: 'kleidung', kostuem: 'kostuem', instrument: 'laute', werkzeug: 'werkzeug',
+    schreibzeug: 'feder', licht: 'kerze', seil: 'seil', behaelter: 'rucksack', schlafzeug: 'decke', tierbedarf: 'striegel', boot: 'boot',
+    ration: 'ration', proviant: 'schlauch', trank: 'trank', papier: 'rolle', brief: 'brief', karte: 'karte',
+    zeichen: 'band', andenken: 'flagge', fund: 'perle', wertsache: 'beutel', spiel: 'karten', sonstiges: 'punkt'
+  };
+  // Arten, bei denen der Name die Ikone nicht ändern soll (ein Hanfseil bleibt ein Seil)
+  var FEST = { seil: 1, ruestung: 1, boot: 1, ration: 1, spiel: 1, kostuem: 1, schlafzeug: 0 };
+  function ikoneVon(d) {
+    if (d.ikone && IKONEN[d.ikone]) return d.ikone;
+    if (!FEST[d.art]) for (var i = 0; i < RATEN.length; i++) if (RATEN[i][0].test(d.name || '')) return RATEN[i][1];
+    return ARTIKONE[d.art] || 'punkt';
+  }
+  var pixelCache = {}, benutzt = {};
+  // Jede Ikone steht einmal als <symbol> im Tisch; die Zeilen verweisen nur darauf
+  function pixel(name) {
+    if (!IKONEN[name]) name = 'punkt';
+    benutzt[name] = true;
+    return '<svg class="gpPx" viewBox="0 0 16 16" width="32" height="32" aria-hidden="true"><use href="#gpx-' + name + '"/></svg>';
+  }
+  function symbol(name) {
+    if (pixelCache[name]) return pixelCache[name];
+    var z = (IKONEN[name] || IKONEN.punkt).split('|'), wege = {}, s = '';
+    // Je Farbe ein Pfad aus waagrechten Streifen
+    z.forEach(function (r, y) {
+      var x = 0;
+      while (x < r.length) {
+        var c = r[x], n = 1;
+        while (x + n < r.length && r[x + n] === c) n++;
+        if (c !== '.') wege[c] = (wege[c] || '') + 'M' + x + ' ' + y + 'h' + n + 'v1h-' + n + 'z';
+        x += n;
+      }
+    });
+    Object.keys(wege).forEach(function (c) { s += '<path fill="' + FARBEN[c] + '" d="' + wege[c] + '"/>'; });
+    return (pixelCache[name] = '<symbol id="gpx-' + name + '" viewBox="0 0 16 16" shape-rendering="crispEdges">' + s + '</symbol>');
+  }
+
   /* ---------- Schema für die Prüfung (pruefen.js) ---------- */
   var SCHEMA = {
     name: 'Inventar',
@@ -49,10 +158,14 @@
       inventar: { titel: 'text', stand: 'text', figur: 'text', geld: 'geld', esser: 'zahl', traeger: 'traeger[]' },
       geld: { pm: 'zahl', ga: 'zahl', em: 'zahl', sm: 'zahl', km: 'zahl' },
       traeger: { id: 'id', name: 'text', namen: 'text[]', art: 'traegerart', staerke: 'zahl', faktor: 'zahl', ort: 'text', dinge: 'ding[]' },
-      ding: { name: 'text', namen: 'text[]', art: 'dingart', anzahl: 'zahl', kg: 'zahl', notiz: 'text', herkunft: 'text', quelle: 'text', wortlaut: 'text', glossar: 'text' }
+      ding: { name: 'text', namen: 'text[]', art: 'dingart', ikone: 'ikone', anzahl: 'zahl', kg: 'zahl',
+        angriff: 'text', schaden: 'text', zweihand: 'text', reichweite: 'text', rk: 'zahl', merkmale: 'text[]',
+        vorrat: 'zahlen', einheit: 'text', wirkung: 'text', zustand: 'text',
+        notiz: 'text', herkunft: 'text', quelle: 'text', wortlaut: 'text', glossar: 'text' }
     },
-    wahl: { traegerart: Object.keys(TRAEGERART), dingart: Object.keys(DINGART) },
+    wahl: { traegerart: Object.keys(TRAEGERART), dingart: Object.keys(DINGART), ikone: Object.keys(IKONEN) },
     pflicht: { inventar: ['titel', 'stand', 'traeger'], geld: [], traeger: ['id', 'name', 'art'], ding: ['name', 'art'] },
+    // Werte, deren Zahlen im Spielstand stehen müssen, prüft der Wortschatz mit (jede Zahl in einem Text)
     // Namen, die wörtlich (oder in einer Schreibweise aus „namen“) im Spielstand stehen müssen
     namen: { traeger: 'name', ding: 'name' },
     // Texte, die eine Stelle im Spielstand belegen muss (Anteil der Inhaltswörter)
@@ -75,6 +188,36 @@
   }
   function anzahlVon(d) { return d.anzahl == null ? 1 : Math.max(0, zahl(d.anzahl, 1)); }
   function gewicht(d) { return zahl(d.kg) * anzahlVon(d); }
+  function vorratText(d) {
+    var v = d.vorrat;
+    if (!Array.isArray(v) || !v.length) return '';
+    return v[0] + (v.length > 1 ? '/' + v[1] : '') + (d.einheit ? (d.einheit === 'm' ? ' m' : ' ' + d.einheit) : '');
+  }
+  // Der eine Wert, der rechts in der Zeile steht, wie die Haltbarkeit im Taktikspiel
+  function hauptwert(d) {
+    var v = vorratText(d);
+    if (v) return v;
+    if (d.schaden) return String(d.schaden).split(' ')[0];
+    if (d.rk) return 'RK ' + d.rk;
+    return '';
+  }
+  // Werte für das Fenster beim Antippen: [Beschriftung, Wert, breit]
+  function werteVon(d) {
+    var w = [];
+    if (d.angriff) w.push(['Angriff', d.angriff]);
+    if (d.schaden) w.push(['Schaden', d.schaden]);
+    if (d.zweihand) w.push(['Zweihändig', d.zweihand]);
+    if (d.reichweite) w.push(['Reichweite', d.reichweite]);
+    if (d.rk) w.push(['RK', String(d.rk)]);
+    var v = vorratText(d);
+    if (v) w.push(['Vorrat', v]);
+    if (anzahlVon(d) !== 1) w.push(['Anzahl', String(anzahlVon(d))]);
+    if (d.kg) w.push(['Gewicht', kg(gewicht(d))]);
+    if (d.wirkung) w.push(['Wirkung', d.wirkung, true]);
+    if (d.zustand) w.push(['Zustand', d.zustand, true]);
+    // Nur das Gewicht allein ist kein Fenster wert: es steht schon in der Zeile
+    return w.length === 1 && w[0][0] === 'Gewicht' ? [] : w;
+  }
   function grenzen(t) {
     if (!t.staerke) return null;
     var f = zahl(t.faktor, 1) || 1, s = zahl(t.staerke) * f;
@@ -112,6 +255,7 @@
     return s;
   }
   function zeichne(D) {
+    benutzt = {};
     var traeger = (D.traeger || []).filter(function (t) { return t && t.name; });
     var h = '';
     h += '<div class="gpKopf"><p class="gpT">' + esc(D.titel || 'Gepäck') + '</p>' + (D.stand ? '<p class="gpS">' + esc(D.stand) + '</p>' : '') + '</div>';
@@ -145,7 +289,7 @@
       h += '<div class="gpBlock"><p class="gpH">' + ikon('baguette', 18) + 'Rationen</p><div class="gpRat">';
       rat.forEach(function (r) {
         var brote = '';
-        for (var i = 0; i < Math.min(r.n, 8); i++) brote += ikon('baguette', 18);
+        for (var i = 0; i < Math.min(r.n, 8); i++) brote += pixel('ration').replace('class="gpPx"', 'class="gpPxK"');
         h += '<span class="gpRz"><span class="gpBrot">' + brote + (r.n > 8 ? '<small>+' + (r.n - 8) + '</small>' : '') + '</span>' +
           '<span>' + r.n + ' ' + (r.t.art === 'figur' ? 'dabei' : r.t.art === 'lager' ? esc(r.t.name.replace(/^In /, 'in ')) : 'bei ' + esc(r.t.name)) + '</span></span>';
       });
@@ -173,15 +317,20 @@
         if (!ds.length) return;
         h += '<p class="gpG">' + gr[1] + '</p><ul class="gpL">';
         ds.forEach(function (d) {
-          var n = anzahlVon(d), id = 'gp' + ti + '-' + (nr++), mehr = d.notiz || d.herkunft || d.wortlaut || d.glossar || d.quelle;
+          var n = anzahlVon(d), id = 'gp' + ti + '-' + (nr++), werte = werteVon(d), mehr = werte.length || d.wortlaut || d.glossar;
           h += '<li><button type="button" class="gpZ" data-i="' + id + '"' + (mehr ? ' aria-expanded="false" aria-controls="' + id + '"' : ' disabled') + '>' +
-            ikon((DINGART[d.art] || DINGART.sonstiges)[0], 17) + '<span class="gpN">' + (n !== 1 ? '<b>' + n + '</b> ' : '') + esc(d.name) +
-            (mehr ? '<i class="gpPlus" aria-hidden="true">+</i>' : '') + '</span><span class="gpF"></span><span class="gpW">' + (d.kg ? kg(gewicht(d)) : '–') + '</span></button>';
+            '<span class="gpIk">' + pixel(ikoneVon(d)) + (n !== 1 ? '<b class="gpAnz">' + n + '</b>' : '') + '</span>' +
+            '<span class="gpN">' + esc(d.name) + (d.zustand ? '<small class="gpZu">' + esc(d.zustand) + '</small>' : '') + '</span>' +
+            '<span class="gpF"></span><span class="gpH1">' + esc(hauptwert(d)) + '</span><span class="gpW">' + (d.kg ? kg(gewicht(d)) : '–') + '</span></button>';
           if (mehr) {
             h += '<div class="gpD" id="' + id + '" hidden>';
-            if (d.notiz) h += '<p>' + esc(d.notiz) + '</p>';
-            if (d.wortlaut) h += '<blockquote>' + esc(d.wortlaut) + '</blockquote>';
-            if (d.herkunft || d.quelle) h += '<p class="gpKl">' + esc(d.herkunft || '') + (d.quelle ? (d.herkunft ? ' ' : '') + '(' + esc(d.quelle) + ')' : '') + '</p>';
+            if (werte.length) {
+              h += '<dl class="gpSt">';
+              werte.forEach(function (w) { h += '<div' + (w[2] ? ' class="gpBreit"' : '') + '><dt>' + w[0] + '</dt><dd>' + esc(w[1]) + '</dd></div>'; });
+              h += '</dl>';
+            }
+            if (d.merkmale && d.merkmale.length) h += '<p class="gpMm">' + d.merkmale.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</p>';
+            if (d.wortlaut) h += '<details class="gpWl"><summary>Wortlaut</summary><blockquote>' + esc(d.wortlaut) + '</blockquote></details>';
             if (d.glossar) h += '<button type="button" class="gpK" data-glossar="' + esc(d.glossar) + '">Glossar ' + esc(d.glossar) + ' ↗</button>';
             h += '</div>';
           }
@@ -192,7 +341,8 @@
       if (!dinge.length) h += '<p class="gpLeer">nichts</p>';
       h += '</div></section>';
     });
-    return h;
+    var defs = Object.keys(benutzt).map(symbol).join('');
+    return '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + defs + '</defs></svg>' + h;
   }
 
   var CSS = [
@@ -225,13 +375,29 @@
     '.gp button.gpZ:not(:disabled):hover{background:rgba(59,48,40,.07)}',
     '.gp button.gpZ:focus-visible,.gp .gpK:focus-visible{outline:2px solid var(--rot);outline-offset:1px}',
     '.gp button.gpZ[aria-expanded="true"]{background:rgba(142,59,34,.09)}',
-    '.gpZ .ti{flex-shrink:0;align-self:center;color:var(--ink2)}',
-    '.gpN{min-width:0}.gpN b{font-weight:600}',
-    '.gpPlus{font-style:normal;color:var(--rot);margin-left:5px;font-size:15px}',
-    '.gpF{flex:1;min-width:14px;border-bottom:1.5px dotted var(--linie);transform:translateY(-4px)}',
-    '.gpW{white-space:nowrap;font-style:italic;font-size:16px;color:var(--ink2)}',
-    '.gpD{margin:2px 4px 8px 29px;padding:6px 0 4px 12px;border-left:2px solid var(--rot);display:flex;flex-direction:column;gap:6px;font-size:16px}',
-    '.gpD blockquote{margin:0;padding:4px 0 4px 12px;border-left:1px solid var(--linie);font-style:italic}',
+    '.gp button.gpZ{align-items:center}',
+    '.gpIk{position:relative;flex-shrink:0;width:36px;height:36px;display:grid;place-items:center;border-radius:6px;background:linear-gradient(180deg,#3a4a6e,#26304d);box-shadow:inset 0 0 0 1px #8fa3cf,0 0 0 1px #141a2b}',
+    '.gpPxK{display:block;width:22px;height:22px}',
+    '.gpPx{display:block;width:32px;height:32px;image-rendering:pixelated}',
+    '.gpAnz{position:absolute;right:-4px;bottom:-5px;min-width:15px;padding:0 3px;box-sizing:border-box;font:700 12px/15px ui-monospace,Menlo,Consolas,monospace;color:#fff;background:#26304d;border:1px solid #8fa3cf;border-radius:4px;text-align:center}',
+    '.gpN{min-width:0;display:flex;flex-direction:column;line-height:1.2}',
+    '.gpZu{font-style:italic;font-size:14px;color:var(--ink2)}',
+    '.gpF{flex:1;min-width:10px;border-bottom:1.5px dotted var(--linie);align-self:center}',
+    '.gpH1{white-space:nowrap;font:600 15px ui-monospace,Menlo,Consolas,monospace;color:var(--ink);letter-spacing:-.02em}',
+    '.gpH1:empty{display:none}',
+    '.gpW{white-space:nowrap;font-style:italic;font-size:15px;color:var(--ink2);min-width:46px;text-align:right}',
+    '.gpD{margin:4px 2px 10px 48px;padding:8px 10px;border-radius:8px;background:linear-gradient(180deg,#34446a,#232c48);color:#eef2fb;box-shadow:inset 0 0 0 1px #8fa3cf,0 0 0 1px #141a2b;display:flex;flex-direction:column;gap:8px;font-size:15px}',
+    '.gpSt{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:4px 14px;margin:0}',
+    '.gpSt div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(143,163,207,.35);padding-bottom:2px;min-width:0}',
+    '.gpSt div.gpBreit{grid-column:1/-1;flex-direction:column;gap:0}',
+    '.gpSt dt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#b9c6e6;white-space:nowrap}',
+    '.gpSt dd{margin:0;font:600 15px ui-monospace,Menlo,Consolas,monospace;color:#fff;text-align:right}',
+    '.gpSt div.gpBreit dd{font:400 15px/1.35 "EB Garamond",Georgia,serif;text-align:left}',
+    '.gpMm{display:flex;flex-wrap:wrap;gap:4px}.gpMm span{font-size:13px;padding:0 7px;border:1px solid #8fa3cf;border-radius:999px;color:#dfe6f7}',
+    '.gpWl summary{cursor:pointer;font-size:14px;color:#b9c6e6;letter-spacing:.06em;text-transform:uppercase}',
+    '.gpWl blockquote{margin:6px 0 0;padding:6px 10px;background:#efe2c3;color:#2f2519;border-radius:5px;font:italic 16px/1.45 "EB Garamond",Georgia,serif;white-space:pre-line}',
+    '.gpD .gpK{color:#eef2fb;border-color:#8fa3cf}.gpD .gpK:hover{background:rgba(255,255,255,.08)}',
+    '.gpD .gpK:focus-visible{outline-color:#f2c94c}',
     '.gp .gpAuf{align-self:center;flex-shrink:0}',
     '.gp .gpK{all:unset;cursor:pointer;align-self:flex-start;font-family:inherit;font-size:15px;color:var(--ink);border:1px solid var(--rahmen);border-radius:6px;padding:2px 10px}',
     '.gp .gpK:hover{background:rgba(59,48,40,.07)}',
@@ -270,8 +436,6 @@
       var auf = b.getAttribute('aria-expanded') !== 'true';
       b.setAttribute('aria-expanded', String(auf));
       d.hidden = !auf;
-      var plus = b.querySelector('.gpPlus');
-      if (plus) plus.textContent = auf ? '−' : '+';
     });
     if (typeof sendPrompt !== 'function') Array.prototype.forEach.call(el.querySelectorAll('[data-glossar]'), function (x) { x.remove(); });
   }

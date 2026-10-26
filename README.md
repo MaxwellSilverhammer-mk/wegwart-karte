@@ -3,7 +3,7 @@
 Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Textabenteuer mit Claude als Spielleitung. Alle zeigen nur, was die Figur weiß, und werden vorher mit derselben Prüfung freigegeben:
 
 - **Kartentisch** (`karte.js`): Pergamentkarte mit Orten, Wegen und Reisezeiten, Gebieten, Küste und Notizen. Wer einen Ort antippt, sieht, was die Figur über ihn weiß, und die Karte zoomt hinein. Ein Knopf fragt die Spielleitung per `sendPrompt` nach dem Glossareintrag.
-- **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, mit dem, was sie darüber weiß (Abschnitt „Gepäck“).
+- **Gepäck** (`inventar.js`): Geldbeutel, Rationen, Traglast je Träger und die Dinge, die die Figur bei sich hat, jedes mit einer Pixel-Ikone und seinen Werten (Abschnitt „Gepäck“).
 - **Logbuch** (`questlog.js`): Fristleiste mit Mondphasen aus dem Weltkalender, Termine, Aufträge mit Etappen, gegebenes Wort und Erfahrung (Abschnitt „Logbuch“).
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
 - **Handel** (`handel.js`): Händlertisch mit einer Waage: Ware antippen oder auf die Schalen ziehen, die Münzen mit Wechselgeld legt der Tisch selbst auf; Daten in der Form des Gepäcks (Abschnitt „Handel“).
@@ -70,10 +70,13 @@ Pergament, Tinte und Gelände bleiben im hellen und dunklen Modus gleich, das Pe
 | `geld` | Münzen der Hold: `pm` Highlord, `ga` Goldadmiral, `em` Bright Ship, `sm` Silber, `km` Common |
 | `esser` | wie viele von den Rationen essen (Standard 1); daraus „reicht X Tage“ |
 | `traeger[]` | `id`, `name`, `art` (`figur`, `gefolge`, `lasttier`, `reittier`, `lager`), `dinge[]`; dazu `namen`, `staerke` und `faktor` (Traglast nach Regelwerk 9.5: STÄ × Faktor × 2,5 / 5 / 7,5 kg; Lasttiere Faktor 2), `ort` |
-| `dinge[]` | `name`, `art`; dazu `namen`, `anzahl`, `kg` (je Stück), `notiz` (was die Figur weiß), `wortlaut` (Text eines Schriftstücks), `herkunft`, `quelle`, `glossar` (Stichwort für den Knopf „Glossar …“) |
+| `dinge[]` | `name`, `art`; dazu `namen`, `anzahl`, `kg` (je Stück), `ikone` (siehe unten), die Werte `angriff` („+4“), `schaden` („1W8+2 Hieb“), `zweihand` („1W10+2“), `reichweite` („24/96 m“), `rk`, `merkmale` (Liste, etwa `['Laden', 'zweihändig']`), `vorrat` (`[jetzt]` oder `[jetzt, höchstens]`: Ladungen, Munition, Meter Seil, Seiten Tinte) mit `einheit`, `wirkung` (was es regeltechnisch tut, kurz), `zustand` („zerbrochen“, „nass“), außerdem `wortlaut` (Text eines Schriftstücks) und `glossar` (Stichwort für den Knopf „Glossar …“). `notiz`, `herkunft` und `quelle` nimmt der Tisch an, zeigt sie aber nicht (seit 2.0): Was die Figur über ein Ding weiß, steht im Glossar. |
 
 - Arten der Dinge: `waffe`, `ruestung`, `kleidung`, `kostuem`, `instrument`, `werkzeug`, `schreibzeug`, `licht`, `seil`, `behaelter`, `schlafzeug`, `tierbedarf`, `boot`, `ration`, `proviant`, `trank`, `papier`, `brief`, `karte`, `zeichen`, `andenken`, `fund`, `wertsache`, `spiel`, `sonstiges`. Sie bestimmen Zeichen und Gruppe.
 - Rationen sind Dinge der Art `ration`; der Kopf zählt sie je Träger. Ein `lager` (etwas, das nicht im Gepäck ist) ist eingeklappt.
+- Jede Zeile zeigt eine Pixel-Ikone (16 × 16, im Stil alter Taktikspiele), den Namen mit dem Zustand darunter, rechts den wichtigsten Wert (Vorrat, sonst Schaden, sonst RK) und das Gewicht; eine Anzahl über 1 steht an der Ikone. Antippen öffnet ein Fenster mit allen Werten, den Merkmalen, bei Schriftstücken dem Wortlaut (eingeklappt) und dem Glossarknopf; ein Ding, das nur ein Gewicht hat, öffnet nichts.
+- Ikonen: Ohne `ikone` rät der Tisch aus Art und Namen (Dolch, Säbel, Armbrust, Laterne, Tinte, Schlüssel …), sonst gilt die Art. Erlaubt sind die Namen aus `seite/pixel.js`, dem Werkzeug, das die Raster zeichnet: `node seite/pixel.js` gibt den Block `IKONEN` für inventar.js aus, `node seite/pixel.js --png bogen.ppm` einen Bogen zum Ansehen. Vorhanden: schwert, dolch, saebel, kolben, armbrust, bolzen, glefe, ruestung, kleidung, mantel, kostuem, laute, floete, seil, kerze, laterne, decke, netz, rucksack, schlauch, werkzeug, striegel, boot, wasser, ration, fisch, kraut, schale, trank, brief, siegel, rolle, karte, tinte, feder, wachs, kohle, beutel, muenze, schluessel, band, band-blau, flagge, perle, scheibe, kompass, seide, schwimmer, tuch, karten, punkt.
+- Werte kommen aus Bogenauszug und Spielstand; wie jeder Text in den Daten müssen ihre Wörter und Zahlen dort stehen (Prüfung). Was verbraucht wird (Ladungen, Bolzen, Seil, Tinte), führt die Spielleitung in `vorrat` nach.
 
 ## Logbuch
 
@@ -313,4 +316,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 1.0, Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.0 (Ikonen und Werte), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
