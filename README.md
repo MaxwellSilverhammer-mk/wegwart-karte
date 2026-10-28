@@ -8,6 +8,7 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
 - **Handel** (`handel.js`): Händlertisch mit einer Waage: Ware antippen oder auf die Schalen ziehen, die Münzen mit Wechselgeld legt der Tisch selbst auf; Daten in der Form des Gepäcks (Abschnitt „Handel“).
 - **Titel** (`titel.js`): Titelbildschirm zu Beginn einer Sitzung, ein Ölgemälde, das sich selbst malt, mit Menü und Spielständen, ein Platz je Figur (Abschnitt „Titel“).
+- **Lagebild** (`lagebild.js`): die Lage im Kampf auf Pergament, Feld für Feld (1 Feld = 1,5 m): Gelände, Wesen mit ihrem Zustand in Worten, Bereiche von Zaubern oder Feuer, die Reihenfolge der Initiative. Tippen zeigt Entfernungen; es schickt nichts von selbst (Abschnitt „Lagebild“).
 - **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt das Glossar im Spielerbuch.
 - **Spielerbuch** (`seite/buch.html`, gebaut mit `seite/bauen.js`): eine Seite je Figur, ein Artefakt mit Datenbank, mit Glossar, Logbuch, Gepäck, Karte und „Was bisher geschah“; die Tische sind eingebaut (Abschnitt „Das Spielerbuch“).
 - **Wissensbuch** (`wissensbuch.js`, nur Prüfung): Wer weiß was im Revier, Figur für Figur mit Herkunft und Welttag, in der Spoilerdatei; die Prüfung sperrt Wissen ohne Weg (Abschnitt „Wissensbuch“).
@@ -195,6 +196,34 @@ Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemä
 - Ohne `sendPrompt` (etwa in einer Vorschau außerhalb des Chats) sagt ein Hinweis, was ein Knopf im Spiel schicken würde.
 - `node test/titel.test.js` lädt den Titel mit diesem Aufruf in Chromium (Playwright) und prüft Menü, Spielstände, Nachrichten und das fertige Bild an einer erfundenen Figur.
 
+## Lagebild
+
+Das Lagebild zeigt die Lage in einem Kampf, so wie die Figur sie sieht: ein Pergament mit Feldern, die wie beim Schach heißen (A1 links oben; ein Feld ist 1,5 m, nach PHB 2014 fünf Fuß), darauf Gelände, Wesen als Marken mit zwei Buchstaben, Bereiche von Zaubern, Feuer oder Nebel, dazu die Reihenfolge der Initiative mit dem, wer dran ist. Antippen eines Wesens zeigt Art, Feld, Zustand und die Entfernung zur eigenen Figur; Antippen eines freien Felds Name, Gelände, Bereich und Entfernung, damit der Spieler schreiben kann „ich gehe nach G5“. Entfernungen zählen nach PHB 2014 jedes Feld als eins, auch schräg. Das Lagebild schickt nichts von selbst; nur der Glossarknopf fragt wie beim Kartentisch nach einem Eintrag. Die Spielleitung stellt es neu, wenn sich die Lage ändert, und erzählt den Kampf wie immer (Regelwerk 12.1).
+
+```html
+<h2 class="sr-only">Lagebild: Steg von Rohrdorf, Runde 2</h2>
+<div id="lagebild">Lagebild lädt … Falls nicht, frag nach der Lage als Text.</div>
+<script>var LAGEBILD={titel:'Steg von Rohrdorf', stand:'Runde 2 · du bist dran', norden:'oben', gelaende:[{art:'wasser',von:'A7',bis:'J8',name:'Der Fluss'},{art:'steg',von:'E6',bis:'E8'},{art:'kiste',von:'G2',bis:'H2',name:'Ilses Fässer'}], bereiche:[{art:'zauber',feld:'G5',r:2,name:'Schlaf · 3 m'}], wesen:[{id:'du',name:'Probefigur',art:'figur',feld:'D5',tp:[14,17]},{id:'jost',name:'Jost',art:'gefolge',feld:'C5',tp:[9,11],zustand:'angeschlagen'},{id:'w1',name:'Wegelagerer 1',art:'feind',feld:'E4',zustand:'schwer verletzt',notiz:'Knüppel, humpelt'},{id:'w2',name:'Wegelagerer 2',art:'feind',feld:'G5',zustaende:['schläft']}], initiative:['w1','du','jost','w2'], aktiv:'du', runde:2}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/lagebild.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `titel`, `stand` | Kopf: Ort oder Szene, dazu Runde und wer dran ist |
+| `breite`, `hoehe` | Felder je Seite, Standard 10 × 8, höchstens 16; ab 11 Spalten wird es auf dem Handy eng |
+| `feld` | Meter je Feld, Standard 1,5 |
+| `norden` | `oben`, `rechts`, `unten` oder `links`: zeichnet den Kompass; ohne ihn keinen |
+| `gelaende[]` | `art`, ein Feld (`feld: 'C3'`) oder ein Rechteck (`von: 'A7', bis: 'J8'`), `name` (sonst der Name der Art). Arten: `mauer`, `fels`, `kiste`, `schutt`, `wasser`, `schlamm`, `schilf`, `baum`, `busch`, `grube`, `feuer`, `steg`, `pfahl`, `boot`, `tuer`; die Legende sagt zu jeder, was sie in der Regel bedeutet (versperrt, schwieriges Gelände, Deckung) |
+| `bereiche[]` | `art` (`zauber`, `feuer`, `nebel`, `licht`, `dunkel`), `name`, dazu ein Kreis mit `feld` und `r` (Felder um die Mitte; ein Feld liegt im Kreis, wenn seine Mitte höchstens `r` Felder entfernt ist, also die Achsen, nicht die Ecken) oder eine Liste `felder: ['C3', 'C4']`. Sleep mit 6 m Radius ist `r: 4` |
+| `wesen[]` | `id`, `name` (Pflicht), `art` (`figur` für die eigene Figur, `gefolge`, `tier`, `npc`, `feind`), `feld` (oder `x`, `y` ab 1 wie die Beschriftung), `zeichen` (bis zu drei Zeichen auf der Marke, sonst die ersten zwei Buchstaben, bei „Wegelagerer 3“ „W3“), `groesse` (Felder je Seite, 1 bis 3; die Lage ist das Feld links oben), `zustand` (`unversehrt`, `angeschlagen`, `schwer verletzt`, `am Boden`, `bewusstlos`, `tot`, `flieht`), `zustaende` (kurze Wörter wie „schläft“, „gelähmt“, „liegend“; ein gestrichelter Ring, Wortlaut beim Antippen), `tp: [jetzt, höchstens]` nur für `figur`, `gefolge` und `tier`, `notiz` (was die Figur sieht: „Kurzbogen“, „humpelt“) |
+| `initiative` | ids in der Reihenfolge, wie die Figur sie kennt (alle Würfe sind offen, Regelwerk 12.1); ohne sie die Reihenfolge von `wesen` |
+| `aktiv`, `runde` | wer dran ist (goldener Ring) und die Runde |
+
+- **Spoilerschutz** (Regelwerk 4.8, 6.3, 12.1): Es gibt keine Felder für TP, RK, Angriffe oder Werte der Gegner; ihr Zustand steht in Worten, wie die Erzählung ihn gibt. Die Prüfung `pruefen(D)` in `lagebild.js` lehnt jedes Feld ab, das die Tabelle nicht kennt, und `tp` bei Gegnern und Leuten. Namen, Notizen und Bereiche liest die Spielleitung selbst gegen die Spoilerdatei, wie beim Händlertisch; pruefen.js prüft das Lagebild nicht. Ins Spielerbuch kommt es nicht: Eine Lage gilt nur in der Szene.
+- Was die Figur nicht sieht, steht nicht in den Daten: kein versteckter Schütze, kein Hinterhalt. Er erscheint, wenn er zuschlägt oder bemerkt wird.
+- Pergament, Tinte und Schriften wie beim Kartentisch; im dunklen Modus ist das Pergament gedämpft. Die Reihe der Wesen ist Text mit eigenem Hintergrund, kein Knopf (vgl. die Nachbesserung von titel.js in `docs/aenderungen.md`).
+- `node test/lagebild.test.js` prüft Felder, Entfernungen, Zeichnung und Formprüfung in Node und, wenn Playwright da ist, die Bedienung in Chromium an der erfundenen Welt (`test/lagebild-beispiel.js`).
+
 ## Glossar
 
 Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Datei, als Text (Grammatik unten), den der Tisch selbst liest. Zwei Formen aus derselben Datei:
@@ -332,4 +361,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.1 (Ikonen 32 × 32 und eigene Ikonen, seit Regelwerk 3.8), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.1 (Ikonen 32 × 32 und eigene Ikonen, seit Regelwerk 3.8), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6), Lagebild 1.0 (Vorschlag, gilt erst mit dem Regelwerk, das es nennt); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
