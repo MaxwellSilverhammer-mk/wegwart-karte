@@ -1,6 +1,6 @@
 /*
  * Wegwart-Lagebild – Lagebild für den Kampf in der geteilten Welt „Hold der Seeprinzen“
- * Version 1.1 (Bewegung, Ziele, Reichweiten)
+ * Version 1.2 (Bewegung, Reichweiten, Ikonen für Zustände)
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Lagebild: Steg bei Rohrdorf, Runde 2</h2>
@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.1';
+  var VERSION = '1.2';
   var S = 40;                          // Kartenpunkte je Feld
   var RL = 24, RO = 22, RR = 12, RU = 12; // Ränder: links (Zeilenzahlen), oben (Spaltenbuchstaben), rechts, unten
   var MIN = 3, MAX = 16;               // Felder je Seite
@@ -32,16 +32,53 @@
     npc: { farbe: '#6a6258', name: 'Leute' },
     feind: { farbe: '#8e3b22', name: 'Gegner' }
   };
-  /* Zustand in Worten, wie die Erzählung ihn gibt: Ring um die Marke (Farbe, gestrichelt), liegend, tot */
+  /* Verwundung in Worten, wie die Erzählung sie gibt: ein Ring um die Marke, tot ist grau mit Kreuz */
   var ZUSTAND = {
     'unversehrt': {},
     'angeschlagen': { ring: '#c48a2a' },
     'schwer verletzt': { ring: '#a3261c', strich: '4 3' },
-    'am Boden': { liegt: true },
-    'bewusstlos': { liegt: true },
-    'tot': { tot: true },
-    'flieht': { ring: '#c48a2a', pfeil: true }
+    'tot': { tot: true }
   };
+  /* Zustände mit fester Ikone: eine Plakette am Rand der Marke, dieselbe in Reihe, Legende und Auskunft.
+     Die Zustände des PHB 2014 und, was im Kampf sonst zählt. Farbe nach Gruppe: Kontrolle violett, Sinne Tinte,
+     Schaden grün oder rot, Haltung braun, Gutes gold oder blau. Glyphen im Kasten −7…7, weiß. */
+  var GR = { kontrolle: '#6b4a8f', sinne: '#3b3028', gift: '#4f7a3a', feuer: '#b8562a', haltung: '#7a6248', gut: '#a8801a', blau: '#2f4f70' };
+  var STATUS = {
+    'geblendet': [GR.sinne, 'Auge, durchgestrichen', 'M-4.6 0Q0-4.2 4.6 0Q0 4.2-4.6 0Z|c0,0,1.3|M-4 4L4-4'],
+    'taub': [GR.sinne, 'Ohr, durchgestrichen', 'M-1.2 3.8C-3.6 3.8-3.8-4 0.4-4C3.4-4 3.6-0.6 1.2 0.4C0.2 0.9 0.4 2.6-1.2 3.8|M-4 4L4-4'],
+    'unsichtbar': [GR.sinne, 'gestrichelter Kreis', 'd|M3.8 0A3.8 3.8 0 1 1-3.8 0A3.8 3.8 0 1 1 3.8 0'],
+    'versteckt': [GR.sinne, 'geschlossenes Auge', 'M-4.6-0.6Q0 3.6 4.6-0.6|M-2.6 1.3l-0.9 1.5M0 2v1.8M2.6 1.3l0.9 1.5'],
+    'vergiftet': [GR.gift, 'Tropfen', 'fM0-4.6C2.6-1.2 3.6 0.4 3.6 1.7A3.6 3.6 0 0 1-3.6 1.7C-3.6 0.4-2.6-1.2 0-4.6Z'],
+    'brennt': [GR.feuer, 'Flamme', 'fM0-4.8C2.6-2.2 3.6-0.6 3.6 1.4A3.6 3.2 0 0 1-3.6 1.4C-3.6-0.6-2.2-1.2-1.2-3C-0.2-1.8 0.4-1.6 0-4.8Z'],
+    'bezaubert': [GR.kontrolle, 'Herz', 'fM0 4C-5 0.4-4.6-4-1.8-4C-0.8-4 0-3 0-2.4C0-3 0.8-4 1.8-4C4.6-4 5 0.4 0 4Z'],
+    'verängstigt': [GR.kontrolle, 'Ausrufezeichen', 'M0-4.2V1|c0,3.4,1'],
+    'gepackt': [GR.kontrolle, 'zwei Ringe', 'M0.8 0A2.4 2.4 0 1 1-4 0A2.4 2.4 0 1 1 0.8 0|M4 0A2.4 2.4 0 1 1-0.8 0A2.4 2.4 0 1 1 4 0'],
+    'festgesetzt': [GR.kontrolle, 'Netz', 'M-3.8-1.6H3.8M-3.8 1.6H3.8M-1.6-3.8V3.8M1.6-3.8V3.8'],
+    'gelähmt': [GR.kontrolle, 'zwei Balken', 'w|M-1.7-3.6V3.6M1.7-3.6V3.6'],
+    'betäubt': [GR.kontrolle, 'Spirale', 'M0.4 0.2A0.9 0.9 0 1 1-0.9-0.8A2.1 2.1 0 1 1 1.8 1.6A3.5 3.5 0 1 1 3.4-2'],
+    'kampfunfähig': [GR.kontrolle, 'Kreis, durchgestrichen', 'M3.8 0A3.8 3.8 0 1 1-3.8 0A3.8 3.8 0 1 1 3.8 0|M-2.7 2.7L2.7-2.7'],
+    'bewusstlos': [GR.kontrolle, 'Zz', 'M-4-3.4H0.6L-4 1H0.6|M1.2 0.4H4L1.2 3.6H4'],
+    'versteinert': [GR.haltung, 'Stein', 'fM-3.8-1.2L-1.2-4L2.8-3.2L4 0.8L1.2 4L-3 3.2Z'],
+    'liegend': [GR.haltung, 'liegende Gestalt', 'c-3,0.4,1.3|M-1.4 0.6H3.8|M-4.4 2.8H4.4'],
+    'ergibt sich': [GR.haltung, 'weiße Fahne', 'M-3 4.4V-4.4|fM-3-4.2H3.6L2-2.3L3.6-0.4H-3Z'],
+    'flieht': [GR.haltung, 'Pfeil fort', 'M-3.8 0H3.2M0.4-3L3.4 0L0.4 3'],
+    'konzentriert': [GR.blau, 'Ziel', 'M3.8 0A3.8 3.8 0 1 1-3.8 0A3.8 3.8 0 1 1 3.8 0|c0,0,1.4'],
+    'inspiriert': [GR.gut, 'Note', 'M1.6-4.2V2.2|c-0.2,2.5,1.7|M1.6-4.2Q4-3.2 3.6-0.8']
+  };
+  /* Eine Plakette mit Ikone: Mitte cx, cy, Radius r */
+  function plakette(key, cx, cy, r) {
+    var S0 = STATUS[key]; if (!S0) return '';
+    var k = r / 7, out = '<g transform="translate(' + r1(cx) + ' ' + r1(cy) + ') scale(' + r1(k * 100) / 100 + ')">' +
+      '<circle r="7" fill="' + S0[0] + '" stroke="#f7efdc" stroke-width="1.3"/>', strich = '', breit = 1.4;
+    S0[2].split('|').forEach(function (teil) {
+      if (teil === 'd') { strich = ' stroke-dasharray="2 1.6"'; return; }
+      if (teil === 'w') { breit = 2; return; }
+      if (teil[0] === 'c') { var c = teil.slice(1).split(','); out += '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="' + c[2] + '" fill="#fff"/>'; return; }
+      if (teil[0] === 'f') { out += '<path d="' + teil.slice(1) + '" fill="#fff"/>'; return; }
+      out += '<path d="' + teil + '" fill="none" stroke="#fff" stroke-width="' + breit + '" stroke-linecap="round" stroke-linejoin="round"' + strich + '/>';
+    });
+    return out + '</g>';
+  }
   var GELAENDE = {
     mauer: ['Mauer', 'versperrt Weg und Sicht'],
     fels: ['Fels', 'versperrt den Weg, deckt dahinter'],
@@ -155,11 +192,10 @@
       w.art = WESEN[w.art] ? w.art : 'npc';
       w.groesse = istZahl(w.groesse) ? Math.max(1, Math.min(3, Math.round(w.groesse))) : 1;
       w.zustand = ZUSTAND[w.zustand] ? w.zustand : 'unversehrt';
-      w.zustaende = Array.isArray(w.zustaende) ? w.zustaende.filter(Boolean).map(String) : [];
+      w.zustaende = Array.isArray(w.zustaende) ? w.zustaende.map(String).filter(function (z) { return STATUS[z]; }) : [];
       w._zeichen = zeichenVon(w);
       w._feld = feldName(w._x, w._y);
       w.bewegung = istZahl(w.bewegung) && w.bewegung >= 0 && EIGENE[w.art] ? w.bewegung : null;
-      w.ziel = (Array.isArray(w.ziel) ? w.ziel : w.ziel != null ? [w.ziel] : []).map(String);
       w.reichweiten = Array.isArray(w.reichweiten) && EIGENE[w.art] ? w.reichweiten.filter(function (r) { return r && istZahl(r.m) && r.m > 0; }).map(function (r) { return { name: String(r.name || 'Reichweite'), m: r.m }; }) : [];
     });
     D._du = D.wesen.filter(function (w) { return w.art === 'figur'; })[0] || null;
@@ -323,19 +359,6 @@
         s += '<g class="lRw" data-rw="' + i + '-' + j + '" style="display:none">' + flaeche(inReichweite(D, w, n), '#c9a648', 0.24, '#9a7b25', '6 4') + '</g>';
       });
     });
-    var pfeile = '';
-    D.wesen.forEach(function (w) {
-      w.ziel.forEach(function (id) {
-        var o = D.wesen.filter(function (x) { return x.id === id; })[0];
-        if (!o || o === w) return;
-        var ax = RL + w._x * S + w.groesse * S / 2, ay = RO + w._y * S + w.groesse * S / 2, bx = RL + o._x * S + o.groesse * S / 2, by = RO + o._y * S + o.groesse * S / 2;
-        var dx = bx - ax, dy = by - ay, l = Math.sqrt(dx * dx + dy * dy) || 1, ra = w.groesse * S / 2 - 2, rb = o.groesse * S / 2 - 1;
-        if (l <= ra + rb + 4) return;
-        pfeile += '<path d="M' + r1(ax + dx / l * ra) + ' ' + r1(ay + dy / l * ra) + 'L' + r1(bx - dx / l * rb) + ' ' + r1(by - dy / l * rb) + '" stroke="' + F.rot + '" stroke-width="2.4" stroke-linecap="round" marker-end="url(#lbPfeil)" opacity=".85"/>';
-        liste.push({ typ: 'ziel', von: w.id, nach: o.id });
-      });
-    });
-    if (pfeile) s += '<defs><marker id="lbPfeil" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="' + F.rot + '"/></marker></defs>' + pfeile;
     D.wesen.forEach(function (w, i) {
       var rad = w.groesse * S / 2 - 4.5, cx = RL + w._x * S + w.groesse * S / 2, cy = RO + w._y * S + w.groesse * S / 2;
       var z = ZUSTAND[w.zustand], farbe = z.tot ? '#8c8276' : WESEN[w.art].farbe;
@@ -344,14 +367,16 @@
       s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r1(w.groesse * S / 2) + '" fill="transparent"/>'; // Tippfläche: das ganze Feld
       s += '<circle class="lR" cx="' + cx + '" cy="' + cy + '" r="' + r1(rad + 5) + '" fill="none" stroke="' + F.tinte + '" stroke-width="2.4"/>';
       if (w.id === D.aktiv) s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r1(rad + 3.5) + '" fill="none" stroke="' + F.gold + '" stroke-width="3"/>';
-      if (w.zustaende.length) s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r1(rad + 1.5) + '" fill="none" stroke="' + F.tinte + '" stroke-width="1.2" stroke-dasharray="2 2"/>';
-      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r1(rad) + '" fill="' + farbe + '"' + (z.liegt ? ' fill-opacity=".55"' : '') + ' stroke="' + (z.ring || F.hell) + '" stroke-width="' + (z.ring ? 2.6 : 2) + '"' + (z.strich ? ' stroke-dasharray="' + z.strich + '"' : '') + '/>';
+      var matt = w.zustaende.indexOf('bewusstlos') >= 0 || w.zustaende.indexOf('versteinert') >= 0;
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r1(rad) + '" fill="' + farbe + '"' + (matt ? ' fill-opacity=".55"' : '') + ' stroke="' + (z.ring || F.hell) + '" stroke-width="' + (z.ring ? 2.6 : 2) + '"' + (z.strich ? ' stroke-dasharray="' + z.strich + '"' : '') + '/>';
       if (z.tot) s += '<path d="M' + r1(cx - rad * 0.5) + ' ' + r1(cy - rad * 0.5) + 'l' + r1(rad) + ' ' + r1(rad) + 'm0 ' + r1(-rad) + 'l' + r1(-rad) + ' ' + r1(rad) + '" stroke="' + F.hell + '" stroke-width="2.2" stroke-linecap="round"/>';
       else {
         s += '<text class="lT lZ" x="' + cx + '" y="' + r1(cy + rad * 0.36) + '" text-anchor="middle" font-size="' + r1(rad * 0.95) + '">' + esc(w._zeichen) + '</text>';
-        if (z.liegt) s += '<path d="M' + r1(cx - rad * 0.7) + ' ' + r1(cy + rad * 0.78) + 'h' + r1(rad * 1.4) + '" stroke="' + F.tinte + '" stroke-width="2" stroke-linecap="round"/>';
-        if (z.pfeil) s += '<path d="M' + r1(cx + rad * 0.55) + ' ' + r1(cy - rad * 0.95) + 'l' + r1(rad * 0.45) + ' ' + r1(-rad * 0.45) + 'm0 ' + r1(rad * 0.28) + 'v' + r1(-rad * 0.28) + 'h' + r1(-rad * 0.28) + '" fill="none" stroke="' + F.tinte + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
       }
+      // Plaketten: rechts oben, links oben, rechts unten, links unten; ab fünf trägt die vierte „+n“
+      var pr = Math.max(7.5, w.groesse * 4.6), pd = rad * 0.82, ecken = [[1, -1], [-1, -1], [1, 1], [-1, 1]];
+      w.zustaende.slice(0, w.zustaende.length > 4 ? 3 : 4).forEach(function (key, n) { s += plakette(key, cx + ecken[n][0] * pd, cy + ecken[n][1] * pd, pr); });
+      if (w.zustaende.length > 4) s += '<circle cx="' + r1(cx - pd) + '" cy="' + r1(cy + pd) + '" r="' + pr + '" fill="' + F.tinte + '" stroke="#f7efdc" stroke-width="1.3"/><text class="lT" x="' + r1(cx - pd) + '" y="' + r1(cy + pd + pr * 0.42) + '" text-anchor="middle" font-size="' + r1(pr * 1.15) + '" font-weight="600" fill="#f7efdc">+' + (w.zustaende.length - 3) + '</text>';
       s += '</g>';
       liste.push({ typ: 'wesen', id: w.id, feld: w._feld, art: w.art, zustand: w.zustand, zeichen: w._zeichen });
     });
@@ -363,7 +388,8 @@
   function mini(inhalt, vb) { return '<svg width="18" height="18" viewBox="0 0 ' + (vb || 18) + ' ' + (vb || 18) + '" aria-hidden="true">' + inhalt + '</svg>'; }
   function legende(D) {
     var t = '', arten = {}, wesen = {}, zust = {}, bereiche = {};
-    D.wesen.forEach(function (w) { wesen[w.art] = true; if (w.zustand !== 'unversehrt') zust[w.zustand] = true; if (w.zustaende.length) zust._z = true; });
+    var stat = {};
+    D.wesen.forEach(function (w) { wesen[w.art] = true; if (w.zustand !== 'unversehrt') zust[w.zustand] = true; w.zustaende.forEach(function (z) { stat[z] = true; }); });
     D._zellen.forEach(function (z) { arten[z.art] = true; });
     D.bereiche.forEach(function (b) { bereiche[b.art] = true; });
     Object.keys(WESEN).forEach(function (a) { if (wesen[a]) t += '<span>' + mini('<circle cx="9" cy="9" r="7" fill="' + WESEN[a].farbe + '" stroke="' + F.hell + '" stroke-width="1.5"/>') + esc(WESEN[a].name) + '</span>'; });
@@ -371,15 +397,13 @@
     Object.keys(ZUSTAND).forEach(function (z) {
       if (!zust[z]) return;
       var Z = ZUSTAND[z], k = Z.tot ? '<circle cx="9" cy="9" r="7" fill="#8c8276"/><path d="M5.5 5.5l7 7m0-7l-7 7" stroke="' + F.hell + '" stroke-width="1.6"/>'
-        : Z.liegt ? '<circle cx="9" cy="9" r="7" fill="' + F.tinte + '" fill-opacity=".45"/><path d="M4 15h10" stroke="' + F.tinte + '" stroke-width="1.6"/>'
         : '<circle cx="9" cy="9" r="7" fill="none" stroke="' + Z.ring + '" stroke-width="2.2"' + (Z.strich ? ' stroke-dasharray="3 2"' : '') + '/>';
       t += '<span>' + mini(k) + esc(z) + '</span>';
     });
-    if (zust._z) t += '<span>' + mini('<circle cx="9" cy="9" r="7.5" fill="none" stroke="' + F.tinte + '" stroke-width="1.2" stroke-dasharray="2 2"/>') + 'mit Zustand (antippen)</span>';
+    Object.keys(STATUS).forEach(function (z) { if (stat[z]) t += '<span>' + mini(plakette(z, 9, 9, 8.5)) + esc(z) + '</span>'; });
     Object.keys(GELAENDE).forEach(function (a) { if (arten[a]) t += '<span>' + mini(glyph(a, 0, 0, 18)) + esc(GELAENDE[a][0]) + ' · ' + esc(GELAENDE[a][1]) + '</span>'; });
     Object.keys(BEREICH).forEach(function (a) { if (bereiche[a]) t += '<span>' + mini('<circle cx="9" cy="9" r="7" fill="' + BEREICH[a].fill + '" fill-opacity="' + Math.min(0.8, BEREICH[a].op * 2) + '" stroke="' + BEREICH[a].rand + '" stroke-dasharray="3 2"/>') + esc(BEREICH[a].name) + '</span>'; });
     if (D._weg) t += '<span>' + mini('<rect x="2" y="2" width="14" height="14" fill="#4b6b3c" fill-opacity=".15" stroke="#4b6b3c" stroke-width="1.6"/>') + 'erreichbar (' + esc(D._weg.wer.name) + ', ' + meter(D._weg.wer.bewegung / D.feld, D) + ')</span>';
-    if (D.wesen.some(function (w) { return w.ziel.length; })) t += '<span>' + mini('<path d="M2 14L13 4" stroke="' + F.rot + '" stroke-width="2"/><path d="M15 2l-1 6-4-4z" fill="' + F.rot + '"/>') + 'greift an</span>';
     if (D.wesen.some(function (w) { return w.reichweiten.length; })) t += '<span>' + mini('<rect x="2" y="2" width="14" height="14" fill="#c9a648" fill-opacity=".35" stroke="#9a7b25" stroke-width="1.6" stroke-dasharray="4 2"/>') + 'Reichweite (Wesen antippen)</span>';
     t += '<span>' + mini('<rect x="1.5" y="1.5" width="15" height="15" fill="none" stroke="' + F.rahmen + '"/><path d="M1.5 9H16.5M9 1.5V16.5" stroke="' + F.tinte + '" stroke-opacity=".4"/>') + '1 Feld = ' + meter(1, D) + '</span>';
     return t;
@@ -419,11 +443,13 @@
     (roh.wesen || []).forEach(function (w, i) {
       var wo = 'wesen[' + i + ']' + (w && w.name ? ' (' + w.name + ')' : '');
       if (!objekt(w, wo)) return;
-      Object.keys(w).forEach(function (k) { if (['id', 'name', 'art', 'feld', 'x', 'y', 'zeichen', 'groesse', 'zustand', 'zustaende', 'tp', 'notiz', 'bewegung', 'ziel', 'reichweiten'].indexOf(k) < 0) melde(fehler, wo + ': unbekanntes Feld „' + k + '“.'); });
+      Object.keys(w).forEach(function (k) { if (['id', 'name', 'art', 'feld', 'x', 'y', 'zeichen', 'groesse', 'zustand', 'zustaende', 'tp', 'notiz', 'bewegung', 'reichweiten'].indexOf(k) < 0) melde(fehler, wo + ': unbekanntes Feld „' + k + '“.'); });
       if (!w.name) melde(fehler, wo + ': name fehlt.');
       if (!WESEN[w.art]) melde(fehler, wo + ': art muss figur, gefolge, tier, npc oder feind sein.');
       if (w.zustand != null && !ZUSTAND[w.zustand]) melde(fehler, wo + ': zustand muss eins sein von ' + Object.keys(ZUSTAND).join(', ') + '.');
-      if (w.zustaende != null && !Array.isArray(w.zustaende)) melde(fehler, wo + ': zustaende ist eine Liste kurzer Wörter.');
+      if (w.zustaende != null && !Array.isArray(w.zustaende)) melde(fehler, wo + ': zustaende ist eine Liste.');
+      (Array.isArray(w.zustaende) ? w.zustaende : []).forEach(function (z) { if (!STATUS[z]) melde(fehler, wo + ': Zustand „' + z + '“ hat keine Ikone; erlaubt sind ' + Object.keys(STATUS).join(', ') + '.'); });
+      if (w.zustand === 'tot' && Array.isArray(w.zustaende) && w.zustaende.length) melde(hinweise, wo + ' ist tot und trägt trotzdem Zustände.');
       if (w.tp != null) {
         if (['figur', 'gefolge', 'tier'].indexOf(w.art) < 0) melde(fehler, wo + ': tp gibt es nur für figur, gefolge und tier; Gegner zeigen ihren Zustand in Worten.');
         if (!Array.isArray(w.tp) || w.tp.length !== 2 || !istZahl(w.tp[0]) || !istZahl(w.tp[1])) melde(fehler, wo + ': tp ist [jetzt, höchstens].');
@@ -451,10 +477,6 @@
       if (ids[id]) melde(fehler, wo + ': id „' + id + '“ doppelt.');
       ids[id] = true;
     });
-    (roh.wesen || []).forEach(function (w, i) {
-      if (!w || typeof w !== 'object' || w.ziel == null) return;
-      (Array.isArray(w.ziel) ? w.ziel : [w.ziel]).forEach(function (id) { if (!ids[id]) melde(fehler, 'wesen[' + i + ']: ziel nennt „' + id + '“, das es nicht gibt.'); });
-    });
     if (roh.aktiv != null && (roh.wesen || []).some(function (w) { return w && w.id === roh.aktiv && w.bewegung == null && EIGENE[w.art]; })) melde(hinweise, 'Das aktive Wesen hat keine bewegung: Das Lagebild zeigt nicht, wohin es kommt.');
     (roh.initiative || []).forEach(function (id) { if (!ids[id]) melde(fehler, 'initiative nennt „' + id + '“, das es nicht gibt.'); });
     if (roh.aktiv != null && !ids[roh.aktiv]) melde(fehler, 'aktiv nennt „' + roh.aktiv + '“, das es nicht gibt.');
@@ -481,7 +503,7 @@
     '.lt .ltR{display:flex;flex-wrap:wrap;gap:6px}' +
     '.lt .ltC{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:4px 10px 4px 7px;border:1px solid #c5ad83;border-radius:17px;background:#f3e9d2;color:#3b3028;font-size:13px;line-height:1.2;cursor:pointer;user-select:none}' +
     '.lt .ltC i{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:1.5px solid #f7efdc}' +
-    '.lt .ltC small{color:#6b5a45;font-size:12px}.lt .ltC.ltA{border-color:#c9a648;box-shadow:inset 0 0 0 1.5px #c9a648;background:#f7ecc8}' +
+    '.lt .ltC small{color:#6b5a45;font-size:12px}.lt .ltIk{display:inline-flex;gap:2px;margin-left:2px}.lt .ltIk svg{display:block}.lt .ltC.ltA{border-color:#c9a648;box-shadow:inset 0 0 0 1.5px #c9a648;background:#f7ecc8}' +
     '.lt .ltC.ltS{box-shadow:inset 0 0 0 1.5px #3b3028}' +
     '[data-mode="dark"] .lt .ltC{background:#d8c9a3}@media (prefers-color-scheme:dark){:root:not([data-mode]) .lt .ltC{background:#d8c9a3}}' +
     '.lt .ltB{display:flex;flex-wrap:wrap;gap:8px}.lt .ltRw{display:contents}.lt .ltRw button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px #9a7b25}' +
@@ -516,7 +538,8 @@
       if (i < 0) return '';
       var w = D.wesen[i], z = ZUSTAND[w.zustand];
       var klein = tpWort(w) || (w.zustand !== 'unversehrt' ? w.zustand : '');
-      return '<span class="ltC' + (w.id === D.aktiv ? ' ltA' : '') + '" role="button" tabindex="0" data-i="' + i + '"><i style="background:' + (z.tot ? '#8c8276' : WESEN[w.art].farbe) + '"></i>' + esc(w.name) + (klein ? ' <small>' + esc(klein) + '</small>' : '') + '</span>';
+      var ik = w.zustaende.map(function (k) { return mini(plakette(k, 9, 9, 8.5)).replace('width="18" height="18"', 'width="16" height="16"'); }).join('');
+      return '<span class="ltC' + (w.id === D.aktiv ? ' ltA' : '') + '" role="button" tabindex="0" data-i="' + i + '"><i style="background:' + (z.tot ? '#8c8276' : WESEN[w.art].farbe) + '"></i>' + esc(w.name) + (klein ? ' <small>' + esc(klein) + '</small>' : '') + (ik ? '<b class="ltIk" aria-label="' + esc(w.zustaende.join(', ')) + '">' + ik + '</b>' : '') + '</span>';
     }).join('');
     el.innerHTML = '<style>' + UI_CSS + '</style>' +
       '<div class="ltH"><span class="ltT">' + esc(D.titel) + '</span>' + (D.stand ? '<span class="ltS">' + esc(D.stand) + '</span>' : '') + '</div>' +
@@ -569,7 +592,6 @@
       w.zustaende.forEach(function (z) { teile.push(esc(z)); });
       var ab = abstandWort(w, D); if (ab) teile.push(ab);
       if (w.bewegung != null) teile.push('noch ' + meter(w.bewegung / D.feld, D) + ' Bewegung');
-      w.ziel.forEach(function (id) { var o = D.wesen.filter(function (x) { return x.id === id; })[0]; if (o) teile.push('greift ' + esc(o.name) + ' an'); });
       if (w.notiz) teile.push(esc(w.notiz));
       zeige(teile.join(' · '), w);
     }
@@ -624,7 +646,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { zeichne: zeichne, pruefen: pruefen, vorbereiten: vorbereiten, entfernung: entfernung, erreichbar: erreichbar, kostenBis: kostenBis, inReichweite: inReichweite, feldName: feldName, feldLesen: feldLesen, version: VERSION };
+    module.exports = { status: Object.keys(STATUS), zeichne: zeichne, pruefen: pruefen, vorbereiten: vorbereiten, entfernung: entfernung, erreichbar: erreichbar, kostenBis: kostenBis, inReichweite: inReichweite, feldName: feldName, feldLesen: feldLesen, version: VERSION };
   } else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
