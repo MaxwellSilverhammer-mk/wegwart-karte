@@ -1,6 +1,21 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Werkstatt zu 3.9: Handwerk beim Anlegen eines Reviers (28. Oktober 2026)
+
+Keine Spielregel ändert sich; die Versionsnummer bleibt 3.9. Kein neuer Stand der Tische, der Würfelkasten bleibt. Die Werkstatt wächst von 30.387 auf 31.723 Zeichen; `werkstatt-3.9.md` ist die erste Werkstatt zu 3.9, denn mit 3.9 selbst änderte sie sich nicht.
+
+- **Handwerk beim Anlegen eines Reviers** (W 22.3 neu, dazu der Kopf der Werkstatt und W 22): drei Faustregeln für den Stoff eines Reviers. Jedes Geheimnis hat mehrere Spuren, an mindestens drei Stellen, und der Fortschritt hängt nie an einer einzigen Probe (6.4). Jeder Gegenspieler hat ein Ziel, eine Rechtfertigung und einen Bezug zur Figur und handelt über Uhren und Reaktionen (8.3). Jede geplante Kampflage hat mehr als Gegner: Gelände und Wasser, Licht und Wetter, Unbeteiligte, ein Ziel außer Töten und was sich mitten im Kampf ändern kann. Die Spielleitung liest die Werkstatt dafür auch, wenn ein Revier einen neuen Auftrag oder eine neue Bedrohung bekommt.
+- **Verweis auf die Werkstatt** (Kopf des Regelwerks): zeigt jetzt auf `docs/werkstatt-3.9.md`. Sonst ist `regelwerk-3.9.md` die Fassung vom 26. Oktober.
+- Anlass: Ein Abgleich des Regelwerks mit zwölf Grundsätzen für unterhaltsame Kampagnen (ein Text von ChatGPT) ergab, dass das Regelwerk die meisten schon strenger regelt; neu waren nur diese drei Punkte, und sie zählen nur beim Anlegen. Darum stehen sie in der Werkstatt und nicht im Regelwerk, das jede Nachricht mitlädt. Beschlossen hat der Weltenhüter.
+
+## Regelwerk 3.9 (26. Oktober 2026)
+
+Gegenüber 3.8 (26. Oktober 2026). Kein neuer Stand der Tische, der Würfelkasten bleibt, die Werkstatt ändert sich nicht. Das Regelwerk wächst von 106.527 auf 108.166 Zeichen.
+
+- **Gefährten** (16.4 neu, dazu 11.2 und 16.2): Ein Gefolgsmann mit einem Werteblock bis HG ½, der durch eine Bindung aus der Geschichte bis auf Weiteres mit der Figur zieht, wird Gefährte nach den Sidekick-Regeln aus Tasha's Cauldron of Everything (Krieger, Experte, Zauberwirker). Der Spieler wählt Klasse, Rolle, Fertigkeiten, Rettungswurf und bei jedem Aufstieg Attributserhöhung oder Talent; der Gefährte steigt auf der Stufe der Figur ein. Hausregeln: TP wie eine Spielerfigur, mit dem Trefferwürfel seines Werteblocks; er zählt bei der Teilung der Gegner-EP als Kopf, bekommt Meilensteine aus seinen eigenen Zielen und steigt nach seinen eigenen EP auf. Sonst gilt 16.2 (Charakter, Versorgung, Treue); beim Bauen von Begegnungen zählt er voll, und unter der Statuszeile bekommt er eine eigene Zeile.
+- Anlass: Ksshar, der Echsenmensch der Gelbkehlen, wurde in Sitzung 15 Fürchtegotts Gefährte. Der Weltenhüter wollte für jeden dauerhaften Gefährten die Sidekick-Regeln aus Tasha's, mit eigenem EP-Anteil und eigenen Zielen; die TP-Hausregel stammt aus einer früheren Absprache. Beschlossen hat der Weltenhüter.
 
 ## Regelwerk 3.8 (26. Oktober 2026)
 
