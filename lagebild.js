@@ -1,6 +1,6 @@
 /*
  * Wegwart-Lagebild – Lagebild für den Kampf in der geteilten Welt „Hold der Seeprinzen“
- * Version 1.0
+ * Version 1.1 (Bewegung, Ziele, Reichweiten)
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Lagebild: Steg bei Rohrdorf, Runde 2</h2>
@@ -16,7 +16,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.0';
+  var VERSION = '1.1';
   var S = 40;                          // Kartenpunkte je Feld
   var RL = 24, RO = 22, RR = 12, RU = 12; // Ränder: links (Zeilenzahlen), oben (Spaltenbuchstaben), rechts, unten
   var MIN = 3, MAX = 16;               // Felder je Seite
@@ -45,7 +45,7 @@
   var GELAENDE = {
     mauer: ['Mauer', 'versperrt Weg und Sicht'],
     fels: ['Fels', 'versperrt den Weg, deckt dahinter'],
-    kiste: ['Kisten, Fässer', 'halbe Deckung'],
+    kiste: ['Kisten, Fässer', 'halbe Deckung, drüberklettern kostet doppelt'],
     schutt: ['Schutt', 'schwieriges Gelände'],
     wasser: ['Wasser', 'waten oder schwimmen'],
     schlamm: ['Schlamm', 'schwieriges Gelände'],
@@ -67,6 +67,10 @@
     dunkel: { fill: '#2b2622', op: 0.35, rand: '#2b2622', name: 'Dunkelheit' }
   };
   var NORDEN = { oben: 0, rechts: 90, unten: 180, links: 270 };
+  /* Bewegung nach PHB 2014: versperrt (kein Durchkommen) und schwierig (jedes Feld kostet doppelt) */
+  var SPERRT = { mauer: 1, fels: 1, grube: 1, baum: 1, pfahl: 1, tuer: 1 };
+  var SCHWER = { schutt: 1, schlamm: 1, schilf: 1, busch: 1, wasser: 1, kiste: 1 };
+  var EIGENE = { figur: 1, gefolge: 1, tier: 1 }; // nur sie dürfen TP, Bewegung und Reichweiten zeigen
 
   /* ---------- Hilfen ---------- */
   function esc(s) {
@@ -154,9 +158,87 @@
       w.zustaende = Array.isArray(w.zustaende) ? w.zustaende.filter(Boolean).map(String) : [];
       w._zeichen = zeichenVon(w);
       w._feld = feldName(w._x, w._y);
+      w.bewegung = istZahl(w.bewegung) && w.bewegung >= 0 && EIGENE[w.art] ? w.bewegung : null;
+      w.ziel = (Array.isArray(w.ziel) ? w.ziel : w.ziel != null ? [w.ziel] : []).map(String);
+      w.reichweiten = Array.isArray(w.reichweiten) && EIGENE[w.art] ? w.reichweiten.filter(function (r) { return r && istZahl(r.m) && r.m > 0; }).map(function (r) { return { name: String(r.name || 'Reichweite'), m: r.m }; }) : [];
     });
     D._du = D.wesen.filter(function (w) { return w.art === 'figur'; })[0] || null;
+    D._weg = null;
+    var aktiv = D.wesen.filter(function (w) { return w.id === D.aktiv; })[0];
+    if (aktiv && aktiv.bewegung != null) D._weg = { wer: aktiv, kosten: erreichbar(D, aktiv) };
     return D;
+  }
+
+  /* Welche Felder erreicht ein Wesen mit seiner restlichen Bewegung? Jedes Feld zählt eins, auch schräg; schwieriges
+     Gelände und Felder anderer Wesen kosten doppelt (PHB 2014). Gegner versperren ihr Feld, außer sie sind tot;
+     enden darf man nur auf einem Feld ohne anderes Wesen. Ergebnis: Kosten in Feldern je Feld „x,y“ (Lage links oben). */
+  function erreichbar(D, w) {
+    var g = w.groesse || 1, budget = Math.floor(w.bewegung / D.feld + 1e-9), art = {}, wer = {};
+    D._zellen.forEach(function (z) { var k = z.x + ',' + z.y; if (SPERRT[z.art]) art[k] = 2; else if (SCHWER[z.art] && art[k] !== 2) art[k] = 1; });
+    D.wesen.forEach(function (o) {
+      if (o === w || o === w._ich || o.zustand === 'tot') return;
+      var sperrt = (o.art === 'feind') !== (w.art === 'feind');
+      for (var i = 0; i < o.groesse; i++) for (var j = 0; j < o.groesse; j++) { var k = (o._x + i) + ',' + (o._y + j); wer[k] = Math.max(wer[k] || 0, sperrt ? 2 : 1); }
+    });
+    function feld(x, y) { // null: nicht betretbar; sonst {kosten, enden}
+      if (x < 0 || y < 0 || x + g > D.breite || y + g > D.hoehe) return null;
+      var schwer = false, frei = true;
+      for (var i = 0; i < g; i++) for (var j = 0; j < g; j++) {
+        var k = (x + i) + ',' + (y + j);
+        if (art[k] === 2 || wer[k] === 2) return null;
+        if (art[k] === 1) schwer = true;
+        if (wer[k] === 1) { schwer = true; frei = false; }
+      }
+      return { kosten: schwer ? 2 : 1, enden: frei };
+    }
+    var best = {}, offen = [{ x: w._x, y: w._y, k: 0 }], ziel = {};
+    best[w._x + ',' + w._y] = 0;
+    ziel[w._x + ',' + w._y] = true;
+    while (offen.length) {
+      offen.sort(function (a, b) { return a.k - b.k; });
+      var n = offen.shift();
+      if (n.k > best[n.x + ',' + n.y]) continue;
+      for (var dx = -1; dx <= 1; dx++) for (var dy = -1; dy <= 1; dy++) {
+        if (!dx && !dy) continue;
+        var x = n.x + dx, y = n.y + dy, f = feld(x, y), key = x + ',' + y;
+        if (!f) continue;
+        var k = n.k + f.kosten;
+        if (k > budget || (best[key] != null && best[key] <= k)) continue;
+        best[key] = k; offen.push({ x: x, y: y, k: k });
+        if (f.enden) ziel[key] = true;
+      }
+    }
+    var aus = {};
+    Object.keys(best).forEach(function (key) { if (ziel[key]) aus[key] = best[key]; });
+    return aus;
+  }
+  /* Kosten bis zu einem Feld ohne Grenze (für „zu weit“): dieselbe Suche mit großem Budget */
+  function kostenBis(D, w, x, y) {
+    var k = erreichbar(D, { _x: w._x, _y: w._y, groesse: w.groesse, art: w.art, id: w.id, bewegung: 999 * D.feld, zustand: w.zustand, _ich: w });
+    return k[x + ',' + y] != null ? k[x + ',' + y] : null;
+  }
+  /* Fläche aus Feldern: leicht getönt, mit einer Linie um den Rand (statt jedes Feld einzeln zu rahmen) */
+  function flaeche(zellen, fill, op, rand, strich) {
+    var set = {}, s = '', d = '';
+    zellen.forEach(function (c) { set[c.x + ',' + c.y] = true; });
+    zellen.forEach(function (c) {
+      var x = RL + c.x * S, y = RO + c.y * S;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + S + '" height="' + S + '"/>';
+      if (!set[c.x + ',' + (c.y - 1)]) d += 'M' + x + ' ' + y + 'h' + S;
+      if (!set[c.x + ',' + (c.y + 1)]) d += 'M' + x + ' ' + (y + S) + 'h' + S;
+      if (!set[(c.x - 1) + ',' + c.y]) d += 'M' + x + ' ' + y + 'v' + S;
+      if (!set[(c.x + 1) + ',' + c.y]) d += 'M' + (x + S) + ' ' + y + 'v' + S;
+    });
+    return '<g fill="' + fill + '" fill-opacity="' + op + '">' + s + '</g><path d="' + d + '" fill="none" stroke="' + rand + '" stroke-width="2.2" stroke-linecap="round"' + (strich ? ' stroke-dasharray="' + strich + '"' : '') + '/>';
+  }
+  /* Felder in einer Reichweite von n Feldern um ein Wesen (jedes Feld zählt eins, auch schräg) */
+  function inReichweite(D, w, n) {
+    var aus = [];
+    for (var y = 0; y < D.hoehe; y++) for (var x = 0; x < D.breite; x++) {
+      var e = entfernung(w, { _x: x, _y: y, groesse: 1 });
+      if (e >= 1 && e <= n) aus.push({ x: x, y: y });
+    }
+    return aus;
   }
 
   /* ---------- Gelände zeichnen: ein Feld, Kartenpunkte px, py, Seite s ---------- */
@@ -226,6 +308,34 @@
       s += '<text class="lT lB" x="' + kx + '" y="' + (ky + 22) + '" text-anchor="middle">N</text>';
     }
     // Wesen: Marke mit Zeichen, Ringe für Zustand, aktives Wesen, Auswahl
+    if (D._weg) {
+      var gw = D._weg.wer.groesse, belegt = {}, zellenW = [];
+      Object.keys(D._weg.kosten).forEach(function (key) {
+        var p = key.split(',');
+        for (var i = 0; i < gw; i++) for (var j = 0; j < gw; j++) { var k2 = (+p[0] + i) + ',' + (+p[1] + j); if (!belegt[k2]) { belegt[k2] = true; zellenW.push({ x: +p[0] + i, y: +p[1] + j }); } }
+      });
+      s += '<g class="lW">' + flaeche(zellenW, '#4b6b3c', 0.1, '#4b6b3c', '') + '</g>';
+      liste.push({ typ: 'bewegung', wer: D._weg.wer.id, felder: Object.keys(D._weg.kosten).length - 1 });
+    }
+    D.wesen.forEach(function (w, i) {
+      w.reichweiten.forEach(function (r, j) {
+        var n = Math.floor(r.m / D.feld + 1e-9);
+        s += '<g class="lRw" data-rw="' + i + '-' + j + '" style="display:none">' + flaeche(inReichweite(D, w, n), '#c9a648', 0.24, '#9a7b25', '6 4') + '</g>';
+      });
+    });
+    var pfeile = '';
+    D.wesen.forEach(function (w) {
+      w.ziel.forEach(function (id) {
+        var o = D.wesen.filter(function (x) { return x.id === id; })[0];
+        if (!o || o === w) return;
+        var ax = RL + w._x * S + w.groesse * S / 2, ay = RO + w._y * S + w.groesse * S / 2, bx = RL + o._x * S + o.groesse * S / 2, by = RO + o._y * S + o.groesse * S / 2;
+        var dx = bx - ax, dy = by - ay, l = Math.sqrt(dx * dx + dy * dy) || 1, ra = w.groesse * S / 2 - 2, rb = o.groesse * S / 2 - 1;
+        if (l <= ra + rb + 4) return;
+        pfeile += '<path d="M' + r1(ax + dx / l * ra) + ' ' + r1(ay + dy / l * ra) + 'L' + r1(bx - dx / l * rb) + ' ' + r1(by - dy / l * rb) + '" stroke="' + F.rot + '" stroke-width="2.4" stroke-linecap="round" marker-end="url(#lbPfeil)" opacity=".85"/>';
+        liste.push({ typ: 'ziel', von: w.id, nach: o.id });
+      });
+    });
+    if (pfeile) s += '<defs><marker id="lbPfeil" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="' + F.rot + '"/></marker></defs>' + pfeile;
     D.wesen.forEach(function (w, i) {
       var rad = w.groesse * S / 2 - 4.5, cx = RL + w._x * S + w.groesse * S / 2, cy = RO + w._y * S + w.groesse * S / 2;
       var z = ZUSTAND[w.zustand], farbe = z.tot ? '#8c8276' : WESEN[w.art].farbe;
@@ -268,6 +378,9 @@
     if (zust._z) t += '<span>' + mini('<circle cx="9" cy="9" r="7.5" fill="none" stroke="' + F.tinte + '" stroke-width="1.2" stroke-dasharray="2 2"/>') + 'mit Zustand (antippen)</span>';
     Object.keys(GELAENDE).forEach(function (a) { if (arten[a]) t += '<span>' + mini(glyph(a, 0, 0, 18)) + esc(GELAENDE[a][0]) + ' · ' + esc(GELAENDE[a][1]) + '</span>'; });
     Object.keys(BEREICH).forEach(function (a) { if (bereiche[a]) t += '<span>' + mini('<circle cx="9" cy="9" r="7" fill="' + BEREICH[a].fill + '" fill-opacity="' + Math.min(0.8, BEREICH[a].op * 2) + '" stroke="' + BEREICH[a].rand + '" stroke-dasharray="3 2"/>') + esc(BEREICH[a].name) + '</span>'; });
+    if (D._weg) t += '<span>' + mini('<rect x="2" y="2" width="14" height="14" fill="#4b6b3c" fill-opacity=".15" stroke="#4b6b3c" stroke-width="1.6"/>') + 'erreichbar (' + esc(D._weg.wer.name) + ', ' + meter(D._weg.wer.bewegung / D.feld, D) + ')</span>';
+    if (D.wesen.some(function (w) { return w.ziel.length; })) t += '<span>' + mini('<path d="M2 14L13 4" stroke="' + F.rot + '" stroke-width="2"/><path d="M15 2l-1 6-4-4z" fill="' + F.rot + '"/>') + 'greift an</span>';
+    if (D.wesen.some(function (w) { return w.reichweiten.length; })) t += '<span>' + mini('<rect x="2" y="2" width="14" height="14" fill="#c9a648" fill-opacity=".35" stroke="#9a7b25" stroke-width="1.6" stroke-dasharray="4 2"/>') + 'Reichweite (Wesen antippen)</span>';
     t += '<span>' + mini('<rect x="1.5" y="1.5" width="15" height="15" fill="none" stroke="' + F.rahmen + '"/><path d="M1.5 9H16.5M9 1.5V16.5" stroke="' + F.tinte + '" stroke-opacity=".4"/>') + '1 Feld = ' + meter(1, D) + '</span>';
     return t;
   }
@@ -306,7 +419,7 @@
     (roh.wesen || []).forEach(function (w, i) {
       var wo = 'wesen[' + i + ']' + (w && w.name ? ' (' + w.name + ')' : '');
       if (!objekt(w, wo)) return;
-      Object.keys(w).forEach(function (k) { if (['id', 'name', 'art', 'feld', 'x', 'y', 'zeichen', 'groesse', 'zustand', 'zustaende', 'tp', 'notiz'].indexOf(k) < 0) melde(fehler, wo + ': unbekanntes Feld „' + k + '“.'); });
+      Object.keys(w).forEach(function (k) { if (['id', 'name', 'art', 'feld', 'x', 'y', 'zeichen', 'groesse', 'zustand', 'zustaende', 'tp', 'notiz', 'bewegung', 'ziel', 'reichweiten'].indexOf(k) < 0) melde(fehler, wo + ': unbekanntes Feld „' + k + '“.'); });
       if (!w.name) melde(fehler, wo + ': name fehlt.');
       if (!WESEN[w.art]) melde(fehler, wo + ': art muss figur, gefolge, tier, npc oder feind sein.');
       if (w.zustand != null && !ZUSTAND[w.zustand]) melde(fehler, wo + ': zustand muss eins sein von ' + Object.keys(ZUSTAND).join(', ') + '.');
@@ -314,6 +427,14 @@
       if (w.tp != null) {
         if (['figur', 'gefolge', 'tier'].indexOf(w.art) < 0) melde(fehler, wo + ': tp gibt es nur für figur, gefolge und tier; Gegner zeigen ihren Zustand in Worten.');
         if (!Array.isArray(w.tp) || w.tp.length !== 2 || !istZahl(w.tp[0]) || !istZahl(w.tp[1])) melde(fehler, wo + ': tp ist [jetzt, höchstens].');
+      }
+      if (w.bewegung != null) {
+        if (!EIGENE[w.art]) melde(fehler, wo + ': bewegung gibt es nur für figur, gefolge und tier.');
+        if (!istZahl(w.bewegung) || w.bewegung < 0) melde(fehler, wo + ': bewegung ist die restliche Bewegung in Metern.');
+      }
+      if (w.reichweiten != null) {
+        if (!EIGENE[w.art]) melde(fehler, wo + ': reichweiten gibt es nur für figur, gefolge und tier.');
+        if (!Array.isArray(w.reichweiten) || w.reichweiten.some(function (r) { return !r || typeof r !== 'object' || !r.name || !istZahl(r.m) || r.m <= 0 || Object.keys(r).some(function (k) { return k !== 'name' && k !== 'm'; }); })) melde(fehler, wo + ': reichweiten ist eine Liste aus {name, m}.');
       }
       if (w.zeichen != null && String(w.zeichen).length > 3) melde(fehler, wo + ': zeichen hat höchstens drei Zeichen.');
       if (w.groesse != null && (!istZahl(w.groesse) || w.groesse < 1 || w.groesse > 3)) melde(fehler, wo + ': groesse ist 1, 2 oder 3 (Felder je Seite).');
@@ -330,6 +451,11 @@
       if (ids[id]) melde(fehler, wo + ': id „' + id + '“ doppelt.');
       ids[id] = true;
     });
+    (roh.wesen || []).forEach(function (w, i) {
+      if (!w || typeof w !== 'object' || w.ziel == null) return;
+      (Array.isArray(w.ziel) ? w.ziel : [w.ziel]).forEach(function (id) { if (!ids[id]) melde(fehler, 'wesen[' + i + ']: ziel nennt „' + id + '“, das es nicht gibt.'); });
+    });
+    if (roh.aktiv != null && (roh.wesen || []).some(function (w) { return w && w.id === roh.aktiv && w.bewegung == null && EIGENE[w.art]; })) melde(hinweise, 'Das aktive Wesen hat keine bewegung: Das Lagebild zeigt nicht, wohin es kommt.');
     (roh.initiative || []).forEach(function (id) { if (!ids[id]) melde(fehler, 'initiative nennt „' + id + '“, das es nicht gibt.'); });
     if (roh.aktiv != null && !ids[roh.aktiv]) melde(fehler, 'aktiv nennt „' + roh.aktiv + '“, das es nicht gibt.');
     if (roh.runde != null && !istZahl(roh.runde)) melde(fehler, 'runde ist eine Zahl.');
@@ -358,7 +484,7 @@
     '.lt .ltC small{color:#6b5a45;font-size:12px}.lt .ltC.ltA{border-color:#c9a648;box-shadow:inset 0 0 0 1.5px #c9a648;background:#f7ecc8}' +
     '.lt .ltC.ltS{box-shadow:inset 0 0 0 1.5px #3b3028}' +
     '[data-mode="dark"] .lt .ltC{background:#d8c9a3}@media (prefers-color-scheme:dark){:root:not([data-mode]) .lt .ltC{background:#d8c9a3}}' +
-    '.lt .ltB{display:flex;flex-wrap:wrap;gap:8px}' +
+    '.lt .ltB{display:flex;flex-wrap:wrap;gap:8px}.lt .ltRw{display:contents}.lt .ltRw button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px #9a7b25}' +
     '.lt .ltL{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:12px;color:var(--text-secondary)}' +
     '.lt .ltL span{display:flex;align-items:center;gap:6px}.lt .ltL svg{flex-shrink:0}.lt [hidden]{display:none!important}';
 
@@ -397,13 +523,33 @@
       '<div class="ltK">' + e.svg + '</div>' +
       '<p class="ltI" aria-live="polite">Tippe auf ein Wesen oder ein Feld.</p>' +
       (strip ? '<div class="ltR" aria-label="Reihenfolge">' + strip + '</div>' : '') +
-      '<div class="ltB"><button type="button" data-k="leg" aria-expanded="false">Legende</button><button type="button" data-k="glossar" hidden></button></div>' +
+      '<div class="ltB"><button type="button" data-k="leg" aria-expanded="false">Legende</button><span class="ltRw"></span><button type="button" data-k="glossar" hidden></button></div>' +
       '<div class="ltL" hidden>' + e.legende + '</div>';
     var svg = el.querySelector('svg'), info = el.querySelector('.ltI'), leg = el.querySelector('.ltL');
     var bLeg = el.querySelector('[data-k="leg"]'), bGlossar = el.querySelector('[data-k="glossar"]'), gewaehlt = null;
 
+    var rwKasten = el.querySelector('.ltRw');
+    function ringe(w) {
+      svg.querySelectorAll('.lRw').forEach(function (g) { g.style.display = 'none'; });
+      rwKasten.innerHTML = '';
+      if (!w) return;
+      var i = D.wesen.indexOf(w);
+      w.reichweiten.forEach(function (r, j) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('data-rw', i + '-' + j);
+        b.textContent = r.name + ' · ' + meter(r.m / D.feld, D).replace(/,0 m$/, ' m');
+        b.addEventListener('click', function () {
+          var an = b.getAttribute('aria-pressed') !== 'true';
+          svg.querySelectorAll('.lRw').forEach(function (g) { g.style.display = 'none'; });
+          rwKasten.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+          if (an) { svg.querySelector('.lRw[data-rw="' + i + '-' + j + '"]').style.display = ''; b.setAttribute('aria-pressed', 'true'); }
+        });
+        rwKasten.appendChild(b);
+      });
+    }
     function zeige(html, w) {
       info.innerHTML = html;
+      if ((w || null) !== gewaehlt) ringe(w);
       gewaehlt = w || null;
       var alt = svg.querySelector('.lO.lS'); if (alt) alt.classList.remove('lS');
       var altC = el.querySelector('.ltC.ltS'); if (altC) altC.classList.remove('ltS');
@@ -422,6 +568,8 @@
       if (w.zustand !== 'unversehrt' || !tpWort(w)) teile.push(esc(w.zustand));
       w.zustaende.forEach(function (z) { teile.push(esc(z)); });
       var ab = abstandWort(w, D); if (ab) teile.push(ab);
+      if (w.bewegung != null) teile.push('noch ' + meter(w.bewegung / D.feld, D) + ' Bewegung');
+      w.ziel.forEach(function (id) { var o = D.wesen.filter(function (x) { return x.id === id; })[0]; if (o) teile.push('greift ' + esc(o.name) + ' an'); });
       if (w.notiz) teile.push(esc(w.notiz));
       zeige(teile.join(' · '), w);
     }
@@ -436,6 +584,11 @@
       });
       var ab = abstandWort({ _x: x, _y: y, groesse: 1 }, D);
       if (ab) teile.push(ab);
+      if (D._weg) {
+        var wer = D._weg.wer, k = D._weg.kosten[x + ',' + y], name = wer.art === 'figur' ? 'du' : esc(wer.name);
+        if (k != null) teile.push((wer.art === 'figur' ? 'erreichst du' : name + ' erreicht es') + ' mit ' + meter(k, D));
+        else { var weit = kostenBis(D, wer, x, y); teile.push(weit != null ? 'zu weit: ' + meter(weit, D) + ', ' + (wer.art === 'figur' ? 'du hast' : name + ' hat') + ' noch ' + meter(wer.bewegung / D.feld, D) : 'nicht erreichbar'); }
+      }
       zeige(teile.join(' · '), null);
     }
     svg.addEventListener('click', function (ev) {
@@ -471,7 +624,7 @@
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { zeichne: zeichne, pruefen: pruefen, vorbereiten: vorbereiten, entfernung: entfernung, feldName: feldName, feldLesen: feldLesen, version: VERSION };
+    module.exports = { zeichne: zeichne, pruefen: pruefen, vorbereiten: vorbereiten, entfernung: entfernung, erreichbar: erreichbar, kostenBis: kostenBis, inReichweite: inReichweite, feldName: feldName, feldLesen: feldLesen, version: VERSION };
   } else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

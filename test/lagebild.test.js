@@ -52,6 +52,41 @@ pruefe('Zeichnung: Wesen, Gelände, Bereich, Kompass, Pergament', function () {
   assert.throws(function () { L.zeichne({ breite: 40 }); }, /zwischen 3 und 16/);
 });
 
+pruefe('Bewegung: schräg eins, Schilf und Wasser doppelt, Gegner versperren, auf Freunden nicht enden', function () {
+  var B = { breite: 10, hoehe: 8, gelaende: [{ art: 'schilf', von: 'A2', bis: 'J2' }, { art: 'mauer', feld: 'D4' }],
+    wesen: [{ id: 'du', name: 'Du', art: 'figur', feld: 'B4', bewegung: 9 }, { id: 'k', name: 'K', art: 'gefolge', feld: 'B5' },
+      { id: 's', name: 'S', art: 'feind', feld: 'G4' }, { id: 't', name: 'T', art: 'feind', feld: 'C3', zustand: 'tot' }], aktiv: 'du' };
+  var D = L.vorbereiten(B), k = D._weg.kosten;
+  function f(n) { var l = L.feldLesen(n); return k[l.x + ',' + l.y]; }
+  function weit(n) { var l = L.feldLesen(n); return L.kostenBis(D, D._du, l.x, l.y); }
+  assert.strictEqual(f('H3'), 6, 'sechs Felder schräg und gerade, 9 m');
+  assert.strictEqual(f('H2'), undefined, 'H2 im Schilf kostet sieben');
+  assert.strictEqual(weit('H2'), 7);
+  assert.strictEqual(f('B5'), undefined, 'auf Ksshars Feld endet man nicht');
+  assert.strictEqual(f('D4'), undefined, 'Mauer'); assert.strictEqual(weit('D4'), null);
+  assert.strictEqual(weit('G4'), null, 'ein Gegner versperrt sein Feld');
+  assert.strictEqual(f('C3'), 1, 'ein Toter versperrt nicht');
+  assert.strictEqual(f('B4'), 0, 'stehen bleiben');
+  var gross = L.erreichbar(L.vorbereiten({ wesen: [] }), { _x: 0, _y: 0, groesse: 2, art: 'tier', bewegung: 3 });
+  assert.strictEqual(gross['2,2'], 2, 'ein großes Tier, 2 × 2 Felder');
+  var ohne = L.vorbereiten({ wesen: [{ id: 'du', name: 'Du', art: 'figur', feld: 'A1' }], aktiv: 'du' });
+  assert.strictEqual(ohne._weg, null, 'ohne bewegung keine Felder');
+});
+
+pruefe('Reichweiten und Ziele', function () {
+  var D = L.vorbereiten(beispiel), du = D._du;
+  assert.strictEqual(L.inReichweite(D, du, 1).length, 8, 'Langschwert: die acht Nachbarn');
+  assert.strictEqual(L.inReichweite(D, du, 12).length, 79, 'Starry Wisp, 18 m: das ganze Feld außer dem eigenen');
+  var e = L.zeichne(beispiel);
+  assert.strictEqual((e.svg.match(/class="lRw"/g) || []).length, 2, 'zwei Reichweiten, verborgen');
+  assert.strictEqual(e.liste.filter(function (x) { return x.typ === 'ziel'; }).length, 2, 'zwei Pfeile');
+  assert.ok(e.svg.indexOf('marker-end="url(#lbPfeil)"') >= 0);
+  assert.strictEqual(e.liste.filter(function (x) { return x.typ === 'bewegung'; })[0].felder, 66);
+  assert.ok(e.legende.indexOf('erreichbar (Probefigur, 9 m)') >= 0 && e.legende.indexOf('greift an') >= 0);
+  var f = L.vorbereiten({ wesen: [{ name: 'G', art: 'feind', feld: 'A1', bewegung: 9, reichweiten: [{ name: 'Bogen', m: 24 }] }] }).wesen[0];
+  assert.strictEqual(f.bewegung, null); assert.deepStrictEqual(f.reichweiten, [], 'Gegner zeigen weder Bewegung noch Reichweite');
+});
+
 pruefe('Formprüfung: das Beispiel geht durch', function () {
   var p = L.pruefen(beispiel);
   assert.deepStrictEqual(p.fehler, []); assert.ok(p.ok); assert.strictEqual(p.wesen, 8);
@@ -67,6 +102,12 @@ pruefe('Formprüfung: keine Werte der Gegner, keine fremden Felder', function ()
   function hat(t) { assert.ok(p.fehler.some(function (f) { return f.indexOf(t) >= 0; }), 'Fehler erwartet: ' + t + '\n' + p.fehler.join('\n')); }
   hat('Unbekanntes Feld „geheim“'); hat('unbekanntes Feld „rk“'); hat('tp gibt es nur für figur, gefolge und tier');
   hat('zustand muss eins sein von'); hat('liegt außerhalb'); hat('ragt über den Rand'); hat('id „g“ doppelt');
+  var q = L.pruefen({ wesen: [{ id: 'g', name: 'G', art: 'feind', feld: 'A1', bewegung: 9, reichweiten: [{ name: 'Bogen', m: 24 }], ziel: 'x' },
+    { id: 'du', name: 'Du', art: 'figur', feld: 'B2', reichweiten: [{ name: 'Wisp', m: 18, schaden: '1W8' }] }], aktiv: 'du' });
+  ['bewegung gibt es nur für figur', 'reichweiten gibt es nur für figur', 'ziel nennt „x“', 'reichweiten ist eine Liste aus {name, m}'].forEach(function (t) {
+    assert.ok(q.fehler.some(function (f) { return f.indexOf(t) >= 0; }), 'Fehler erwartet: ' + t);
+  });
+  assert.ok(q.hinweise.some(function (h) { return h.indexOf('keine bewegung') >= 0; }));
   hat('unbekannte Art „lava“'); hat('bis fehlt oder liegt außerhalb'); hat('r (Felder) fehlt'); hat('initiative nennt „nix“'); hat('aktiv nennt „nix“');
   assert.ok(p.hinweise.some(function (h) { return h.indexOf('demselben Feld') >= 0; }) && p.hinweise.some(function (h) { return h.indexOf('Mehr als 10 Spalten') >= 0; }));
   assert.ok(!p.ok);
@@ -121,22 +162,22 @@ async function feldTippen(pg, feld) {
     assert.strictEqual((await pg.textContent('button[data-k="glossar"]')).trim(), 'Glossar Wegelagerer 1 ↗');
     assert.ok(await pg.$('.lO.lS[data-i="4"]') && await pg.$('.ltC.ltS[data-i="4"]'), 'Auswahl auf Karte und in der Reihe');
     await pg.click('.lO[data-i="0"]');
-    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'Probefigur · du · D5 · ist dran · TP 14/17');
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'Probefigur · du · D5 · ist dran · TP 14/17 · noch 9 m Bewegung');
     assert.ok(await pg.$eval('button[data-k="glossar"]', function (b) { return b.hidden; }), 'kein Glossarknopf für die eigene Figur');
     n++; console.log('ok  Tippen auf ein Wesen: Zustand, Entfernung, Notiz, Glossarknopf');
 
     await feldTippen(pg, 'H6');
-    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'H6 · frei · in: Schlaf · 3 m · 4 Felder (6 m) von dir');
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'H6 · frei · in: Schlaf · 3 m · 4 Felder (6 m) von dir · erreichst du mit 6 m');
     await feldTippen(pg, 'C3');
-    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'C3 · Schutt · schwieriges Gelände · 2 Felder (3 m) von dir');
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'C3 · Schutt · schwieriges Gelände · 2 Felder (3 m) von dir · erreichst du mit 4,5 m');
     await feldTippen(pg, 'J8');
-    assert.ok((await pg.textContent('.ltI')).indexOf('J8 · Der Fluss · waten oder schwimmen · 6 Felder (9 m)') === 0);
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'J8 · Der Fluss · waten oder schwimmen · 6 Felder (9 m) von dir · zu weit: 12 m, du hast noch 9 m');
     await feldTippen(pg, 'E4');
     assert.ok((await pg.textContent('.ltI')).indexOf('Wegelagerer 1') === 0, 'ein belegtes Feld zeigt das Wesen');
     n++; console.log('ok  Tippen auf ein Feld: Name, Gelände, Bereich, Entfernung');
 
     await pg.click('.ltC[data-i="1"]');
-    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'Jost · Gefolge · C5 · TP 9/11 · angeschlagen · neben dir');
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'Jost · Gefolge · C5 · TP 9/11 · angeschlagen · neben dir · greift Wegelagerer 1 an');
     await pg.click('button[data-k="glossar"]');
     assert.deepStrictEqual(await pg.evaluate('GESENDET'), ['Glossar Jost'], 'nur der Glossarknopf schickt etwas');
     assert.ok(await pg.$eval('.ltL', function (l) { return l.hidden; }));
@@ -144,6 +185,21 @@ async function feldTippen(pg, feld) {
     assert.ok(!(await pg.$eval('.ltL', function (l) { return l.hidden; })) && (await pg.textContent('.ltL')).indexOf('1 Feld = 1,5 m') >= 0);
     assert.deepStrictEqual(pg.fehler, []);
     n++; console.log('ok  Reihe, Glossar und Legende');
+
+    await pg.click('.lO[data-i="0"]');
+    assert.deepStrictEqual(await pg.$$eval('.ltRw button', function (b) { return b.map(function (x) { return x.textContent; }); }), ['Langschwert · 1,5 m', 'Starry Wisp · 18 m']);
+    assert.ok(await pg.$eval('.lRw[data-rw="0-1"]', function (g) { return g.style.display === 'none'; }));
+    await pg.click('.ltRw button:has-text("Starry Wisp")');
+    assert.ok(await pg.$eval('.lRw[data-rw="0-1"]', function (g) { return g.style.display === ''; }), 'Ring an');
+    await pg.click('.ltRw button:has-text("Langschwert")');
+    assert.ok(await pg.$eval('.lRw[data-rw="0-1"]', function (g) { return g.style.display === 'none'; }) && await pg.$eval('.lRw[data-rw="0-0"]', function (g) { return g.style.display === ''; }), 'immer nur ein Ring');
+    await pg.click('.ltRw button:has-text("Langschwert")');
+    assert.ok(await pg.$eval('.lRw[data-rw="0-0"]', function (g) { return g.style.display === 'none'; }), 'zweiter Tipp: aus');
+    await pg.click('.lO[data-i="4"]');
+    assert.strictEqual(await pg.$$eval('.ltRw button', function (b) { return b.length; }), 0, 'ein Gegner hat keine Ringe');
+    assert.ok(await pg.$('.lW rect'), 'erreichbare Felder sind getönt');
+    assert.deepStrictEqual(pg.fehler, []);
+    n++; console.log('ok  Bewegung, Reichweiten und Ziele im Browser');
     await pg.close();
 
     pg = await seite(b, beispiel, { ohnePrompt: true, dunkel: true, breite: 760 });
