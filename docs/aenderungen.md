@@ -1,6 +1,17 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.10 (28. Oktober 2026)
+
+Gegenüber 3.9 (26. Oktober 2026) und der Werkstatt zu 3.9 (28. Oktober 2026). Neuer Stand der Tische: `19f24535a88e98c250defc71797e91375fc90011` (neu sind inventar.js 3.0, handel.js und `seite/zeichen.js`; `seite/pixel.js` und `seite/pixel-sammlung.js` fallen weg). Der Würfelkasten bleibt. Das Regelwerk geht von 108.166 auf 108.964 Zeichen, die Werkstatt von 31.723 auf 31.565.
+
+- **Zeichen statt Pixel-Ikonen** (4.4, 4.2, 4.9, 3.1, 4, W 4.4, W 21.3, W 21.4): Das Gepäck spricht die Strichsprache der anderen Tische. Jedes Ding zeigt ein Umrisszeichen in Tintenfarbe wie die Zeichen des Würfelkastens (69 in der Sammlung: 35 Tabler Icons und 34 eigene im selben Stil, `seite/zeichen.js`, wörtlich in inventar.js und handel.js) auf einem runden Plättchen. Eigene Bilder je Stück und das Feld `pixel` gibt es nicht mehr; die Karte „Neu im Gepäck“ und das Zeichnen mit `seite/pixel.js` entfallen, und mit ihnen die Token dafür. Das Fenster eines Dings liegt jetzt auf Pergament statt auf Taktikspiel-Blau.
+- **Seltenheit** (4.4, neues Feld `seltenheit`): nach D&D Beyond: gewöhnlich (Tinte), ungewöhnlich (grün), selten (blau), sehr selten (violett), legendär (orange). Sie färbt Ring und Namen und steht im Fenster. Magisches nach dem DMG, Dinge von Bedeutung nach der Geschichte, immer nur, was die Figur weiß.
+- **Marke** (4.4, neues Feld `marke`): ein kleines Zeichen unten rechts am Plättchen, höchstens eins je Ding: gesiegelt (roter Wachspunkt), beschädigt (Riss), benannt (goldener Stern), unbekannt (Fragezeichen). Die Marke ersetzt, was bisher eine eigene Ikone rechtfertigte: Name, Geschichte, Siegel, sichtbarer Zustand.
+- **Händlertisch** (4.9): zeigt dieselben Plättchen mit Seltenheit und Marke; Gepäckdaten im Chat sind dieselben wie im Spielerbuch, es gibt nichts mehr wegzulassen.
+- **Prüfung:** pruefen.js lehnt `pixel` jetzt ab (unbekanntes Feld) und prüft `ikone`, `seltenheit` und `marke` gegen die erlaubten Werte. Bestehende Gepäckdaten verlieren beim Umstieg ihre `pixel`-Raster und bekommen Seltenheit und Marke.
+- Anlass: Die Pixelgrafiken des Gepäcks 2.1 waren untereinander uneinheitlich und fielen aus der Bildsprache der übrigen Tische (Umrisszeichen auf Pergament, flache Würfel). Der Weltenhüter wollte Gepäck, Händlertisch und Würfelkasten harmonisieren, mit Marken nur als kleinem Symbol ohne Initialen und mit den Seltenheitsfarben von D&D Beyond. Beschlossen hat der Weltenhüter.
 
 ## Werkstatt zu 3.9: Handwerk beim Anlegen eines Reviers (28. Oktober 2026)
 
