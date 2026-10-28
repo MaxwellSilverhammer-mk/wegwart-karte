@@ -5,6 +5,7 @@
 var assert = require('assert'), fs = require('fs'), path = require('path');
 var L = require(path.join(__dirname, '..', 'lagebild.js'));
 var beispiel = require(path.join(__dirname, 'lagebild-beispiel.js'));
+var weit = require(path.join(__dirname, 'lagebild-weit.js'));
 var n = 0;
 function pruefe(name, f) { f(); n++; console.log('ok  ' + name); }
 function klon(o) { return JSON.parse(JSON.stringify(o)); }
@@ -49,7 +50,7 @@ pruefe('Zeichnung: Wesen, Gelände, Bereich, Kompass, Pergament', function () {
   assert.ok(e.legende.indexOf('1 Feld = 1,5 m') >= 0 && e.legende.indexOf('Schilf') >= 0 && e.legende.indexOf('Grube') < 0, 'Legende nur mit dem, was vorkommt');
   var ohne = L.zeichne({ titel: 'leer' });
   assert.ok(ohne.svg.indexOf('>N<') < 0 && ohne.breite === 24 + 10 * 40 + 12, 'ohne norden kein Kompass, 10 × 8 Felder');
-  assert.throws(function () { L.zeichne({ breite: 40 }); }, /zwischen 3 und 16/);
+  assert.throws(function () { L.zeichne({ breite: 200 }); }, /zwischen 3 und 160/);
 });
 
 pruefe('Bewegung: schräg eins, Schilf und Wasser doppelt, Gegner versperren, auf Freunden nicht enden', function () {
@@ -97,6 +98,16 @@ pruefe('Zustände: feste Liste, Plaketten an der Marke, „+n“ ab fünf', func
   assert.deepStrictEqual(D.wesen[5].zustaende, ['bewusstlos']);
   assert.ok(L.pruefen({ wesen: [{ name: 'T', art: 'feind', feld: 'A1', zustand: 'tot', zustaende: ['liegend'] }] }).hinweise.some(function (h) { return h.indexOf('tot und trägt') >= 0; }));
   assert.ok(L.pruefen({ wesen: [{ name: 'X', art: 'feind', feld: 'A1', zustand: 'flieht' }] }).fehler.some(function (f) { return f.indexOf('zustand muss eins sein') >= 0; }), 'flieht ist jetzt ein Zustand mit Ikone, keine Verwundung');
+});
+
+pruefe('Große Karte: 124 Spalten, Felder bis DT, 180 m bis zum Schützen', function () {
+  assert.deepStrictEqual(L.feldLesen('DR5'), { x: 121, y: 4 });
+  assert.strictEqual(L.feldName(123, 9), 'DT10');
+  var p = L.pruefen(weit), D = L.vorbereiten(weit);
+  assert.deepStrictEqual(p.fehler, []);
+  assert.ok(p.hinweise.some(function (h) { return h.indexOf('scrollt seitlich') >= 0; }));
+  assert.strictEqual(L.entfernung(D._du, D.wesen[2]), 120, '120 Felder, 180 m');
+  assert.ok(L.pruefen({ breite: 12, hoehe: 20, wesen: [{ name: 'S', art: 'feind', feld: 'A1', zustaende: ['versteckt'] }] }).hinweise.some(function (h) { return h.indexOf('ist versteckt') >= 0; }));
 });
 
 pruefe('Formprüfung: das Beispiel geht durch', function () {
@@ -214,6 +225,24 @@ async function feldTippen(pg, feld) {
     assert.strictEqual(await pg.$$eval('.ltC .ltIk svg', function (s) { return s.length; }), 4, 'Ikonen in der Reihe: konzentriert, flieht, inspiriert, bewusstlos');
     assert.strictEqual(await pg.getAttribute('.ltC[data-i="6"] .ltIk', 'aria-label'), 'flieht');
     n++; console.log('ok  Bewegung, Reichweiten und Zustände im Browser');
+    await pg.close();
+
+    pg = await seite(b, weit);
+    var m = await pg.$eval('.ltScr', function (s) { return { sw: s.scrollWidth, cw: s.clientWidth, sl: s.scrollLeft }; });
+    assert.ok(m.sw > m.cw * 10, 'die Karte ist viel breiter als das Handy und scrollt');
+    assert.strictEqual(m.sl, 0, 'beginnt bei dir, ganz links');
+    var u = await (await pg.$('.lU')).boundingBox();
+    await pg.mouse.click(u.x + u.width * 0.97, u.y + u.height / 2);
+    await pg.waitForFunction(function () { var s = document.querySelector('.ltScr'); return s.scrollLeft > s.scrollWidth - s.clientWidth - 60; }, null, { timeout: 5000 });
+    var zl = await pg.$eval('svg.lZl', function (z) { var r = z.getBoundingClientRect(), s = document.querySelector('.ltScr').getBoundingClientRect(); return Math.round(r.left - s.left); });
+    assert.strictEqual(zl, 0, 'die Zeilenzahlen bleiben links stehen');
+    assert.ok(await pg.$eval('.lUa', function (a) { return +a.getAttribute('x') > 100; }), 'der Ausschnitt in der Übersicht wandert mit');
+    await pg.click('.lO[data-i="2"]');
+    assert.strictEqual((await pg.textContent('.ltI')).trim(), 'Schütze · Gegner · DR5 · unversehrt · 120 Felder (180 m) von dir · Langbogen, halb im Gebüsch');
+    await pg.click('button[data-k="hin"]');
+    await pg.waitForFunction(function () { return document.querySelector('.ltScr').scrollLeft < 10; }, null, { timeout: 5000 });
+    assert.deepStrictEqual(pg.fehler, []);
+    n++; console.log('ok  Große Karte: scrollen, Übersicht, Zeilenzahlen, zurück zu dir');
     await pg.close();
 
     pg = await seite(b, beispiel, { ohnePrompt: true, dunkel: true, breite: 760 });

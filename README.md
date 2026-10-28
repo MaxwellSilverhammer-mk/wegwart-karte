@@ -210,7 +210,7 @@ Das Lagebild zeigt die Lage in einem Kampf, so wie die Figur sie sieht: ein Perg
 | Feld | Inhalt |
 |---|---|
 | `titel`, `stand` | Kopf: Ort oder Szene, dazu Runde und wer dran ist |
-| `breite`, `hoehe` | Felder je Seite, Standard 10 × 8, höchstens 16; ab 11 Spalten wird es auf dem Handy eng |
+| `breite`, `hoehe` | Felder je Seite, Standard 10 × 8; `breite` bis 160 (240 m), `hoehe` bis 30. Ab 11 Spalten scrollt das Lagebild seitlich (ein Feld 36 px), die Zeilenzahlen bleiben links stehen, und darunter liegt eine Übersicht der ganzen Lage mit dem sichtbaren Ausschnitt: Antippen springt dorthin, „Zu dir“ zurück. Zu Beginn steht der Ausschnitt bei dem, der dran ist. Die lange Seite gehört waagerecht; über 16 Zeilen wird es auf dem Handy sehr hoch. Spalten nach Z heißen AA, AB … wie in einer Tabelle |
 | `feld` | Meter je Feld, Standard 1,5 |
 | `norden` | `oben`, `rechts`, `unten` oder `links`: zeichnet den Kompass; ohne ihn keinen |
 | `gelaende[]` | `art`, ein Feld (`feld: 'C3'`) oder ein Rechteck (`von: 'A7', bis: 'J8'`), `name` (sonst der Name der Art). Arten: `mauer`, `fels`, `kiste`, `schutt`, `wasser`, `schlamm`, `schilf`, `baum`, `busch`, `grube`, `feuer`, `steg`, `pfahl`, `boot`, `tuer`; die Legende sagt zu jeder, was sie in der Regel bedeutet (versperrt, schwieriges Gelände, Deckung) |
@@ -225,7 +225,7 @@ Das Lagebild zeigt die Lage in einem Kampf, so wie die Figur sie sieht: ein Perg
 - **Zustände mit Ikonen:** Jeder Zustand hat eine feste Ikone, eine runde Plakette am Rand der Marke (rechts oben, links oben, rechts unten, links unten; ab fünf trägt die vierte „+n“), dieselbe in der Reihe der Initiative und in der Legende. Die Farbe sagt die Gruppe: violett Kontrolle, Tinte Sinne, grün Gift, rot Feuer, braun Haltung, gold und blau Gutes. Die Reihe: `geblendet` (Auge, durchgestrichen), `taub` (Ohr, durchgestrichen), `unsichtbar` (gestrichelter Kreis), `versteckt` (geschlossenes Auge), `vergiftet` (Tropfen), `brennt` (Flamme), `bezaubert` (Herz), `verängstigt` (Ausrufezeichen), `gepackt` (zwei Ringe), `festgesetzt` (Netz), `gelähmt` (zwei Balken), `betäubt` (Spirale), `kampfunfähig` (Kreis, durchgestrichen), `bewusstlos` (Zz; auch Schlaf durch Sleep; die Marke wird blass), `versteinert` (Stein; blass), `liegend` (liegende Gestalt), `ergibt sich` (weiße Fahne), `flieht` (Pfeil fort), `konzentriert` (Ziel), `inspiriert` (Note). Andere Wörter lehnt die Prüfung ab; was dazu zu sagen ist, steht in `notiz`.
 - Was die Figur nicht sieht, steht nicht in den Daten: kein versteckter Schütze, kein Hinterhalt. Er erscheint, wenn er zuschlägt oder bemerkt wird.
 - Pergament, Tinte und Schriften wie beim Kartentisch; im dunklen Modus ist das Pergament gedämpft. Die Reihe der Wesen ist Text mit eigenem Hintergrund, kein Knopf (vgl. die Nachbesserung von titel.js in `docs/aenderungen.md`).
-- `node test/lagebild.test.js` prüft Felder, Entfernungen, Zeichnung und Formprüfung in Node und, wenn Playwright da ist, die Bedienung in Chromium an der erfundenen Welt (`test/lagebild-beispiel.js`).
+- `node test/lagebild.test.js` prüft Felder, Entfernungen, Zeichnung und Formprüfung in Node und, wenn Playwright da ist, die Bedienung in Chromium an der erfundenen Welt (`test/lagebild-beispiel.js`, und für große Karten `test/lagebild-weit.js`: ein Schuss aus 180 m).
 
 ## Glossar
 
@@ -364,4 +364,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.1 (Ikonen 32 × 32 und eigene Ikonen, seit Regelwerk 3.8), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6), Lagebild 1.2 (Bewegung, Reichweiten, Ikonen für Zustände; Vorschlag, gilt erst mit dem Regelwerk, das es nennt); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 2.1 (Ikonen 32 × 32 und eigene Ikonen, seit Regelwerk 3.8), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6), Lagebild 1.3 (Bewegung, Reichweiten, Ikonen für Zustände, große Karten; Vorschlag, gilt erst mit dem Regelwerk, das es nennt); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.

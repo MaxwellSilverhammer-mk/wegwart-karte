@@ -1,6 +1,6 @@
 /*
  * Wegwart-Lagebild – Lagebild für den Kampf in der geteilten Welt „Hold der Seeprinzen“
- * Version 1.2 (Bewegung, Reichweiten, Ikonen für Zustände)
+ * Version 1.3 (Bewegung, Reichweiten, Ikonen für Zustände, große Karten mit Scrollen)
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Lagebild: Steg bei Rohrdorf, Runde 2</h2>
@@ -16,10 +16,12 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.2';
+  var VERSION = '1.3';
   var S = 40;                          // Kartenpunkte je Feld
   var RL = 24, RO = 22, RR = 12, RU = 12; // Ränder: links (Zeilenzahlen), oben (Spaltenbuchstaben), rechts, unten
-  var MIN = 3, MAX = 16;               // Felder je Seite
+  var MIN = 3, MAXB = 160, MAXH = 30;  // Felder je Seite: bis 240 m breit, 45 m hoch
+  var BREIT = 10;                      // ab mehr Spalten scrollt das Lagebild seitlich
+  var PX = 0.9;                        // Bildpunkte je Kartenpunkt beim Scrollen (ein Feld 36 px)
   var BUCHSTABEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   var F = { tinte: '#3b3028', rot: '#8e3b22', rahmen: '#8b6d45', pergament: '#efe2c3', hell: '#f7efdc', gold: '#c9a648',
@@ -119,7 +121,7 @@
   function spalte(x) { return x < 26 ? BUCHSTABEN[x] : BUCHSTABEN[Math.floor(x / 26) - 1] + BUCHSTABEN[x % 26]; }
   function feldName(x, y) { return spalte(x) + (y + 1); }
   function feldLesen(s) {
-    var m = String(s || '').trim().toUpperCase().match(/^([A-Z]{1,2})(\d{1,2})$/);
+    var m = String(s || '').trim().toUpperCase().match(/^([A-Z]{1,2})(\d{1,3})$/);
     if (!m) return null;
     var x = m[1].length === 1 ? BUCHSTABEN.indexOf(m[1]) : (BUCHSTABEN.indexOf(m[1][0]) + 1) * 26 + BUCHSTABEN.indexOf(m[1][1]);
     return { x: x, y: parseInt(m[2], 10) - 1 };
@@ -303,10 +305,16 @@
     }
   }
 
+  function zeilen(D, H) {
+    var s = '';
+    for (var y = 0; y < D.hoehe; y++) s += '<text class="lT lB" x="' + (RL - 6) + '" y="' + (RO + y * S + S / 2 + 4) + '" text-anchor="end">' + (y + 1) + '</text>';
+    return '<style>' + SVG_CSS + '</style>' + s;
+  }
+
   /* ---------- Zeichnen ---------- */
   function zeichne(roh) {
     var D = vorbereiten(roh);
-    if (D.breite < MIN || D.breite > MAX || D.hoehe < MIN || D.hoehe > MAX) throw new Error('breite und hoehe müssen zwischen ' + MIN + ' und ' + MAX + ' liegen.');
+    if (D.breite < MIN || D.breite > MAXB || D.hoehe < MIN || D.hoehe > MAXH) throw new Error('breite muss zwischen ' + MIN + ' und ' + MAXB + ', hoehe zwischen ' + MIN + ' und ' + MAXH + ' liegen.');
     var kompass = NORDEN[D.norden] != null, rr = kompass ? 34 : RR;
     var W = RL + D.breite * S + rr, H = RO + D.hoehe * S + RU, liste = [];
     var s = '<svg class="lb" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc('Lagebild: ' + D.titel + '. Ein Feld ist ' + meter(1, D) + '.') + '" xmlns="http://www.w3.org/2000/svg">';
@@ -384,6 +392,19 @@
     return { svg: s, breite: W, hoehe: H, daten: D, liste: liste, legende: legende(D) };
   }
 
+  /* ---------- Übersicht für große Karten: Gelände als Farbe, Wesen als Punkte, dazu der Ausschnitt ---------- */
+  var UEBER = { mauer: '#8f8270', fels: '#8f8270', kiste: '#b27b43', schutt: '#a7a092', wasser: '#9fb9b7', schlamm: '#a08a62', schilf: '#b9c08a', baum: '#7d8c55', busch: '#97a66c', grube: '#2b2622', feuer: '#d9772a', steg: '#c8a46a', pfahl: '#5b4a33', boot: '#a67c4a', tuer: '#b9956a' };
+  function uebersicht(D) {
+    var s = '<svg class="lU" viewBox="0 0 ' + D.breite + ' ' + D.hoehe + '" preserveAspectRatio="none" role="img" aria-label="Übersicht der ganzen Lage; antippen springt dorthin">';
+    s += '<rect class="lP" width="' + D.breite + '" height="' + D.hoehe + '"/>';
+    D._zellen.forEach(function (z) { s += '<rect x="' + z.x + '" y="' + z.y + '" width="1" height="1" fill="' + (UEBER[z.art] || '#bbb') + '"/>'; });
+    D.wesen.forEach(function (w) {
+      var f = ZUSTAND[w.zustand].tot ? '#8c8276' : WESEN[w.art].farbe, g = w.groesse;
+      s += '<rect x="' + (w._x - 0.15) + '" y="' + (w._y - 0.15) + '" width="' + (g + 0.3) + '" height="' + (g + 0.3) + '" rx="' + ((g + 0.3) / 2) + '" fill="' + f + '"' + (w.id === D.aktiv ? ' stroke="' + F.gold + '" stroke-width=".35"' : '') + '/>';
+    });
+    return s + '<rect class="lUa" x="0" y="0" width="1" height="' + D.hoehe + '" fill="none" stroke="' + F.tinte + '" stroke-width=".3" vector-effect="non-scaling-stroke"/></svg>';
+  }
+
   /* ---------- Legende (nur, was vorkommt) ---------- */
   function mini(inhalt, vb) { return '<svg width="18" height="18" viewBox="0 0 ' + (vb || 18) + ' ' + (vb || 18) + '" aria-hidden="true">' + inhalt + '</svg>'; }
   function legende(D) {
@@ -418,7 +439,7 @@
     Object.keys(roh).forEach(function (k) { if (oben.indexOf(k) < 0) melde(fehler, 'Unbekanntes Feld „' + k + '“.'); });
     var D;
     try { D = vorbereiten(roh); } catch (e) { return { ok: false, fehler: ['Die Daten lassen sich nicht lesen: ' + e.message], hinweise: [] }; }
-    if (D.breite < MIN || D.breite > MAX || D.hoehe < MIN || D.hoehe > MAX) melde(fehler, 'breite und hoehe müssen zwischen ' + MIN + ' und ' + MAX + ' liegen.');
+    if (D.breite < MIN || D.breite > MAXB || D.hoehe < MIN || D.hoehe > MAXH) melde(fehler, 'breite muss zwischen ' + MIN + ' und ' + MAXB + ', hoehe zwischen ' + MIN + ' und ' + MAXH + ' liegen.');
     if (roh.norden != null && NORDEN[roh.norden] == null) melde(fehler, 'norden muss oben, rechts, unten oder links sein.');
     function innen(l) { return l && l.x >= 0 && l.y >= 0 && l.x < D.breite && l.y < D.hoehe; }
     function objekt(o, wo) { if (o && typeof o === 'object' && !Array.isArray(o)) return true; melde(fehler, wo + ' ist kein Objekt.'); return false; }
@@ -449,6 +470,7 @@
       if (w.zustand != null && !ZUSTAND[w.zustand]) melde(fehler, wo + ': zustand muss eins sein von ' + Object.keys(ZUSTAND).join(', ') + '.');
       if (w.zustaende != null && !Array.isArray(w.zustaende)) melde(fehler, wo + ': zustaende ist eine Liste.');
       (Array.isArray(w.zustaende) ? w.zustaende : []).forEach(function (z) { if (!STATUS[z]) melde(fehler, wo + ': Zustand „' + z + '“ hat keine Ikone; erlaubt sind ' + Object.keys(STATUS).join(', ') + '.'); });
+      if (w.art === 'feind' && Array.isArray(w.zustaende) && w.zustaende.indexOf('versteckt') >= 0) melde(hinweise, wo + ' ist versteckt: Einen Gegner, den die Figur nicht sieht, zeigt das Lagebild nicht (Regelwerk 4.8); steht er hier, weiß sie, wo er ist.');
       if (w.zustand === 'tot' && Array.isArray(w.zustaende) && w.zustaende.length) melde(hinweise, wo + ' ist tot und trägt trotzdem Zustände.');
       if (w.tp != null) {
         if (['figur', 'gefolge', 'tier'].indexOf(w.art) < 0) melde(fehler, wo + ': tp gibt es nur für figur, gefolge und tier; Gegner zeigen ihren Zustand in Worten.');
@@ -482,7 +504,8 @@
     if (roh.aktiv != null && !ids[roh.aktiv]) melde(fehler, 'aktiv nennt „' + roh.aktiv + '“, das es nicht gibt.');
     if (roh.runde != null && !istZahl(roh.runde)) melde(fehler, 'runde ist eine Zahl.');
     if (!D._du) melde(hinweise, 'Kein Wesen der Art figur: Entfernungen entfallen.');
-    if (D.breite > 10) melde(hinweise, 'Mehr als 10 Spalten: Auf dem Handy werden die Felder klein.');
+    if (D.breite > BREIT) melde(hinweise, 'Mehr als ' + BREIT + ' Spalten: Das Lagebild scrollt seitlich, mit einer Übersicht darunter.');
+    if (D.hoehe > 16) melde(hinweise, 'Mehr als 16 Zeilen: Das Lagebild wird auf dem Handy sehr hoch; die lange Seite besser waagerecht legen.');
     return { ok: fehler.length === 0, fehler: fehler, hinweise: hinweise, wesen: D.wesen.length, felder: D._zellen.length };
   }
 
@@ -499,6 +522,10 @@
     '.lt .ltT{font-family:"IM Fell English","EB Garamond",Georgia,serif;font-size:20px;line-height:1.2;color:var(--text-primary)}' +
     '.lt .ltS{font-size:13px;color:var(--text-secondary)}' +
     '.lt .ltK svg{display:block;width:100%;height:auto;touch-action:manipulation}' +
+    '.lt .ltScr{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;border-radius:6px}' +
+    '.lt .ltScr .ltZ{display:flex;width:max-content}.lt .ltScr svg.lb{width:auto;max-width:none;flex-shrink:0;touch-action:pan-x pan-y}' +
+    '.lt .ltScr svg.lZl{position:sticky;left:0;z-index:1;flex-shrink:0;margin-right:-' + r1(RL * PX) + 'px;width:auto}' +
+    '.lt .ltU svg{display:block;width:100%;height:auto;max-height:64px;border-radius:3px;cursor:pointer;touch-action:manipulation}' +
     '.lt .ltI{margin:0;font-size:14px;line-height:1.55;color:var(--text-secondary);min-height:44px}.lt .ltI b{font-weight:500;color:var(--text-primary)}' +
     '.lt .ltR{display:flex;flex-wrap:wrap;gap:6px}' +
     '.lt .ltC{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:4px 10px 4px 7px;border:1px solid #c5ad83;border-radius:17px;background:#f3e9d2;color:#3b3028;font-size:13px;line-height:1.2;cursor:pointer;user-select:none}' +
@@ -543,12 +570,35 @@
     }).join('');
     el.innerHTML = '<style>' + UI_CSS + '</style>' +
       '<div class="ltH"><span class="ltT">' + esc(D.titel) + '</span>' + (D.stand ? '<span class="ltS">' + esc(D.stand) + '</span>' : '') + '</div>' +
-      '<div class="ltK">' + e.svg + '</div>' +
+      (D.breite > BREIT ? '<div class="ltK ltScr"><div class="ltZ"><svg class="lZl" viewBox="0 0 ' + RL + ' ' + e.hoehe + '" width="' + r1(RL * PX) + '" height="' + r1(e.hoehe * PX) + '" aria-hidden="true"><rect class="lP" width="' + RL + '" height="' + e.hoehe + '"/>' + zeilen(D, e.hoehe) + '</svg>' + e.svg.replace('<svg class="lb"', '<svg class="lb" width="' + r1(e.breite * PX) + '" height="' + r1(e.hoehe * PX) + '"') + '</div></div>' +
+        '<div class="ltU">' + uebersicht(D) + '</div><div class="ltB"><button type="button" data-k="hin">Zu ' + (D._du ? 'dir' : 'dem, der dran ist') + '</button><span class="ltS">Karte seitlich schieben oder die Übersicht antippen</span></div>'
+      : '<div class="ltK">' + e.svg + '</div>') +
       '<p class="ltI" aria-live="polite">Tippe auf ein Wesen oder ein Feld.</p>' +
       (strip ? '<div class="ltR" aria-label="Reihenfolge">' + strip + '</div>' : '') +
       '<div class="ltB"><button type="button" data-k="leg" aria-expanded="false">Legende</button><span class="ltRw"></span><button type="button" data-k="glossar" hidden></button></div>' +
       '<div class="ltL" hidden>' + e.legende + '</div>';
-    var svg = el.querySelector('svg'), info = el.querySelector('.ltI'), leg = el.querySelector('.ltL');
+    var svg = el.querySelector('svg.lb'), info = el.querySelector('.ltI'), leg = el.querySelector('.ltL');
+    var scr = el.querySelector('.ltScr');
+    if (scr) {
+      var ua = el.querySelector('.lUa'), ueb = el.querySelector('.lU');
+      var zeige0 = function () {
+        var sb = scr.clientWidth, gesamt = svg.getBoundingClientRect().width || e.breite * PX, f = D.breite / gesamt;
+        ua.setAttribute('x', r1(Math.max(0, (scr.scrollLeft - RL * PX) * f) * 10) / 10);
+        ua.setAttribute('width', r1(Math.min(D.breite, sb * f) * 10) / 10);
+      };
+      var hin = function (x, sanft) {
+        var ziel = RL * PX + (x + 0.5) * S * PX - scr.clientWidth / 2;
+        if (scr.scrollTo) scr.scrollTo({ left: Math.max(0, ziel), behavior: sanft && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'smooth' : 'auto' });
+        else scr.scrollLeft = Math.max(0, ziel);
+      };
+      var mitte = D.wesen.filter(function (w) { return w.id === D.aktiv; })[0] || D._du;
+      scr.addEventListener('scroll', zeige0, { passive: true });
+      ueb.addEventListener('click', function (ev) { var r = ueb.getBoundingClientRect(); hin(Math.floor((ev.clientX - r.left) / r.width * D.breite), true); });
+      el.querySelector('[data-k="hin"]').addEventListener('click', function () { var w = D._du || mitte; if (w) { hin(w._x, true); } });
+      if (mitte) hin(mitte._x, false);
+      zeige0();
+      if (window.ResizeObserver) new ResizeObserver(zeige0).observe(scr);
+    }
     var bLeg = el.querySelector('[data-k="leg"]'), bGlossar = el.querySelector('[data-k="glossar"]'), gewaehlt = null;
 
     var rwKasten = el.querySelector('.ltRw');
