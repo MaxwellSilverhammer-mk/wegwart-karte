@@ -1,11 +1,13 @@
 // Lädt die Kampfkarte (kampf.js) mit dem Aufruf aus Regelwerk 4.2 in Chromium und prüft Raster, Erreichbarkeit,
-// Weg, Ziel und Nachricht. Erfundene Welt (test/kampf-beispiel.js), keine Daten einer echten Figur.
+// Weg, Ziel, Höhe und Nachricht. Erfundene Welt (test/kampf-beispiel.js, test/kampf-hoehe-beispiel.js), keine Daten
+// einer echten Figur.
 // Braucht Playwright mit Chromium: node test/kampf.test.js
 'use strict';
 var assert = require('assert'), fs = require('fs'), path = require('path');
 var chromium = require('playwright').chromium;
 var code = fs.readFileSync(path.join(__dirname, '..', 'kampf.js'), 'utf8');
 var KAMPF = require('./kampf-beispiel.js');
+var HOEHE = require('./kampf-hoehe-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -47,7 +49,30 @@ function klickWesen(pg, i) {
   assert.strictEqual(W.dist['1,1'], undefined, 'Wand');
   assert.strictEqual(kampf.feldName(KAMPF, 14, 3), '14/C');
   assert.strictEqual(kampf.abstand({ x: 4, y: 5, groesse: 1 }, K.wesen[5]), 22, 'Abstand zum Bären, Kante zu Kante');
+  assert.strictEqual(kampf.hoehe(K, 6, 7), 1, '^ ohne hoehe ist Ebene 1');
+  assert.strictEqual(W.dist['6,7'], 3, 'auf ein ^ hinauf kostet ein Feld extra');
   ok('Wege und Abstände');
+
+  // Höhe: Terrasse (Ebene 2), Geröllrampe (b), Treppe (c, b), Brustwehr
+  var H = kampf.lies(HOEHE), WH = kampf.wege(H, H.figur);
+  assert.strictEqual(kampf.hoehe(H, 15, 5), 2, 'Terrasse auf Ebene 2');
+  assert.strictEqual(kampf.hoehe(H, 10, 4), 1, 'Rampe b ist Ebene 1');
+  assert.strictEqual(WH.dist['18,8'], 3, 'bis unter die Kante drei Felder');
+  assert.strictEqual(WH.dist['18,6'], 8, 'über die Brustwehr hinauf: 4 Felder bis unter die Kante, dann 2 (Deckung) + 2 (zwei Ebenen)');
+  assert.strictEqual(WH.dist['27,7'], 9, 'die Treppe hinauf kostet nichts extra');
+  assert.strictEqual(WH.dist['27,6'], 10, 'oberste Stufe');
+  assert.deepStrictEqual(kampf.pfadHoehe(H, kampf.pfad(WH, 27, 6)), { klettern: 0, sprung: 0 }, 'über die Treppe wird nicht geklettert');
+  assert.strictEqual(WH.dist['11,5'], 10, 'auf die Geröllrampe: Geröll doppelt, Ebene frei');
+  assert.deepStrictEqual(kampf.pfadHoehe(H, kampf.pfad(WH, 12, 5)), { klettern: 2, sprung: 0 }, 'der kürzeste Weg nach 12/E klettert die Mauer');
+  assert.strictEqual(kampf.abstand({ x: 15, y: 7, groesse: 1 }, H.wesen[2], H), 2, 'unter der Kante: zwei Felder waagerecht, zwei Ebenen: 3 m');
+  assert.strictEqual(kampf.abstand({ x: 15, y: 8, groesse: 1 }, H.wesen[2], H), 3, 'ein Feld weiter unten zählt wieder das Waagerechte');
+  assert.strictEqual(kampf.abstand({ x: 15, y: 6, groesse: 1 }, H.wesen[2], H), 1, 'auf der Brustwehr, gleiche Ebene: ein Feld');
+  assert.strictEqual(kampf.abstand(H.figur, H.wesen[2]), 6, 'ohne Karte wie bisher flach');
+  var oben = kampf.lies({ boden: HOEHE.boden, hoehe: HOEHE.hoehe, wesen: [{ id: 'f', name: 'Oben', art: 'figur', x: 12, y: 5, bewegung: 9 }] });
+  var WO = kampf.wege(oben, oben.figur);
+  assert.deepStrictEqual(kampf.pfadHoehe(oben, kampf.pfad(WO, 12, 7)), { klettern: 0, sprung: 2 }, 'von der Terrasse über die Brustwehr hinab ist ein Sprung von zwei Ebenen');
+  assert.strictEqual(WO.dist['12,7'], 3, 'hinab kostet nur das Gelände');
+  ok('Höhe: Klettern, Treppe, Rampe, Sprung, Abstand');
 })();
 
 (async function () {
@@ -86,12 +111,29 @@ function klickWesen(pg, i) {
     assert.ok((await pg2.locator('#kampf .kkL span').count()) >= 15, 'Legende');
     ok('Grenzen, Spurt, ohne sendPrompt');
 
+    var pgH = await seite(b, HOEHE);
+    assert.strictEqual(await pgH.locator('#kampf g.kkHm').count(), 3, 'drei Spielsteine mit Höhenmarke');
+    assert.ok((await pgH.locator('#kampf .kkKan path.kkKa').count()) >= 14, 'Kanten mit Schatten');
+    assert.ok((await pgH.locator('#kampf g.kkHs').count()) >= 2, 'Höhenschilder');
+    assert.ok((await pgH.locator('#kampf .kkZl span').count()) === 12, 'Zeilenbuchstaben links, die stehen bleiben');
+    await klickFeld(pgH, 12, 4);
+    assert.ok(/nach 12\/D \(3 m hoch\) · 15 m · klettert 3 m · Spurt/.test(await pgH.innerText('#kampf .kkI')), 'Weg mit Höhe und Klettern: ' + await pgH.innerText('#kampf .kkI'));
+    await klickWesen(pgH, 2);
+    assert.ok(/Ziel: Räuber 1 · 4,5 m/.test(await pgH.innerText('#kampf .kkI')), 'Ziel auf gleicher Ebene ohne Höhenangabe');
+    await klickFeld(pgH, 12, 4);
+    assert.ok(/Ziel: Räuber 1 · 9 m, 3 m höher/.test(await pgH.innerText('#kampf .kkI')), 'Ziel von unten: Entfernung und Höhe: ' + await pgH.innerText('#kampf .kkI'));
+    await klickFeld(pgH, 27, 7);
+    await pgH.click('#kampf button[data-k="zug"]');
+    var gH = await pgH.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gH, ['Kampf #2 · Probefigur nach 27/G (1,5 m hoch) · 13,5 m · Spurt · Ziel: Räuber 1 (18 m, 1,5 m höher)']);
+    ok('Höhe im Widget');
+
     var pg3 = await seite(b, { nr: 1, titel: 'Leer', wesen: [{ id: 'r', name: 'Räuber', art: 'gegner', x: 2, y: 2 }] });
     assert.ok(/Die Figur steht nicht auf der Karte/.test(await pg3.innerText('#kampf .kkI')), 'ohne Figur');
     assert.strictEqual(await pg3.locator('#kampf rect.kkN').count(), 0, 'ohne boden ist alles Boden');
     ok('ohne Figur');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pg3.fehler), [], 'keine Fehler im Browser');
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }

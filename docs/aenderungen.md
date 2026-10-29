@@ -2,6 +2,15 @@
 
 Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
 
+## Kampfkarte 1.1 (29. Oktober 2026)
+
+Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/welt (`tische_stand`) und Regelwerk 4.2 einträgt. Anlass: der Probekampf an einer Terrasse mit Brustwehr, Treppe und Bresche. Die Karte 1.0 kannte ein Zeichen „erhöht“ ohne Höhe, Kosten oder Entfernung; der Spieler musste im Text nachlesen, wer wie hoch steht, und auf dem Handy war die Beschriftung zu klein.
+
+- **Höhenlage** (`hoehe`, README „Kampf“): dieselben Zeilen wie `boden`, eine Ziffer je Feld (1 = 1,5 m), Buchstaben `a` bis `j` für Rampen und Treppen; `^` bleibt als Ebene 1 lesbar, neu ist `/` für Treppe oder Rampe. Ebenen sind getönt, Kanten haben Linie und Schatten auf der tieferen Seite und Schilder „+3 m“, Spielsteine über dem Boden eine Höhenmarke, die Infozeile nennt Höhe und Höhenunterschied.
+- **Rechnung**: eine Ebene hinauf kostet ein Feld extra (PHB: Klettern), über Rampe oder Treppe nicht; hinab kostet nichts, zwei Ebenen und mehr ohne Treppe sind ein Sprung („springt 3 m hinab“, 1W6 je 3 m); Entfernungen dreidimensional nach dem größeren Maß (PHB, Diagonale wie gerade). Die Zugzeile trägt „(3 m hoch)“, „klettert 1,5 m“, „springt 3 m hinab“ und beim Ziel „3 m höher“; ohne Höhe bleibt sie wie in 1.0.
+- **Handy**: mindestens 36 Pixel je Feld statt 22, Beschriftung 13 Punkt oben und unten, Zeilenbuchstaben links als Leiste, die beim Scrollen stehen bleibt; Notizen als Schilder. Die Reihenfolge in der Spielantwort (Erzählung, Statuszeile, Optionen, Karte, ein Satz) ist ein Vorschlag an den Weltenhüter für Regelwerk 12.6.
+- Tests: `test/kampf.test.js` prüft dazu Klettern, Treppe, Rampe, Sprung und Abstand an `test/kampf-hoehe-beispiel.js` (erfundene Warte über Rohrdorf), im Widget Höhenmarken, Kanten, Schilder, Zeilenleiste und die Zugzeile mit Höhe.
+
 ## Regelwerk 3.16 (29. Oktober 2026)
 
 Gegenüber 3.15 (29. Oktober 2026). Anlass: eine Prüfung des Spielstarts und des Sitzungsendes auf überflüssiges Lesen und Schreiben, gemessen an Fürchtegotts Spielerbuch nach Sitzung 17 (323 Dokumente, 1,6 MB) und der Weltchronik. Keine Spielregel ändert sich; es ändern sich die Arbeitsschritte der Spielleitung.
