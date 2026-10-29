@@ -1,6 +1,12 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.18 (29. Oktober 2026)
+
+Gegenüber 3.17 (29. Oktober 2026). Anlass: Der Weltenhüter wollte zwei weitere Romanreihen als Bildquellen für Beschreibungen. Die Werkstatt bleibt 3.16. Kein neuer Stand der Tische, der Würfelkasten bleibt. Keine Spielregel ändert sich.
+
+- **Vorbilder** (20.2): Neben *Game of Thrones* liefern Brandon Sandersons *Stormlight Archive* und Joe Abercrombies *First Law* Bilder für die Beschreibung; Tonvorbilder bleiben *Hexer* und *Mistborn*. Ein neuer Punkt „Was die beiden dazugeben“ nennt die Bilder (Wetter und Land als Gegner, der Sturm als Ereignis, Lager und Fron von unten gesehen, Eide mit Gewicht; hässliche, erschöpfende Kämpfe, Wunden, die wochenlang wehtun, Leute, die weder Helden noch Schurken sind, die trockene innere Stimme der Figur) und zieht die Grenze: Die Bilder kommen mit, die Weltsicht nicht; Gewalt bleibt nach 13, ein Fehlschlag ist nie sinnlos (10). Namen, Figuren, Orte, Völker, erkennbare Szenen und fremde Magiesysteme bleiben wie bisher ausgeschlossen.
 
 ## Regelwerk 3.17 (29. Oktober 2026)
 
