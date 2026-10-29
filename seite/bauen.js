@@ -6,12 +6,14 @@
 //   node seite/bauen.js --seite [--titel "Probefigurs Buch"] > buch.gebaut.html
 //       baut die Seite aus seite/buch.html, glossar.js, karte.js, inventar.js, questlog.js und seite/ikonen.svg;
 //       --titel setzt den Titel, den die Seite vor dem Laden zeigt (sonst „Spielerbuch“; danach gilt titel aus meta/buch)
-//   node seite/bauen.js --db <ordner> [--stand "Stand: Tag 12"] [--stufe 3] [--titel "Probefigurs Buch"] <dateien …>
+//   node seite/bauen.js --db <ordner> [--stand "Stand: Tag 12"] [--stufe 3] [--titel "Probefigurs Buch"] [--reihe-ab n] [--sl-reihe-ab n] <dateien …>
 //       schreibt die Dokumente der Datenbank nach <ordner>/<sammlung>/<id>.json; die Art jeder Datei erkennt es selbst:
 //       02_glossar.md (Glossar-Text)          -> glossar/<id>, meta/glossar
 //       02_karte.md, 02_inventar.md, 02_questlog.md (json-Block oder .json) -> tische/karte, tische/gepaeck, tische/logbuch
 //       02_geschichte.md (Abschnitte „### …“) -> geschichte/<id>  („Was bisher geschah“, Wortlaut aus dem Spielstand)
 //       --sl <datei> (Abschnitte „## …“)       -> sl/<id>          (Archiv der Spielleitung, z. B. Würfelprotokolle; die Seite zeigt es nicht)
+//       --reihe-ab n, --sl-reihe-ab n: Nummer (reihe) des ersten Abschnitts der Geschichte bzw. des Archivs in dieser Datei, wenn
+//       nur neue Abschnitte eingespielt werden (n = Zahl der Dokumente, die es schon gibt, aus dem list-Ergebnis); sonst 0.
 //       dazu meta/buch (titel, stand, stufe, figur).
 //   Einspielen: ArtifactData batch, je Dokument set mit file_path; bestehende Dokumente mit if_version aus einem list davor.
 //   node seite/bauen.js --batches <ordner> [--alt <db-ordner>] [versionen …]
@@ -25,14 +27,16 @@
 //       (<db-ordner>/<sammlung>/<id>.json), und schreibt 02_glossar.md, 02_karte.json, 02_inventar.json, 02_questlog.json,
 //       02_geschichte.md und 03_archiv.md (sl) in den Zielordner; nach dem Bearbeiten pruefen.js, dann wieder --db.
 //       Aus der Ablage (sl/_spielstand, sl/_spoiler, sl/_uebergabe) schreibt es 02_spielstand.md,
-//       03_spielleitung_SPOILER.md und uebergabe.md daneben und meldet, von wann sie sind und ob die Prüfsumme stimmt.
+//       03_spielleitung_SPOILER.md und uebergabe.md daneben und meldet, von wann sie sind und ob die Prüfsumme stimmt;
+//       kennt die Kopie die Projektdokumente, dazu projekt-dokumente.txt zum Vergleich mit project_info (Werkstatt 21.5).
 //
 //   Ablage der Spielleitung (Regelwerk 3.5, Werkstatt 21.4 und 21.5): Dokumente sl/_… sind kein Archiv. --zurueck nimmt sie
 //   nicht in 03_archiv.md, --batches schreibt und löscht sie nie; geschrieben werden sie nur so:
-//   node seite/bauen.js --kopie <ordner> --projekt <größe> [--sitzung "Sitzung 11"] [--sitzungsende] 02_spielstand.md 03_spielleitung_SPOILER.md [versionen …]
+//   node seite/bauen.js --kopie <ordner> --projekt <größe> [--dokumente <datei>] [--sitzung "Sitzung 11"] [--sitzungsende] 02_spielstand.md 03_spielleitung_SPOILER.md [versionen …]
 //       Kopien von Spielstand und Spoilerdatei (text, zeichen, sha256, projekt = knowledge_size aus project_info gleich
-//       nach dem Schreiben ins Projekt, sitzung, geschrieben) nach <ordner>/sl/; auf stdout eine Zeile für ArtifactData
-//       batch, mit if_version, wo die Versionen die Kopie kennen; --sitzungsende löscht dabei die Übergabe.
+//       nach dem Schreiben ins Projekt, dokumente = die Pfade der Projektdokumente aus project_info, je Zeile einer in <datei>,
+//       sitzung, geschrieben) nach <ordner>/sl/; auf stdout eine Zeile für ArtifactData batch, mit if_version, wo die
+//       Versionen die Kopie kennen; --sitzungsende löscht dabei die Übergabe.
 //   node seite/bauen.js --uebergabe <ordner> uebergabe.md [versionen …]
 //       die Übergabe eines Zwischenhalts nach <ordner>/sl/_uebergabe.json, dazu die Zeile für ArtifactData batch.
 'use strict';
@@ -86,10 +90,12 @@ function abschnitte(text, ebene) {
 }
 
 function db(args) {
-  var ordner = args.shift(), opt = { titel: '', stand: '', stufe: null }, dateien = [], sl = [];
+  var ordner = args.shift(), opt = { titel: '', stand: '', stufe: null, reiheAb: 0, slReiheAb: 0 }, dateien = [], sl = [];
   while (args.length) {
     var a = args.shift();
     if (a === '--stand') opt.stand = args.shift();
+    else if (a === '--reihe-ab') opt.reiheAb = +args.shift() || 0;
+    else if (a === '--sl-reihe-ab') opt.slReiheAb = +args.shift() || 0;
     else if (a === '--stufe') opt.stufe = +args.shift();
     else if (a === '--titel') opt.titel = args.shift();
     else if (a === '--sl') sl.push(args.shift());
@@ -126,10 +132,10 @@ function db(args) {
     if (!/^#\s+Was bisher geschah/m.test(text) && g3.some(function (a) { return !/^Sitzung\b/i.test(a.titel); })) {
       probleme.push(datei + ': keine Geschichte (Überschrift „# Was bisher geschah“ oder Abschnitte „### Sitzung …“)'); return;
     }
-    g3.forEach(function (a) { docs.push({ sammlung: 'geschichte', id: a.id, daten: { reihe: a.reihe, titel: a.titel, text: a.text } }); });
+    g3.forEach(function (a) { docs.push({ sammlung: 'geschichte', id: a.id, daten: { reihe: a.reihe + opt.reiheAb, titel: a.titel, text: a.text } }); });
   });
   sl.forEach(function (datei) {
-    abschnitte(lies(datei), 2).forEach(function (a) { docs.push({ sammlung: 'sl', id: a.id, daten: { reihe: a.reihe, titel: a.titel, text: a.text } }); });
+    abschnitte(lies(datei), 2).forEach(function (a) { docs.push({ sammlung: 'sl', id: a.id, daten: { reihe: a.reihe + opt.slReiheAb, titel: a.titel, text: a.text } }); });
   });
   if (probleme.length) { console.error('Nicht geschrieben:\n  ' + probleme.join('\n  ')); process.exit(1); }
   var meta = { titel: opt.titel || ((figur ? figur + 's' : 'Das') + ' Buch'), stand: opt.stand, figur: figur };
@@ -182,6 +188,10 @@ function zurueck(ordner, ziel) {
     var name = ABLAGE[d.id], k = d.daten || {};
     if (!name || typeof k.text !== 'string') { aus.push('sl/' + d.id + ' übergangen (unbekannt)'); return; }
     fs.writeFileSync(path.join(ziel, name), k.text);
+    if (d.id === '_spielstand' && Array.isArray(k.dokumente)) {
+      fs.writeFileSync(path.join(ziel, 'projekt-dokumente.txt'), k.dokumente.join('\n') + '\n');
+      aus.push('projekt-dokumente.txt (' + k.dokumente.length + ' Projektdokumente zur Zeit der Kopie)');
+    }
     var von = [k.sitzung, k.geschrieben, k.projekt != null ? 'Projektgröße ' + zahl(k.projekt) : ''].filter(Boolean).join(', ');
     aus.push(name + ' aus sl/' + d.id + ' (' + (von ? von + '; ' : '') + 'Prüfsumme ' + (k.sha256 === pruefsumme(k.text) ? 'stimmt' : 'STIMMT NICHT') + ')');
   });
@@ -291,10 +301,11 @@ function ablageSchreiben(ordner, docs, versionen, loeschen) {
 }
 function versionenDazu(versionen, datei) { var v = versionenAus(lies(datei)); Object.keys(v).forEach(function (k) { versionen[k] = v[k]; }); }
 function kopie(args) {
-  var ordner = args.shift(), projekt = null, sitzung = '', ende = false, dateien = [], versionen = {};
+  var ordner = args.shift(), projekt = null, sitzung = '', ende = false, dateien = [], versionen = {}, dokumente = null;
   while (args.length) {
     var a = args.shift();
     if (a === '--projekt') projekt = args.shift();
+    else if (a === '--dokumente') dokumente = lies(args.shift()).split('\n').map(function (z) { return z.trim(); }).filter(Boolean);
     else if (a === '--sitzung') sitzung = args.shift();
     else if (a === '--sitzungsende') ende = true;
     else if (/\.md$/i.test(a)) dateien.push(a);
@@ -307,14 +318,14 @@ function kopie(args) {
     var b = path.basename(datei), id = /^02_spielstand/i.test(b) ? '_spielstand' : /^03_/.test(b) ? '_spoiler' : '';
     if (!id) probleme.push(datei + ': weder 02_spielstand… noch 03_…');
     else if (docs.some(function (x) { return x.id === id; })) probleme.push(datei + ': ' + id + ' doppelt');
-    else docs.push({ id: id, daten: ablageDok(datei, { projekt: n, sitzung: sitzung }) });
+    else docs.push({ id: id, daten: ablageDok(datei, { projekt: n, sitzung: sitzung, dokumente: dokumente }) });
   });
   if (!docs.length && !probleme.length) probleme.push('keine Datei angegeben (02_spielstand.md, 03_spielleitung_SPOILER.md)');
   if (probleme.length) { console.error('Nicht geschrieben:\n  ' + probleme.join('\n  ')); process.exit(1); }
   var w = ablageSchreiben(ordner, docs, versionen, ende ? ['_uebergabe'] : []);
   console.error(docs.length + (docs.length === 1 ? ' Kopie' : ' Kopien') + ' nach ' + path.join(ordner, 'sl') + ': ' +
     docs.map(function (x) { return x.daten.datei + ' (' + zahl(x.daten.zeichen) + ' Zeichen' + (w.some(function (y) { return y.doc_id === x.id && y.if_version; }) ? ', ersetzt' : ', neu') + ')'; }).join(', ') +
-    '; Projektgröße ' + zahl(n) + '. Die Zeile auf stdout geht unverändert als ein ArtifactData batch hinaus' +
+    '; Projektgröße ' + zahl(n) + (dokumente ? ', ' + dokumente.length + ' Projektdokumente' : '') + '. Die Zeile auf stdout geht unverändert als ein ArtifactData batch hinaus' +
     (w.some(function (y) { return y.op === 'delete'; }) ? '; sie löscht auch die Übergabe.' : '.') +
     (Object.keys(versionen).length ? '' : ' Keine Versionen angegeben: Gibt es die Kopien schon, braucht jede if_version aus einem list davor.'));
 }
