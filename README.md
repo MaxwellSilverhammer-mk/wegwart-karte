@@ -8,6 +8,7 @@ Pergament-Tische für die geteilte Welt „Hold der Seeprinzen“, ein D&D-5e-Te
 - **Rast** (`rast.js`): Rastübersicht im Stil des Würfelkastens mit Trefferwürfeln, Lied der Erholung, Essen, Klassenfähigkeiten, Zaubern und Zaubervorbereitung (Abschnitt „Rast“).
 - **Handel** (`handel.js`): Händlertisch mit einer Waage: Ware antippen oder auf die Schalen ziehen, die Münzen mit Wechselgeld legt der Tisch selbst auf; Daten in der Form des Gepäcks (Abschnitt „Handel“).
 - **Titel** (`titel.js`): Titelbildschirm zu Beginn einer Sitzung, ein Ölgemälde, das sich selbst malt, mit Menü und Spielständen, ein Platz je Figur (Abschnitt „Titel“).
+- **Kampf** (`kampf.js`): Kampfkarte mit einem Raster von 36 × 12 Feldern zu 1,5 m für Kämpfe, bei denen der Raum zählt (Regelwerk 12.6). Zeigt Gelände, Deckung, Licht und nur die Wesen, die die Figur sieht; der Spieler tippt ein Feld an, sieht Weg und Entfernung und schickt seinen Zug per `sendPrompt` (Abschnitt „Kampf“).
 - **Glossar** (`glossar.js`): alle Schlüsselwörter nach Personen, Gruppen, Orten, Dingen und Gerüchten, mit dem, was die Figur weiß, Posten für Posten mit Herkunft und Welttag, aus `02_glossar.md`, dem Glossar-Abschnitt des Spielstands in eigener Datei (Abschnitt „Glossar“). Die Knöpfe „Glossar … ↗“ der anderen Tische führen hierher. Dieselbe Datei füllt das Glossar im Spielerbuch.
 - **Spielerbuch** (`seite/buch.html`, gebaut mit `seite/bauen.js`): eine Seite je Figur, ein Artefakt mit Datenbank, mit Glossar, Logbuch, Gepäck, Karte und „Was bisher geschah“; die Tische sind eingebaut (Abschnitt „Das Spielerbuch“).
 - **Wissensbuch** (`wissensbuch.js`, nur Prüfung): Wer weiß was im Revier, Figur für Figur mit Herkunft und Welttag, in der Spoilerdatei; die Prüfung sperrt Wissen ohne Weg (Abschnitt „Wissensbuch“).
@@ -182,6 +183,32 @@ Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemä
 - Ohne `sendPrompt` (etwa in einer Vorschau außerhalb des Chats) sagt ein Hinweis, was ein Knopf im Spiel schicken würde.
 - `node test/titel.test.js` lädt den Titel mit diesem Aufruf in Chromium (Playwright) und prüft Menü, Spielstände, Nachrichten und das fertige Bild an einer erfundenen Figur.
 
+## Kampf
+
+Die Kampfkarte ist ein Pergamentraster für Kämpfe, bei denen der Raum zählt (Regelwerk 12.6): 36 Felder breit, 12 hoch, 1 Feld = 1,5 m, Spalten 1 bis 36, Zeilen A bis L. Sie zeigt Gelände, Türen, Deckung, Licht und die Wesen, die die Figur sieht, nichts anderes (Regelwerk 4.8). Die Figur ist mit ihrer Bewegung schon markiert: Felder, die sie in einem Zug erreicht, sind gold getönt, Felder, die sie mit Spurt erreicht, blasser. Ein Tipp auf ein Feld zeigt Weg und Entfernung (jedes Feld 1,5 m, auch diagonal; schwieriges Gelände und Wasser zählen doppelt, Gegner versperren den Weg, durch Gefolge geht es hindurch), ein Tipp auf ein Wesen wählt es als Ziel mit Entfernung. **Zug abschicken** schickt „Kampf #nr · <Figur> nach 14/C · 6 m · Spurt · Ziel: Räuber 2 (3 m) · <was sie sonst tut>“, **Bleiben** dasselbe ohne Weg; die Nummer teilt sich den Zähler mit dem Würfelkasten. Auf dem Handy ist die Karte vergrößert und scrollt; `−`, `+` und „Zur Figur“ helfen beim Blick. Die Spielleitung zieht alle anderen und stellt die Karte nach jeder Runde neu.
+
+```html
+<h2 class="sr-only">Kampfkarte: Keller der Alten Eiche, Runde 2</h2>
+<div id="kampf">Kampfkarte lädt … Falls nicht, frag nach der Lage als Text.</div>
+<script>var KAMPF={nr:7,titel:'Keller der Alten Eiche',runde:2,stand:'Stand: Tag 8, Nacht',figur:'pf',boden:['####################################','#..........#.....o..~~~~~~~~~......#',…],wesen:[{id:'pf',name:'Probefigur',kurz:'PF',art:'figur',x:4,y:5,bewegung:9},{id:'r1',name:'Räuber 1',art:'gegner',x:14,y:3,zustand:'verwundet'}],licht:[{x:8,y:3,hell:4,daemmer:8}],notizen:[{x:12,y:4,text:'Tür'}]}</script>
+<script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/kampf.js';document.head.appendChild(s);</script>
+```
+
+| Feld | Inhalt |
+|---|---|
+| `nr` | Nummer wie beim Würfelkasten |
+| `titel`, `runde`, `stand`, `hinweis` | Kopf der Karte; `hinweis` ist ein Satz der Spielleitung zur Lage („Die Fackel brennt noch.“) |
+| `figur` | `id` des Wesens, das der Spieler zieht; ohne `figur` das erste mit `art: 'figur'` |
+| `spalten`, `zeilen` | Größe des Rasters, Standard 36 und 12; `ursprung: [sp, 'A']` beschriftet einen Ausschnitt mit den Nummern des Ganzen (etwa `[37, 'A']` für die rechte Hälfte eines großen Raums) |
+| `boden[]` | eine Zeichenkette je Zeile von oben nach unten, ein Zeichen je Feld: `.` Boden · `=` Planken, Deck · `+` Tür · `^` erhöht · `:` schwieriges Gelände · `,` Schlamm, seichtes Wasser, Eis · `~` tiefes Wasser · `o` niedrige Deckung (halb, drüber ist schwer) · `O` hohe Deckung (Dreiviertel, nicht betretbar) · `#` Wand · `x` Hindernis · `?` oder Leerzeichen: nicht zu sehen. Fehlt `boden`, ist alles Boden; fehlt ein Zeichen, ist das Feld nicht zu sehen. |
+| `wesen[]` | `id`, `name`, `kurz` (bis drei Zeichen auf dem Spielstein, sonst Initialen), `art` (`figur`, `gefolge`, `gegner`, `npc`, `tier`), `x` (Spalte, 1 bis 36), `y` (Zeile, 1 bis 12, A = 1), `groesse` (Felder je Seite, 1 bis 4), `zustand` (Text; „am Boden“, „bewusstlos“ und „verwundet“ zeichnet die Karte), `notiz`; bei der Figur `bewegung` in Metern (Standard 9) und `schwimmen: true` (Wasser kostet dann nicht doppelt); bei einem Tier `zahm: true`, wenn die Figur durch sein Feld gehen darf |
+| `licht[]` | `x`, `y`, `hell` (Felder helles Licht), `daemmer` (Felder Dämmerlicht); nur Darstellung |
+| `notizen[]` | `x`, `y`, `text`: ein kurzer Vermerk im Feld („Treppe“, „Tür, zu“) |
+
+- Nur Sichtbares: Was in `KAMPF` steht, kann der Spieler lesen. Verborgene Wesen, Fallen und Räume hinter geschlossenen Türen stehen nicht darin; die Spielleitung zeichnet aus dem Grundriss der Spoilerdatei, was die Figur sieht, und ergänzt, sobald sie mehr sieht. pruefen.js prüft die Kampfkarte nicht; die Spielleitung liest die Daten selbst gegen die Spoilerdatei. Ins Spielerbuch kommt sie nicht; sie gilt nur in der Szene.
+- Was die Karte rechnet, ist nur Hilfe: Erreichbarkeit nach Kosten der Felder, Entfernung in Feldern mal 1,5 m, Spurt bis zur doppelten Bewegung. Gelegenheitsangriffe, Deckung in der Schusslinie, Reichweiten und was ein Zug kostet, entscheidet die Spielleitung nach PHB und Regelwerk 12.
+- Ohne `sendPrompt` sagt die Karte, was in den Chat zu schreiben wäre. `node test/kampf.test.js` lädt die Karte mit diesem Aufruf in Chromium (Playwright) und prüft Raster, Erreichbarkeit, Weg, Ziel und Nachricht an der erfundenen Welt (`test/kampf-beispiel.js`).
+
 ## Glossar
 
 Eine Datei `02_glossar.md`: der Glossar-Abschnitt des Spielstands in eigener Datei, als Text (Grammatik unten), den der Tisch selbst liest. Zwei Formen aus derselben Datei:
@@ -319,4 +346,4 @@ Aus der Shell sind jsDelivr und raw.githubusercontent.com oft gesperrt, GitHub s
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.1 (Ablage seit Regelwerk 3.5), Titel 1.0 (seit Regelwerk 3.6), Kampf 1.0 (seit Regelwerk 3.15); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
