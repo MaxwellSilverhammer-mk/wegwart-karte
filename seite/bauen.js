@@ -195,9 +195,19 @@ function versionenAus(text) {
     var j = JSON.parse(text);
     if (j && typeof j === 'object' && !Array.isArray(j)) { Object.keys(j).forEach(function (k) { if (+j[k] > 0) v[k] = +j[k]; }); return v; }
   } catch (e) { /* Text */ }
+  var sammlung = '';
   text.split('\n').forEach(function (z) {
+    // Kopfzeile eines list-Ergebnisses: »222 documents from collection "glossar" saved as JSON files under "…"«
+    var k = z.match(/documents? from collection "([^"]+)"/);
+    if (k) sammlung = k[1].split('/').pop();
     var m = z.match(/"([^"]+)"\s+\d+\s+bytes\s+version\s+(\d+)\s+"([^"]+)"/);
     if (m) { v[path.basename(path.dirname(m[3])) + '/' + m[1]] = +m[2]; return; }
+    // Gekürzter Rest eines langen Ergebnisses: »[172 more saved documents, … (id, version): "alke" 2, "arn" 7, …]«
+    if (/more saved documents/.test(z) && sammlung) {
+      var re = /"([^"]+)"\s+(\d+)/g, t;
+      while ((t = re.exec(z))) v[sammlung + '/' + t[1]] = +t[2];
+      return;
+    }
     m = z.match(/^\s*-?\s*([A-Za-z0-9_\-.~:@+]+)\/([A-Za-z0-9_\-.~:@+]+)\s*[:=]?\s*(?:version\s*)?(\d+)\s*$/);
     if (m) v[m[1] + '/' + m[2]] = +m[3];
   });
