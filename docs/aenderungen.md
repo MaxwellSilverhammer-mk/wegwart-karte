@@ -1,6 +1,21 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.16 (29. Oktober 2026)
+
+Gegenüber 3.15 (29. Oktober 2026). Anlass: eine Prüfung des Spielstarts und des Sitzungsendes auf überflüssiges Lesen und Schreiben, gemessen an Fürchtegotts Spielerbuch nach Sitzung 17 (323 Dokumente, 1,6 MB) und der Weltchronik. Keine Spielregel ändert sich; es ändern sich die Arbeitsschritte der Spielleitung.
+
+- **Ablage als Hauptfassung** (21.1, 21.3, W 21.5): Spielstand und Spoilerdatei gelten in der Fassung der Ablage des Spielerbuchs; die Projektdateien sind ihre Abschrift. Spielstart, „Weiter“ und Sitzungsende holen Spielstand, Spoilerdatei und Übergabe mit einem `query` auf die Platte; die Spoilerdatei wird je Szene gezielt gelesen und nicht mehr im Ganzen in den Chat geladen. Die Kopien tragen die Liste der Projektdokumente (`dokumente`); weicht die Projektgröße ab, erklärt ein neues oder gelöschtes Dokument das, sonst fragt die Spielleitung einmal nach, statt beide Dateien aus dem Chat abzuschreiben.
+- **Chronik gezielt lesen** (18, W 18): zuerst meta/welt und figuren; ohne fremde Figuren entfallen reviere, post und treffen; orte, geheimnisse, reviere und chronik mit `query` und `where` seit dem letzten Abgleich. `aktualisiert` und `eingetragen` stehen als JJJJ-MM-TT; die Spielleitung merkt sich die Versionen des eigenen figuren- und reviere-Eintrags für das Sitzungsende (auch im Kopf der Übergabe, W 21.4).
+- **Archiv nur ergänzen** (W 4.7, W 21.3): `sl` wird nicht mehr ganz geholt (bisher 850 KB je Sitzungsende und je Zwischenhalt); der Abschnitt der Sitzung und das Würfelprotokoll werden neue Dokumente (`--reihe-ab`, `--sl-reihe-ab`), versionen.txt braucht nur meta, tische und glossar, wörtlich samt gekürzter Schlusszeile des `list`-Ergebnisses.
+- **Zwischenhalt** (W 21.4): die Version einer liegenden Übergabe per `query` statt `list sl`; „Weiter“ liest wie der Spielstart aus der Ablage.
+- **Werkzeuge holen** (4.2, README): in der Arbeitsumgebung der Claude-App `add_repo`, dann `git clone --depth 1`, `git fetch --depth 1 origin {STAND}`, `git checkout {STAND}`; `curl` antwortet dort mit 403.
+- **Tischstand**: `d4c45bd83466630bb507765aa698d5772d179ab1` (Spielerbuch 1.2); die Tische selbst sind unverändert, das Spielerbuch muss nicht neu gebaut werden.
+
+## Werkzeuge zum Stand von Regelwerk 3.16
+
+- `seite/bauen.js` (Spielerbuch 1.2): `versionenAus` liest die gekürzte Schlusszeile langer `list`-Ergebnisse (`[172 more saved documents … (id, version): "id" 11, …]`), ohne die bei 222 Glossareinträgen 172 Versionen fehlten und `--batches` bestehende Dokumente für neu hielt; `--db --reihe-ab n` und `--sl-reihe-ab n` für nur neue Abschnitte, wobei meta/buch dann unberührt bleibt; `--kopie --dokumente <datei>` schreibt die Projektdokumente in die Kopien, `--zurueck` legt sie als projekt-dokumente.txt daneben. Tests in `test/buch.test.js`.
 
 ## Regelwerk 3.15 (29. Oktober 2026)
 
