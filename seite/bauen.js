@@ -14,6 +14,7 @@
 //       --sl <datei> (Abschnitte „## …“)       -> sl/<id>          (Archiv der Spielleitung, z. B. Würfelprotokolle; die Seite zeigt es nicht)
 //       --reihe-ab n, --sl-reihe-ab n: Nummer (reihe) des ersten Abschnitts der Geschichte bzw. des Archivs in dieser Datei, wenn
 //       nur neue Abschnitte eingespielt werden (n = Zahl der Dokumente, die es schon gibt, aus dem list-Ergebnis); sonst 0.
+//       meta/buch schreibt --db nur, wenn Glossar, Tische oder --titel/--stand/--stufe dabei sind.
 //       dazu meta/buch (titel, stand, stufe, figur).
 //   Einspielen: ArtifactData batch, je Dokument set mit file_path; bestehende Dokumente mit if_version aus einem list davor.
 //   node seite/bauen.js --batches <ordner> [--alt <db-ordner>] [versionen …]
@@ -101,7 +102,7 @@ function db(args) {
     else if (a === '--sl') sl.push(args.shift());
     else dateien.push(a);
   }
-  var docs = [], figur = '', probleme = [];
+  var docs = [], figur = '', probleme = [], buch = !!(opt.titel || opt.stand || opt.stufe != null);
   dateien.forEach(function (datei) {
     var text = lies(datei);
     // Spielleitungswissen (Spoilerdatei, Archiv) darf nie in eine Sammlung, die das Buch zeigt
@@ -112,7 +113,7 @@ function db(args) {
       var g = glossar.ausText(text);
       if (g.probleme && g.probleme.length) probleme = probleme.concat(g.probleme.map(function (p) { return datei + ': ' + (p.text || p); }));
       glossar.alsDokumente(g.D).forEach(function (d) { docs.push(d); });
-      figur = figur || g.D.figur || '';
+      figur = figur || g.D.figur || ''; buch = true;
       if (!opt.stand && g.D.stand) opt.stand = g.D.stand;
       if (opt.stufe == null && typeof g.D.stufe === 'number') opt.stufe = g.D.stufe;
       return;
@@ -122,7 +123,7 @@ function db(args) {
     if (D) {
       var id = D.orte || D.wege ? 'karte' : D.traeger ? 'gepaeck' : D.auftraege ? 'logbuch' : '';
       if (!id) { probleme.push(datei + ': weder Karte noch Gepäck noch Logbuch'); return; }
-      docs.push({ sammlung: 'tische', id: id, daten: D });
+      docs.push({ sammlung: 'tische', id: id, daten: D }); buch = true;
       if (!figur && D.figur) figur = D.figur;
       return;
     }
@@ -138,9 +139,13 @@ function db(args) {
     abschnitte(lies(datei), 2).forEach(function (a) { docs.push({ sammlung: 'sl', id: a.id, daten: { reihe: a.reihe + opt.slReiheAb, titel: a.titel, text: a.text } }); });
   });
   if (probleme.length) { console.error('Nicht geschrieben:\n  ' + probleme.join('\n  ')); process.exit(1); }
-  var meta = { titel: opt.titel || ((figur ? figur + 's' : 'Das') + ' Buch'), stand: opt.stand, figur: figur };
-  if (opt.stufe != null && !isNaN(opt.stufe)) meta.stufe = opt.stufe;
-  docs.push({ sammlung: 'meta', id: 'buch', daten: meta });
+  // meta/buch nur, wenn der Aufruf etwas darüber weiß (Glossar, Tische oder --titel/--stand/--stufe); ein Aufruf mit nur
+  // neuen Abschnitten (--reihe-ab, --sl) lässt die Metadaten des Buchs in Ruhe
+  if (buch) {
+    var meta = { titel: opt.titel || ((figur ? figur + 's' : 'Das') + ' Buch'), stand: opt.stand, figur: figur };
+    if (opt.stufe != null && !isNaN(opt.stufe)) meta.stufe = opt.stufe;
+    docs.push({ sammlung: 'meta', id: 'buch', daten: meta });
+  }
   var gross = docs.filter(function (d) { return Buffer.byteLength(JSON.stringify(d.daten)) > 250 * 1024; });
   if (gross.length) { console.error('Zu groß für ein Dokument (256 KiB): ' + gross.map(function (d) { return d.sammlung + '/' + d.id; }).join(', ')); process.exit(1); }
   docs.forEach(function (d) {

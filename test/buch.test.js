@@ -155,11 +155,12 @@ var vk = bauenModul.versionenAus([
 pruef('versionenAus liest die gekürzte Schlusszeile je Sammlung', vk['glossar/abflussgraben'] === 11 && vk['glossar/draus-letzter-brief'] === 11 && vk['glossar/draus-notizblatt'] === 3 && vk['glossar/zur-schiefen-rah'] === 1 && vk['tische/karte'] === 12 && Object.keys(vk).length === 5, JSON.stringify(vk));
 var nurNeu = schreib('02_geschichte-neu.md', '### Sitzung 3, Tag 4\n- Der Damm hält.\n');
 var nurSl = schreib('wuerfelprotokoll-3.md', '## Würfelprotokoll Sitzung 3\nAthletik 9.\n');
-var dbN = path.join(dir, 'db-neu');
+var dbN = path.join(dir, 'db-nur-neu');
 r = lauf(['--db', dbN, '--reihe-ab', '2', '--sl-reihe-ab', '7', nurNeu, '--sl', nurSl]);
 var gN = r.status === 0 ? JSON.parse(lese(path.join(dbN, 'geschichte', 'sitzung-3-tag-4.json'))) : {};
 var sN = r.status === 0 ? JSON.parse(lese(path.join(dbN, 'sl', 'wuerfelprotokoll-sitzung-3.json'))) : {};
 pruef('--reihe-ab und --sl-reihe-ab setzen die Reihe neuer Abschnitte', r.status === 0 && gN.reihe === 2 && gN.titel === 'Sitzung 3, Tag 4' && sN.reihe === 7, r.stderr + JSON.stringify([gN, sN]));
+pruef('nur neue Abschnitte: meta/buch bleibt unberührt', !fs.existsSync(path.join(dbN, 'meta', 'buch.json')));
 var dokListe = schreib('projekt-dokumente.txt', '00_regelwerk.md\n02_spielstand.md\n\n03_spielleitung_SPOILER.md\n');
 var ablD = path.join(dir, 'ablage-dok');
 r = lauf(['--kopie', ablD, '--projekt', '2000', '--dokumente', dokListe, '--sitzung', 'Weltenhüter', stand, spoil]);
