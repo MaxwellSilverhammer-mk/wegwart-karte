@@ -2,6 +2,10 @@
 
 Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
 
+## Kampfkarte 1.3.1 (30. Oktober 2026)
+
+Werkzeug. Aus dem Probekampf an der Furt am Mühlbach mit 1.3: Der Spieler hatte den Zielsicheren Schlag in der Zauberzeile gewählt und „Auf S“ in den Freitext geschrieben, ohne den Schützen auf der Karte anzutippen; die Zugzeile schickte den Zauber nicht mit, und die Spielleitung nahm zweimal das Langschwert an. Seit 1.3.1 trägt die Zugzeile die gewählte Waffe oder den gewählten Zauber auch ohne angetipptes Ziel („… bleibt auf 19/B · Zauber: Zielsicherer Schlag mit Langschwert, beidhändig · Auf S“). Prüfung dazu in `test/kampf.test.js` (16 Prüfungen).
+
 ## Kampfkarte 1.3 (30. Oktober 2026)
 
 Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/welt (`tische_stand`) und Regelwerk 4.2 einträgt. Anlass: der Probekampf mit der Kampfkarte 1.2 (Keller der Zollscheune) und die Rückmeldung des Weltenhüters: zu schematisch („ich war mir nie sicher, wann ich im Wasser bin“), die Legende beim Ausklappen riesig, „Bleiben“ unverständlich, Waffen ohne ihre Modi, Zauber ohne eigene Zeile, die vereinbarten Markierungen für Zustände (weiße Fahne für „ergibt sich“) fehlten, und die Höhe soll sich durch Rahmen und Schatten zeigen, nicht durch Schilder („Show, don't tell“). Alles ist abwärtskompatibel: die Daten von 1.2 laufen unverändert.

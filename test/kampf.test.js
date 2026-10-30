@@ -121,7 +121,7 @@ function klickWesen(pg, i) {
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.3');
+  assert.strictEqual(kampf.version, '1.3.1');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -251,7 +251,7 @@ function klickWesen(pg, i) {
     assert.strictEqual(await pgA2.locator('#kampf .kkF.kkGz').count(), 0, 'noch einmal: aufgehoben');
     await pgA2.press('#kampf input', 'Enter'); // der Pfeil, auch mit Enter im Freitext; ohne Zielfeld bleibt die Figur
     var gA2 = await pgA2.evaluate(function () { return GESENDET; });
-    assert.deepStrictEqual(gA2, ['Kampf #9 · Probefigur bleibt auf 4/E']);
+    assert.deepStrictEqual(gA2, ['Kampf #9 · Probefigur bleibt auf 4/E · Waffe: Langschwert'], 'ohne Ziel steht die Waffe trotzdem in der Zeile (1.3.1)');
     ok('Leiste und Stehenbleiben');
 
     // 1.3 im Widget: Kacheln, Schatten, Modi, Zauber, Zustände
@@ -310,6 +310,15 @@ function klickWesen(pg, i) {
     assert.ok(/Vorteil: Ziel wehrlos/.test(await pgE.innerText('#kampf .kkA')), 'wehrlos: Vorteil: ' + await pgE.innerText('#kampf .kkA'));
     ok('1.3: Zustände, Wunden, Gefahr, Legende');
 
+    // 1.3.1: ohne angetipptes Ziel trägt die Zugzeile den gewählten Zauber (Probekampf an der Furt: „Auf S“ kam ohne den Zielsicheren Schlag an)
+    var pgF = await seite(b, DREI);
+    await pgF.click('#kampf button[data-k="zauber"][data-i="1"]');
+    await pgF.fill('#kampf input', 'Auf S');
+    await pgF.click('#kampf button[data-k="zug"]');
+    var gF = await pgF.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gF, ['Kampf #11 · Probefigur bleibt auf 9/C · Zauber: Zielsicherer Schlag mit Langschwert, einhändig · Auf S']);
+    ok('1.3.1: Zauber ohne Ziel in der Zugzeile');
+
     var OA = { nr: 3, titel: 'Gasse', figur: 'f', spalten: 8, zeilen: 4, boden: ['########', '........', '........', '........'],
       wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 2, y: 2, bewegung: 9, waffen: [{ name: 'Keule', reichweite: 1.5 }] }, { id: 'r', name: 'Räuber', art: 'gegner', x: 3, y: 3 }] };
     var pgO = await seite(b, OA);
@@ -318,10 +327,10 @@ function klickWesen(pg, i) {
     assert.strictEqual(await pgO.locator('#kampf .kkWeg polygon.kkOa').count(), 1, 'das Dreieck am Weg');
     await pgO.click('#kampf button[data-k="zug"]');
     var gO = await pgO.evaluate(function () { return GESENDET; });
-    assert.deepStrictEqual(gO, ['Kampf #3 · Figur nach 6/B · 6 m · verlässt Räuber: Gelegenheitsangriff']);
+    assert.deepStrictEqual(gO, ['Kampf #3 · Figur nach 6/B · 6 m · verlässt Räuber: Gelegenheitsangriff · Waffe: Keule']);
     ok('Gelegenheitsangriff');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgO.fehler), [], 'keine Fehler im Browser');
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgO.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }

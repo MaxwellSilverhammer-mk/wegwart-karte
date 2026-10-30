@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.3
+ * Version 1.3.1
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -30,7 +30,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.3';
+  var VERSION = '1.3.1';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -972,6 +972,11 @@
         var A = angriffsZeile();
         if (A) s += ' · ' + lageKurz(A.L, A.wf, zielWesen);
         else s += ' · Ziel: ' + zielWesen.name + ' (' + zielText(bewegt ? stand() : figur) + ')';
+      } else {
+        // ohne angetipptes Ziel (seit 1.3.1): die gewählte Waffe oder der gewählte Zauber steht trotzdem in der Zeile,
+        // damit „auf den Schützen“ im Freitext nicht ohne den Zauber ankommt
+        var wf0 = waffe();
+        if (wf0) s += ' · ' + (wf0.zauber ? 'Zauber: ' : 'Waffe: ') + wf0.name;
       }
       var a = (eingabe.value || '').trim();
       if (a) s += ' · ' + a;
