@@ -12,6 +12,7 @@ var STUFEA = require('./kampf-stufe-a-beispiel.js');
 var DREI = require('./kampf-1-3-beispiel.js');
 var ZOLL = require('./kampf-zollbruecke-beispiel.js');
 var TOR = require('./kampf-schleusentor-beispiel.js');
+var AUF = require('./kampf-aufstellung-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -38,7 +39,7 @@ function klickFeld(pg, x, y) {
   return pg.evaluate(function (p) { document.querySelector('g.kkF[data-x="' + p[0] + '"][data-y="' + p[1] + '"] rect.kkK').dispatchEvent(new MouseEvent('click', { bubbles: true })); }, [x, y]);
 }
 function klickWesen(pg, i) {
-  return pg.evaluate(function (i) { document.querySelector('g.kkO[data-w="' + i + '"] circle.kkTok').dispatchEvent(new MouseEvent('click', { bubbles: true })); }, i);
+  return pg.evaluate(function (i) { document.querySelector('g.kkO[data-w="' + i + '"] .kkTok').dispatchEvent(new MouseEvent('click', { bubbles: true })); }, i);
 }
 // die Folge im Kasten „Zug“, ein Chip je Zeile
 function folge(pg) { return pg.evaluate(function () { return Array.prototype.map.call(document.querySelectorAll('#kampf .kkFo .kkCh'), function (c) { return c.textContent.trim(); }); }); }
@@ -126,7 +127,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.7');
+  assert.strictEqual(kampf.version, '1.8');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -263,6 +264,40 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
   assert.ok(/Spur:/.test(eT.legende) && /außer Sicht/.test(eT.legende) && /dazugekommen/.test(eT.legende), 'die Legende nennt Spur, Schatten und neu');
   assert.ok(!/Spur:/.test(kampf.zeichne(ZOLL).legende), 'ohne Spuren keine Zeile in der Legende');
   ok('1.7: Spuren, neu, außer Sicht');
+
+  // 1.8 (Stufe C), ohne Browser: Aufstellung, Formen, Fortschritt, Höhenschilder in ihrer Fläche, grau in der Legende
+  var U = kampf.lies(AUF);
+  assert.strictEqual(kampf.version, '1.8');
+  assert.deepStrictEqual([U.aufstellung.length, U.aufSet['12,5'], U.aufSet['12,6'], U.aufstellen.map(function (w) { return w.name; })], [12, 1, undefined, ['Probefigur', 'Tamsin', 'Brock']], 'Aufstellungsfelder gelesen; die Figur zuerst, dann die Ihren mit aufstellen');
+  var U2 = kampf.lies({ aufstellung: [[2, 2], { x: 3, y: 2 }, { x: 99, y: 2 }, [2, 2]], wesen: [{ id: 'g', name: 'G', art: 'gegner', x: 5, y: 5, aufstellen: true }, { id: 'f', name: 'F', art: 'figur', x: 1, y: 1 }] });
+  assert.deepStrictEqual([U2.aufstellung.length, U2.aufstellen.map(function (w) { return w.name; })], [2, ['F']], 'auch [x, y]; doppelte und Felder außerhalb fallen weg; Gegner stellen sich nie auf');
+  assert.strictEqual(kampf.lies({ wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 1 }, { id: 'r', name: 'R', art: 'gefolge', x: 2, y: 1, aufstellen: true }] }).aufstellen.length, 0, 'ohne Aufstellungsfelder keine Aufstellung');
+  assert.deepStrictEqual([kampf.fortschrittLesen([2, 3]), kampf.fortschrittLesen({ ist: 1, von: 4 }), kampf.fortschrittLesen([5, 3]), kampf.fortschrittLesen([1, 0]), kampf.fortschrittLesen('2/3')], [[2, 3], [1, 4], [3, 3], null, null], 'Fortschritt lesen');
+  assert.deepStrictEqual(U.notizen.map(function (n) { return [n.text, n.fortschritt]; })[0], ['Tür', [1, 3]], 'die Notiz trägt ihren Fortschritt');
+  assert.deepStrictEqual(['figur', 'gefolge', 'gegner', 'npc', 'tier'].map(function (a) { return kampf.formen[a]; }), ['kreis', 'kreis', 'raute', 'duenn', 'quadrat'], 'die Formen der Arten');
+  assert.ok(/^<polygon points=/.test(kampf.formSvg('gegner', 10, 10, 5)) && /^<rect /.test(kampf.formSvg('tier', 10, 10, 5)) && /^<circle /.test(kampf.formSvg('npc', 10, 10, 5)), 'Raute, Quadrat, Kreis');
+  assert.deepStrictEqual([kampf.formRand('gegner', 10, 0), Math.round(kampf.formRand('gegner', 10, Math.PI / 4) * 100) / 100, kampf.formRand('tier', 10, 0), kampf.formRand('gefolge', 10, 1)], [12, 8.49, 9, 10], 'der Rand der Form je Richtung: dort sitzen die Plaketten');
+  var eU = kampf.zeichne(AUF);
+  assert.strictEqual((eU.svg.match(/class="kkF kkAuf"/g) || []).length, 12, 'zwölf blaue Felder');
+  assert.deepStrictEqual([(eU.svg.match(/<polygon[^>]*class="kkTok/g) || []).length, (eU.svg.match(/<rect[^>]*class="kkTok/g) || []).length, (eU.svg.match(/<circle[^>]*class="kkTok kkDuenn"/g) || []).length, (eU.svg.match(/<circle[^>]*class="kkTok"/g) || []).length], [3, 1, 1, 2], 'drei Rauten, ein Quadrat, ein dünner Kreis, zwei Kreise');
+  assert.ok(/<g class="kkNo kkNoF"><title>Tür: 1 von 3<\/title>/.test(eU.svg) && />Tür 1\/3<\/text>/.test(eU.svg) && /class="kkFv"/.test(eU.svg), 'das Schild „Tür 1/3“ mit Balken');
+  assert.ok(/Aufstellung: hierhin/.test(eU.legende) && /Aufgabe über Runden/.test(eU.legende) && /<polygon[^>]*class="kkItF"/.test(eU.legende), 'Legende: Aufstellung, Aufgabe, die Formen');
+  assert.ok(!/Aufstellung: hierhin/.test(kampf.zeichne(TOR).legende) && !/Aufgabe über Runden/.test(kampf.zeichne(TOR).legende), 'ohne Aufstellung und Fortschritt nichts davon in der Legende');
+  assert.ok(/grau: aus dem Kampf/.test(kampf.zeichne(DREI).legende) && !/grau: aus dem Kampf/.test(kampf.zeichne(TOR).legende), 'grau in der Legende nur mit einem Stein aus dem Kampf');
+  // Höhenschilder bleiben in ihrer Fläche: jedes Schild liegt über Feldern derselben Ebene und über keinem Spielstein
+  [TOR, HOEHE, DREI, AUF].forEach(function (B) {
+    var Kb = kampf.lies(B), sv = kampf.zeichne(B).svg, re = /<g class="kkHs"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)"/g, mm, n = 0, belegtF = {};
+    Kb.wesen.forEach(function (w) { for (var dx = 0; dx < w.groesse; dx++) for (var dy = 0; dy < w.groesse; dy++) belegtF[(w.x + dx) + ',' + (w.y + dy)] = 1; });
+    while ((mm = re.exec(sv))) {
+      var x0 = Math.floor((+mm[1] - 26) / 30) + 1, x1 = Math.floor((+mm[1] + +mm[3] - 26 - 0.01) / 30) + 1, y = Math.floor((+mm[2] + 7 - 26) / 30) + 1, h0 = kampf.hoehe(Kb, x0, y);
+      assert.ok(h0 > 0, B.titel + ': Schild über einer Fläche über dem Boden');
+      for (var x = x0; x <= x1; x++) { assert.strictEqual(kampf.hoehe(Kb, x, y), h0, B.titel + ': das Schild bei ' + x + '/' + y + ' bleibt auf seiner Ebene'); assert.ok(!belegtF[x + ',' + y], B.titel + ': kein Schild über einem Stein'); }
+      n++;
+    }
+    assert.ok(n >= 1, B.titel + ': mindestens ein Schild');
+  });
+  assert.ok(/<text[^>]*style="font-size:[\d.]+px">\+1,5<\/text>/.test(kampf.zeichne(TOR).svg) && />\+3 m<\/text>/.test(kampf.zeichne(TOR).svg), 'auf der ein Feld breiten Böschung wird die Schrift kleiner und das „m“ fällt; auf der Krone bleibt „+3 m“');
+  ok('1.8: Aufstellung, Formen, Fortschritt, Höhenschilder');
 })();
 
 (async function () {
@@ -279,7 +314,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
     await klickFeld(pg, 7, 3);
     assert.deepStrictEqual(await folge(pg), ['→ 7/C (4,5 m)'], 'ein Wegstück als Chip');
-    assert.strictEqual(await pg.locator('#kampf .kkWeg path').count(), 1, 'die Spur gezeichnet');
+    assert.strictEqual(await pg.locator('#kampf .kkWeg path.kkWegS').count(), 1, 'die Spur gezeichnet');
     assert.strictEqual(await pg.locator('#kampf .kkGeist').count(), 1, 'der Geisterstein am neuen Stand');
     await klickWesen(pg, 3);
     assert.ok(/Räuber 1 \(R1\) · Gegner · 14\/C · 10,5 m von 7\/C · angeschlagen · bedroht/.test(await pg.innerText('#kampf .kkI')), 'Wesen-Info mit Entfernung vom aktuellen Stand: ' + await pg.innerText('#kampf .kkI'));
@@ -430,7 +465,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
     assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="1"] g.kkPl').count(), 1, 'eine Plakette: die weiße Fahne');
     assert.strictEqual(await pgE.$eval('#kampf g.kkO[data-w="1"] g.kkPl title', function (e) { return e.textContent; }), 'ergibt sich');
     assert.strictEqual(await pgE.locator('#kampf .kkIt[data-w="1"] svg.kkKb').count(), 1, 'die Plakette auch in der Reihenfolge');
-    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="2"] circle.kkWs').count(), 1, 'schwer verletzt: roter Ring');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="2"] polygon.kkWs').count(), 1, 'schwer verletzt: roter Ring, als Raute wie der Gegner (1.8)');
     assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="2"] g.kkPl').count(), 2, 'vergiftet und liegend (aus dem Wort „am Boden“)');
     assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="4"].kkBlass').count(), 1, 'bewusstlos: blass');
     assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="5"] g.kkPl').count(), 4, 'fünf Zustände: drei Plaketten und „+2“');
@@ -568,7 +603,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
     await pgT.click('#kampf button[data-k="zauber"][data-i="2"]'); // Dissonant Whispers wartet
     await klickWesen(pgT, 2); // auf Ulf, vom Zwischenstand 19/H: 3 m
     await klickFeld(pgT, 20, 8); // zweites Wegstück nach der Aktion
-    assert.strictEqual(await pgT.locator('#kampf .kkWeg path').count(), 2, 'zwei Stücke als Spur');
+    assert.strictEqual(await pgT.locator('#kampf .kkWeg path.kkWegS').count(), 2, 'zwei Stücke als Spur');
     assert.strictEqual(await pgT.locator('#kampf .kkWeg circle.kkStat').count(), 2, 'zwei Stationen');
     assert.strictEqual(await pgT.innerText('#kampf .kkZkW'), 'Weg 4,5 von 4,5 m');
     assert.strictEqual(await pgT.locator('#kampf .kkBew path').count(), 0, 'kein Rahmen mehr: die Bewegung ist verbraucht');
@@ -635,7 +670,104 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
     assert.deepStrictEqual(await gesendet(pgO2), ['Kampf #3 · Figur: nach 5/B (4,5 m) · verlässt Räuber: Gelegenheitsangriff · nach 8/D (4,5 m) · Aktion: Hilfe · Weg 9 von 9 m']);
     ok('1.6: Spurt, Rückzug, Stücke, Gelegenheitsangriff, Zurück');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgZ.fehler, pgZ2.fehler, pgT.fehler, pgO.fehler, pgO2.fehler), [], 'keine Fehler im Browser');
+    // 1.8 (Stufe C) im Widget: die Aufstellung vor dem Initiativewurf
+    var pgU = await seite(b, AUF);
+    assert.strictEqual(await pgU.locator('#kampf .kkAk[hidden], #kampf .kkBo[hidden], #kampf .kkZk:not(.kkAu)[hidden]').count(), 3, 'in der Aufstellung weder Aktion noch Bonusaktion noch Kasten „Zug“');
+    assert.strictEqual(await pgU.locator('#kampf .kkZk.kkAu:not([hidden])').count(), 1, 'dafür der Kasten „Aufstellung“');
+    assert.strictEqual(await pgU.locator('#kampf .kkAu button.kkSenden[data-k="aufst"].kkBlass[aria-disabled="true"]').count(), 1, 'der breite Knopf wartet blass, solange jemand fehlt');
+    assert.strictEqual(await pgU.innerText('#kampf .kkAuW'), '0 von 3 aufgestellt');
+    assert.deepStrictEqual(await pgU.evaluate(function () { return Array.prototype.map.call(document.querySelectorAll('#kampf .kkAuF button'), function (c) { return c.textContent.trim() + '|' + c.getAttribute('aria-pressed'); }); }), ['Probefigur · 8/J ?|true', 'Tamsin · 7/J ?|false', 'Brock · 8/K ?|false'], 'ein Chip je Stein, die Figur zuerst dran');
+    assert.strictEqual(await pgU.locator('#kampf g.kkF.kkAuf').count(), 12, 'zwölf blaue Felder');
+    assert.ok((await pgU.getAttribute('#kampf .kkAufz path', 'd')).length > 40, 'der Rahmen um die Aufstellung');
+    assert.strictEqual(await pgU.locator('#kampf .kkBew path, #kampf .kkReich rect, #kampf .kkA:not([hidden])').count(), 0, 'kein blauer Rahmen, kein Reichweitenquadrat, keine Lagezeile');
+    assert.strictEqual(await pgU.locator('#kampf g.kkO[data-w="0"].kkAufst').count(), 1, 'die Figur ist zum Setzen gewählt');
+    assert.strictEqual(await pgU.innerText('#kampf .kkI'), 'Noch ist niemand in Reichweite.', 'der Hinweis der Spielleitung, sonst nichts');
+    await klickFeld(pgU, 20, 5);
+    assert.ok(/Nur die blauen Felder/.test(await pgU.innerText('#kampf .kkI')), 'ein graues Feld: ' + await pgU.innerText('#kampf .kkI'));
+    await klickFeld(pgU, 12, 5);
+    assert.strictEqual(await pgU.evaluate(function () { var c = document.querySelector('#kampf g.kkO[data-w="0"] .kkTok'); return +c.getAttribute('cx'); }), 26 + 11 * 30 + 15, 'die Figur steht auf 12/E');
+    assert.strictEqual(await pgU.locator('#kampf g.kkO[data-w="1"].kkAufst').count(), 1, 'danach ist Tamsin dran');
+    await klickFeld(pgU, 12, 5);
+    assert.ok(/Da steht schon jemand: Probefigur/.test(await pgU.innerText('#kampf .kkI')), 'besetzt: ' + await pgU.innerText('#kampf .kkI'));
+    await klickFeld(pgU, 13, 5);
+    assert.deepStrictEqual(await pgU.evaluate(function () { return Array.prototype.map.call(document.querySelectorAll('#kampf .kkAuF button'), function (c) { return c.textContent.trim(); }); }), ['Probefigur · 12/E', 'Tamsin · 13/E', 'Brock · 8/K ?'], 'zwei gesetzt, Brock fehlt');
+    await pgU.click('#kampf button[data-k="aufst"]', { force: true });
+    assert.ok(/Brock.*steht noch nicht auf einem Aufstellungsfeld/.test(await pgU.innerText('#kampf .kkI')), 'der blasse Knopf sagt, wer fehlt: ' + await pgU.innerText('#kampf .kkI'));
+    assert.deepStrictEqual(await gesendet(pgU), [], 'und schickt nichts');
+    await pgU.click('#kampf .kkAuF button[data-i="0"]'); // die Figur noch einmal: umstellen
+    await klickFeld(pgU, 11, 5);
+    assert.strictEqual(await pgU.evaluate(function () { var c = document.querySelector('#kampf g.kkO[data-w="0"] .kkTok'); return +c.getAttribute('cx'); }), 26 + 10 * 30 + 15, 'die Figur umgestellt auf 11/E');
+    await klickWesen(pgU, 3); // der Späher: Auskunft und Zone, kein Ziel
+    assert.ok(/Späher \(SP\) · Gegner · 26\/H/.test(await pgU.innerText('#kampf .kkI')) && (await pgU.locator('#kampf .kkF.kkGz').count()) === 8, 'ein Gegner gibt Auskunft und zeigt seine Zone: ' + await pgU.innerText('#kampf .kkI'));
+    await klickWesen(pgU, 2); // Brock
+    assert.strictEqual(await pgU.locator('#kampf g.kkO[data-w="2"].kkAufst').count(), 1, 'ein Tipp auf den Hund wählt ihn');
+    await klickFeld(pgU, 11, 9);
+    assert.strictEqual(await pgU.innerText('#kampf .kkAuW'), '3 von 3 aufgestellt');
+    assert.strictEqual(await pgU.locator('#kampf button[data-k="aufst"]:not(.kkBlass):not([aria-disabled])').count(), 1, 'alle stehen: der Knopf ist frei');
+    await pgU.click('#kampf button[data-k="aufst"]');
+    assert.deepStrictEqual(await gesendet(pgU), ['Aufstellung: Probefigur auf 11/E, Tamsin auf 13/E, Brock auf 11/I'], 'die Aufstellung geht an die Spielleitung');
+    assert.ok(/kkFertig/.test(await pgU.getAttribute('#kampf', 'class')) && (await pgU.locator('#kampf button[data-k="aufst"][disabled]').count()) === 1, 'danach ist alles blass, der Knopf verbraucht');
+    assert.ok(/Die Spielleitung würfelt die Initiative/.test(await pgU.innerText('#kampf .kkAu .kkZkS')));
+    ok('1.8: Aufstellung');
+
+    // 1.8: Formen neben Farben, Fortschritt und die drei Blässen im Widget
+    var pgV = await seite(b, AUF);
+    assert.strictEqual(await pgV.locator('#kampf g.kkO[data-w="3"] polygon.kkTok, #kampf g.kkO[data-w="4"] polygon.kkTok').count(), 2, 'Gegner als Raute');
+    assert.strictEqual(await pgV.locator('#kampf g.kkO[data-w="2"] rect.kkTok').count(), 1, 'das Tier als abgerundetes Quadrat');
+    assert.strictEqual(await pgV.locator('#kampf g.kkO[data-w="6"] circle.kkTok.kkDuenn').count(), 1, 'der Unbeteiligte als dünner Kreis');
+    assert.strictEqual(await pgV.locator('#kampf g.kkO[data-w="1"] circle.kkTok:not(.kkDuenn), #kampf g.kkO[data-w="0"] circle.kkTok, #kampf g.kkO[data-w="0"] circle.kkRing').count(), 3, 'Gefolge Kreis, die Figur Kreis mit Ring');
+    assert.strictEqual(await pgV.locator('#kampf g.kkO[data-w="5"].kkZuletzt polygon.kkTok').count(), 1, 'der Schatten außer Sicht behält die Raute');
+    assert.strictEqual((await pgV.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="5"] .kkTok')).strokeDasharray; })).replace(/px/g, ''), '4, 3', 'außer Sicht: gestrichelt');
+    assert.strictEqual(await pgV.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="6"] text.kkTx')).fill; }), 'rgb(59, 48, 40)', 'dunkle Schrift auf dem dünnen Kreis');
+    assert.strictEqual(await pgV.locator('#kampf g.kkNo.kkNoF').count(), 1, 'ein Schild mit Fortschritt');
+    assert.ok(/^Tür 1\/3$/.test(await pgV.$eval('#kampf g.kkNo.kkNoF text', function (e) { return e.textContent; })), '„Tür 1/3“');
+    var balken = await pgV.evaluate(function () { var t = document.querySelector('#kampf g.kkNo.kkNoF rect.kkFb'), v = document.querySelector('#kampf g.kkNo.kkNoF rect.kkFv'); return [+t.getAttribute('width'), +v.getAttribute('width')]; });
+    assert.ok(Math.abs(balken[1] - balken[0] / 3) < 0.2, 'der Balken ist zu einem Drittel gefüllt: ' + balken.join(' / '));
+    await pgV.click('#kampf button[data-k="leg"]');
+    var legU = await pgV.innerText('#kampf .kkL');
+    assert.ok(/Aufstellung: hierhin/.test(legU) && /Aufgabe über Runden/.test(legU) && (await pgV.locator('#kampf .kkL svg.kkItB polygon.kkItF').count()) === 1, 'Legende mit Aufstellung, Aufgabe und den Formen');
+    var pgW = await seite(b, DREI); // Räuber 4 bewusstlos (grau), Räuber 3 außer Reichweite des wartenden Schwerts (blass)
+    assert.strictEqual(await pgW.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="4"] .kkTok')).fill; }), 'rgb(154, 144, 134)', 'bewusstlos: der Stein ist grau');
+    assert.strictEqual(await pgW.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="4"]')).opacity; }), '0.4', 'und zugleich außer Reichweite: blass (beides zugleich, beides zu sehen)');
+    assert.strictEqual(await pgW.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="3"] .kkTok')).fill; }), 'rgb(142, 59, 34)', 'Räuber 3 außer Reichweite bleibt rot');
+    assert.strictEqual(await pgW.evaluate(function () { return getComputedStyle(document.querySelector('#kampf g.kkO[data-w="3"]')).opacity; }), '0.4', 'nur blass');
+    assert.strictEqual(await pgW.locator('#kampf g.kkO[data-w="2"] polygon.kkWs').count(), 1, 'der Wundring folgt der Raute');
+    var pl = await pgW.evaluate(function () { var g = document.querySelector('#kampf g.kkO[data-w="2"]'), t = g.querySelector('.kkTok'), p = g.querySelector('g.kkPl').getAttribute('transform').match(/translate\(([\d.-]+) ([\d.-]+)\)/); var pts = t.getAttribute('points').split(' ').map(function (q) { return q.split(',').map(Number); }); return [(pts[0][0] + pts[2][0]) / 2, (pts[0][1] + pts[2][1]) / 2, +p[1], +p[2]]; });
+    var aP = -Math.PI * 0.62, dP = Math.sqrt(Math.pow(pl[2] - pl[0], 2) + Math.pow(pl[3] - pl[1], 2));
+    assert.ok(Math.abs(dP - (kampf.formRand('gegner', 12, aP) + 1)) < 0.3, 'die Plakette sitzt am Rand der Raute: ' + dP);
+    await pgW.click('#kampf button[data-k="leg"]');
+    assert.ok(/grau: aus dem Kampf/.test(await pgW.innerText('#kampf .kkL')), 'die Legende erklärt grau');
+    ok('1.8: Formen, Fortschritt, drei Blässen');
+
+    // 1.8: Reihenfolge mit Formen, die Hilfezeile beim Halten eines Knopfs, der helle Saum der Spur
+    var pgX = await seite(b, TOR);
+    assert.strictEqual(await pgX.locator('#kampf .kkIt[data-w="2"] svg.kkItB polygon.kkItF').count(), 1, 'Ulf in der Reihenfolge als Raute');
+    assert.strictEqual(await pgX.locator('#kampf .kkIt[data-w="1"] svg.kkItB circle.kkItF:not(.kkDuenn), #kampf .kkIt[data-w="7"] svg.kkItB circle.kkItF.kkDuenn').count(), 2, 'Rolf als Kreis, das Torfmädchen als dünner Kreis');
+    assert.strictEqual(await pgX.evaluate(function () { return getComputedStyle(document.querySelector('#kampf .kkIt.kkJetzt .kkItR')).stroke; }), 'rgb(176, 141, 58)', 'der goldene Ring markiert, wer am Zug ist');
+    assert.strictEqual(await pgX.locator('#kampf .kkIt[data-w="0"] svg.kkKb').count(), 1, 'die Plakette bleibt in der Reihenfolge');
+    assert.strictEqual(await pgX.locator('#kampf g.kkO[data-w="5"] polygon.kkWa').count(), 1, 'Torfstecher 1: goldener Wundring als Raute');
+    var sp = await pgX.locator('#kampf button[data-k="spurt"]').boundingBox();
+    await pgX.mouse.move(sp.x + sp.width / 2, sp.y + sp.height / 2); await pgX.mouse.down(); await pgX.waitForTimeout(650);
+    assert.ok(/^Spurt ist eine Aktion: deine Bewegung gibt es noch einmal dazu \(\+9 m\)/.test(await pgX.innerText('#kampf .kkI')), 'Halten zeigt die Hilfezeile: ' + await pgX.innerText('#kampf .kkI'));
+    await pgX.mouse.up(); await pgX.waitForTimeout(50);
+    assert.strictEqual(await pgX.locator('#kampf button[data-k="spurt"][aria-pressed="true"]').count(), 0, 'das Loslassen wählt Spurt nicht');
+    assert.ok(/Spurt ist eine Aktion/.test(await pgX.innerText('#kampf .kkI')), 'die Zeile bleibt stehen');
+    await pgX.click('#kampf button[data-k="spurt"]');
+    assert.strictEqual(await pgX.locator('#kampf button[data-k="spurt"][aria-pressed="true"]').count(), 1, 'ein kurzer Tipp wählt wie bisher');
+    var hb = await pgX.locator('#kampf button[data-k="bonus"][data-i="0"]').boundingBox();
+    await pgX.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await pgX.mouse.down(); await pgX.waitForTimeout(650); await pgX.mouse.up();
+    assert.ok(/^Bonusaktion: Healing Word heilt 2W4\+2 auf 18 m \(Ziel: jedes Wesen, auch du selbst\); tipp danach auf einen Stein\.$/.test(await pgX.innerText('#kampf .kkI')), 'ein Satz zur Bonusaktion: ' + await pgX.innerText('#kampf .kkI'));
+    assert.strictEqual(await pgX.locator('#kampf button[data-k="bonus"][data-i="0"].kkWart').count(), 0, 'ohne sie zu wählen');
+    var hw = await pgX.locator('#kampf button[data-k="waffe"][data-i="0"]').boundingBox();
+    await pgX.mouse.move(hw.x + hw.width / 2, hw.y + hw.height / 2); await pgX.mouse.down(); await pgX.waitForTimeout(650); await pgX.mouse.up();
+    assert.ok(/^Angriff: Langschwert, einhändig trifft mit \+4 auf 1,5 m, 1W8\+2 Hieb; tipp auf einen Stein, das ist dein Ziel; ein zweiter Tipp auf den Knopf wechselt zu „beidhändig“\.$/.test(await pgX.innerText('#kampf .kkI')), 'ein Satz zur Waffe: ' + await pgX.innerText('#kampf .kkI'));
+    assert.strictEqual(await pgX.getAttribute('#kampf button[data-k="waffe"][data-i="0"] svg.kkMo', 'aria-label'), 'einhändig', 'der Modus blieb');
+    await klickFeld(pgX, 19, 8);
+    assert.strictEqual(await pgX.locator('#kampf .kkWeg path.kkWegH').count(), 1, 'der helle Saum unter der Spur');
+    assert.strictEqual(await pgX.evaluate(function () { return getComputedStyle(document.querySelector('#kampf .kkWeg path.kkWegH')).stroke; }), 'rgb(239, 226, 195)', 'in Pergamentfarbe');
+    ok('1.8: Reihenfolge mit Formen, Hilfezeile, Saum der Spur');
+
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgZ.fehler, pgZ2.fehler, pgT.fehler, pgO.fehler, pgO2.fehler, pgU.fehler, pgV.fehler, pgW.fehler, pgX.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }
