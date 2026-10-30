@@ -3,7 +3,9 @@
 // Ebene 2 und Böschungen auf Ebene 1 (mit Schatten), Stufen `/` als Rampe `b` nur an den beiden Treppen; die Wärterhütte im
 // Westen; das Torfmoor mit Nebel unten links. Ein Schütze auf der Deichkrone, der Schleusenwärter mit Spieß am Ostende des
 // Tors, ein Hund, zwei Torfstecher aus dem Moor, ein Gefolgsmann im Westen, ein Torfmädchen als Unbeteiligte. Die Figur
-// trägt die Werte einer Barden-Stufe 4 mit `leicht` am Dolch und `aktionen[]` (seit 1.6). Keine Namen aus einem Spielstand.
+// trägt die Werte einer Barden-Stufe 4 mit `leicht` am Dolch und `aktionen[]` (seit 1.6). Seit 1.7 dazu die Spuren seit der letzten
+// Karte: Rolf und der Hund kamen von anderswo (`vorher`), Torfstecher 2 ist neu (`neu`), der Schütze ist hinter die Krone geduckt und
+// außer Sicht (`gesehen: false`). Keine Namen aus einem Spielstand.
 'use strict';
 function z(s) { if (s.length !== 36) throw new Error('Zeile hat ' + s.length + ': ' + s); return s; }
 module.exports = {
@@ -70,12 +72,12 @@ module.exports = {
       ],
       // seit 1.6: Aktionen ohne Ziel; Spurt und Rückzug kennt die Karte selbst
       aktionen: [{ name: 'Hilfe', wirkung: 'Vorteil für den Nächsten, der das Ziel angreift' }, { name: 'Ausweichen', wirkung: 'Angriffe gegen dich mit Nachteil, GES-Rettungswürfe mit Vorteil' }] },
-    { id: 'ro', name: 'Rolf', kurz: 'RO', art: 'gefolge', x: 14, y: 9, tp: [5, 11], notiz: 'will zum Hebel am Westufer' },
+    { id: 'ro', name: 'Rolf', kurz: 'RO', art: 'gefolge', x: 14, y: 9, tp: [5, 11], notiz: 'will zum Hebel am Westufer', vorher: [12, 10] },
     { id: 'ulf', name: 'Ulf', kurz: 'U', art: 'gegner', x: 21, y: 8, reichweite: 3, notiz: 'der Schleusenwärter, Spieß' },
-    { id: 'hu', name: 'Hund', kurz: 'HU', art: 'gegner', x: 22, y: 9, notiz: 'Ulfs Rüde' },
-    { id: 'sch', name: 'Schütze', kurz: 'S', art: 'gegner', x: 25, y: 5, notiz: 'Armbrust, auf der Deichkrone' },
+    { id: 'hu', name: 'Hund', kurz: 'HU', art: 'gegner', x: 22, y: 9, notiz: 'Ulfs Rüde', vorher: [24, 10] },
+    { id: 'sch', name: 'Schütze', kurz: 'S', art: 'gegner', x: 25, y: 5, notiz: 'Armbrust, auf der Deichkrone', gesehen: false },
     { id: 't1', name: 'Torfstecher 1', kurz: 'T1', art: 'gegner', x: 12, y: 12, zustand: 'angeschlagen', notiz: 'Torfspaten' },
-    { id: 't2', name: 'Torfstecher 2', kurz: 'T2', art: 'gegner', x: 9, y: 13, notiz: 'Torfspaten' },
+    { id: 't2', name: 'Torfstecher 2', kurz: 'T2', art: 'gegner', x: 9, y: 13, notiz: 'Torfspaten', neu: true },
     { id: 'tm', name: 'Torfmädchen', kurz: 'TM', art: 'npc', x: 22, y: 13, notiz: 'duckt sich am Treidelpfad' }
   ],
   notizen: [{ x: 17, y: 9, text: 'Schleusentor' }, { x: 11, y: 2, text: 'Wärterhütte' }, { x: 25, y: 12, text: 'Deichkrone' }, { x: 4, y: 12, text: 'Torfmoor' }]

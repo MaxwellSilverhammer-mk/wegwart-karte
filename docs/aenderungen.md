@@ -2,6 +2,16 @@
 
 Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
 
+## Kampfkarte 1.7 (30. Oktober 2026)
+
+Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/welt (`tische_stand`) und Regelwerk 4.2 einträgt. Der Rest von Stufe B aus dem Konzeptpapier („Spuren seit der letzten Karte“, dazu aus demselben Punkt „neu“ und „zuletzt hier“). Alles abwärtskompatibel; Daten der 1.6 laufen unverändert, die neuen Felder sind freiwillig.
+
+- **Spuren seit der letzten Karte** (`wesen[].vorher: [x, y]`, auch `{x, y}`): Die Karte entsteht je Runde neu; was sich bewegt hat, stand bisher nur in der Erzählung. Jetzt zeichnet sie zu jedem Wesen, dessen Zug die Figur gesehen hat, einen blassen Pfeil vom alten zum neuen Feld (Spitze am Stein, gestrichelter Ring am alten Feld); die Auskunft sagt „kam von 24/J“. Nur Gesehenes (4.8): Die Spielleitung setzt `vorher` nur, wo die Figur den Zug verfolgen konnte.
+- **„neu“** (`neu: true`): wer seit der letzten Karte dazukam, trägt eine Marke am Stein.
+- **Außer Sicht** (`gesehen: false`): Ein Wesen, das die Figur aus den Augen verlor, bleibt als Schatten (blass, gestrichelt) dort, wo sie es zuletzt sah. Es bedroht kein Feld, versperrt keinen Weg, löst keinen Gelegenheitsangriff aus und ist kein Ziel; die Auskunft nennt es „außer Sicht, zuletzt hier gesehen“.
+- Legende: Spur, „neu“ und Schatten nur, wenn es sie auf der Karte gibt. Beispiel `test/kampf-schleusentor-beispiel.js` ergänzt (Rolf und der Hund mit Spur, Torfstecher 2 neu, der Schütze außer Sicht); `test/kampf.test.js` prüft Lesen, Zeichnen, Legende, dass ein Schatten nichts versperrt und bedroht, die Auskunft und dass er kein Ziel wird (24 Prüfungen). Handybild 390 px geprüft.
+- Damit ist Stufe B des Konzeptpapiers vollständig; Stufe C (Aufstellung, Formen neben Farben, Aufgaben über Runden, Hilfezeile, Kampfbilanz, Erzähldichte) kommt in einem eigenen Chat. Kacheln unverändert.
+
 ## Regelwerk 3.19 (30. Oktober 2026)
 
 Gegenüber 3.18 (29. Oktober 2026). Anlass: Kampfkarte 1.6 (unten) und der Probezug dazu, den der Weltenhüter abgenommen hat. Die Werkstatt bleibt 3.16. Neuer Stand der Tische: `tische_stand` = `1c689e20f4f92f1a2da84e81e4bd1d9c7d457b51` (Kampfkarte 1.6; die übrigen Tische sind seit 1.1 unverändert); der Würfelkasten bleibt.

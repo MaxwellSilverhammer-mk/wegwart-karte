@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.6
+ * Version 1.7
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -43,13 +43,16 @@
  * (ohne Erklärtext, ohne Höhe in Worten), Lagezeile, Aktion, Bonusaktion, der Kasten „Zug“ mit der Folge, dem Freitext und
  * dem breiten Knopf „Zug abschicken“, zuletzt die Legende; die Knöpfe tragen das Zeichen ihrer Schadensart (dieselben 13
  * Umrisse wie der Würfelkasten); Rampen und Treppen bekommen einen leichten Schatten.
+ * Seit 1.7 (Rest von Stufe B): Spuren seit der letzten Karte: `vorher: [x, y]` bei jedem Wesen, dessen Zug die Figur gesehen hat,
+ * zeichnet einen blassen Pfeil vom alten zum neuen Feld; `neu: true` markiert, wer seit der letzten Karte dazukam; `gesehen: false`
+ * zeichnet ein Wesen, das außer Sicht geriet, als Schatten dort, wo es zuletzt stand (bedroht nichts, versperrt nichts, kein Ziel).
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.6';
+  var VERSION = '1.7';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -269,6 +272,10 @@
       k.bonus = (Array.isArray(w.bonus) ? w.bonus : []).map(function (b) { return bonusInfo(b, k.waffen); }).filter(function (x) { return !!x; });
       // seit 1.6: weitere Aktionen ohne Ziel (`aktionen[]`: Hilfe, Ausweichen, …); Spurt und Rückzug kennt die Karte selbst
       k.aktionen = (Array.isArray(w.aktionen) ? w.aktionen : []).map(aktionInfo).filter(function (x) { return !!x; });
+      // seit 1.7: die Spur seit der letzten Karte (`vorher: [x, y]` oder `{x, y}`, nur, wenn die Figur den Zug gesehen hat), `neu` und `gesehen: false`
+      var vo = Array.isArray(w.vorher) ? [+w.vorher[0], +w.vorher[1]] : w.vorher && typeof w.vorher === 'object' ? [+w.vorher.x, +w.vorher.y] : null;
+      k._vorher = vo && isFinite(vo[0]) && isFinite(vo[1]) && (vo[0] !== k.x || vo[1] !== k.y) ? vo : null;
+      k.neu = w.neu === true; k.gesehen = w.gesehen !== false;
       var zt = String(w.zustand || '').toLowerCase();
       k.zustaende = (Array.isArray(w.zustaende) ? w.zustaende : []).map(function (z) { return String(z).toLowerCase().trim(); }).filter(function (z, i, a) { return STATUS[z] && a.indexOf(z) === i; });
       ZUSTAND_WORTE.forEach(function (p) { if (p[0].test(zt) && k.zustaende.indexOf(p[1]) < 0) k.zustaende.push(p[1]); });
@@ -312,6 +319,7 @@
   function belegt(K) {
     var b = {};
     K.wesen.forEach(function (w) {
+      if (w.gesehen === false) return; // seit 1.7: wer außer Sicht ist, versperrt auf der Karte nichts
       for (var dx = 0; dx < w.groesse; dx++) for (var dy = 0; dy < w.groesse; dy++) b[(w.x + dx) + ',' + (w.y + dy)] = w;
     });
     return b;
@@ -519,7 +527,7 @@
   function wehrlos(w) { return (w && w._wunde === 'tot') || hatZustand(w, WEHRLOS); }
   function kampffaehig(w) { return !(w && w._wunde === 'tot') && !hatZustand(w, HARMLOS); }
   function liegt(w) { return hatZustand(w, ['liegend']); }
-  function gegnerAktiv(K) { return K.wesen.filter(function (w) { return w.art === 'gegner' && kampffaehig(w); }); }
+  function gegnerAktiv(K) { return K.wesen.filter(function (w) { return w.art === 'gegner' && w.gesehen !== false && kampffaehig(w); }); }
   // Bedroht ein Wesen das Feld? Innerhalb seiner Reichweite, dreidimensional (PHB), die eigenen Felder nicht
   function bedroht(K, w, x, y) {
     if (!w || !isFinite(w.x) || !isFinite(w.y)) return false;
@@ -741,7 +749,7 @@
   function wesenSvg(K, w) {
     var X = px(w.x), Y = py(w.y), g = w.groesse, cx = X + Z * g / 2, cy = Y + Z * g / 2, r = Z * g * 0.4;
     var farbe = ART_WESEN[w.art], out = [], h = hoeheVon(K, w), blass = w._wunde === 'tot' || hatZustand(w, ['bewusstlos', 'versteinert']);
-    out.push('<g class="kkO kkA-' + w.art + (blass ? ' kkBlass' : '') + '" data-w="' + w._i + '">');
+    out.push('<g class="kkO kkA-' + w.art + (blass ? ' kkBlass' : '') + (w.gesehen === false ? ' kkZuletzt' : '') + '" data-w="' + w._i + '">');
     if (w.art === 'figur') out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 3) + '" class="kkRing"/>');
     if (w._wunde === 'angeschlagen') out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 2.2) + '" class="kkWa"/>');
     if (w._wunde === 'schwer') out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 2.2) + '" class="kkWs"/>');
@@ -756,8 +764,23 @@
       var t = m(h), bw = t.length * 5.6 + 8, bx = X + Z * g - bw + 2, by = Y - 6;
       out.push('<g class="kkHm"><rect x="' + bx + '" y="' + by + '" width="' + bw + '" height="12" rx="3"/><text x="' + (bx + bw / 2) + '" y="' + (by + 9) + '" text-anchor="middle">' + esc(t) + '</text></g>');
     }
-    out.push('<title>' + esc(w.name) + (h > 0 ? ' · ' + m(h) + ' hoch' : '') + (w.zustand ? ' · ' + esc(w.zustand) : '') + (zs.length ? ' · ' + esc(zs.join(', ')) : '') + '</title></g>');
+    // seit 1.7: „neu“ am Stein, wer seit der letzten Karte dazukam
+    if (w.neu) out.push('<g class="kkNeu"><rect x="' + (X - 2) + '" y="' + (Y + Z * g - 7) + '" width="24" height="12" rx="3"/><text x="' + (X + 10) + '" y="' + (Y + Z * g + 2) + '" text-anchor="middle">neu</text></g>');
+    out.push('<title>' + esc(w.name) + (h > 0 ? ' · ' + m(h) + ' hoch' : '') + (w.zustand ? ' · ' + esc(w.zustand) : '') + (zs.length ? ' · ' + esc(zs.join(', ')) : '') + (w.gesehen === false ? ' · außer Sicht, zuletzt hier gesehen' : '') + (w.neu ? ' · neu seit der letzten Karte' : '') + '</title></g>');
     return out.join('');
+  }
+
+  // Die Spur eines Wesens seit der letzten Karte (seit 1.7): ein blasser Pfeil von der Mitte des alten Felds bis an den Rand des Steins,
+  // ein gestrichelter Ring am alten Feld; nur für Züge, die die Figur gesehen hat (4.8)
+  function spurSvg(K, w) {
+    if (!w._vorher) return '';
+    var g = w.groesse, ax = px(w._vorher[0]) + Z / 2, ay = py(w._vorher[1]) + Z / 2, bx = px(w.x) + Z * g / 2, by = py(w.y) + Z * g / 2;
+    var dx = bx - ax, dy = by - ay, l = Math.sqrt(dx * dx + dy * dy); if (!l) return '';
+    var ux = dx / l, uy = dy / l, r = Z * g * 0.4 + 3, ex = bx - ux * r, ey = by - uy * r, sx = ax + ux * 6, sy = ay + uy * 6;
+    var p1 = r1(ex - ux * 8 + uy * 4.5) + ' ' + r1(ey - uy * 8 - ux * 4.5), p2 = r1(ex - ux * 8 - uy * 4.5) + ' ' + r1(ey - uy * 8 + ux * 4.5);
+    return '<g class="kkSp" data-w="' + w._i + '"><title>' + esc(w.name + ': von ' + feldNameK(K, w._vorher[0], w._vorher[1]) + ' nach ' + feldNameK(K, w.x, w.y)) + '</title>' +
+      '<circle cx="' + r1(ax) + '" cy="' + r1(ay) + '" r="5"/><path d="M' + r1(sx) + ' ' + r1(sy) + 'L' + r1(ex - ux * 6) + ' ' + r1(ey - uy * 6) + '"/>' +
+      '<polygon class="kkSpK" points="' + r1(ex) + ',' + r1(ey) + ' ' + p1 + ' ' + p2 + '"/></g>';
   }
 
   function zeichne(D) {
@@ -802,6 +825,8 @@
       out.push('<g class="kkNo"><rect x="' + (cx - w / 2) + '" y="' + (cy - 7) + '" width="' + w + '" height="14" rx="4"/><text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle">' + esc(t) + '</text></g>');
     });
     out.push('<g class="kkBew"></g><g class="kkReich"></g><g class="kkWeg"></g><g class="kkZiel"></g>');
+    // Spuren seit der letzten Karte (seit 1.7): ein blasser Pfeil vom alten zum neuen Feld
+    out.push('<g class="kkSpur">' + K.wesen.map(function (w) { return spurSvg(K, w); }).join('') + '</g>');
     // Wesen
     K.wesen.forEach(function (w) { out.push(wesenSvg(K, w)); });
     out.push('</svg>');
@@ -834,6 +859,10 @@
       '<span><i class="kkLe kkLeR"></i> Reichweite der Waffe von dort; blasse Gegner außer Reichweite</span>',
       '<span><i class="kkLe kkLeZ"></i> bedroht: Reichweite eines Gegners (Tipp auf ihn, oder „Gefahr“)</span>',
       '<span><i class="kkLe kkLeO"></i> Gelegenheitsangriff beim Verlassen</span>');
+    // seit 1.7: Spuren, Neue und Schatten nur, wenn es sie auf dieser Karte gibt
+    if (K.wesen.some(function (w) { return w._vorher; })) out.push('<span><i class="kkLe kkLeS"></i> Spur: woher ein Wesen seit der letzten Karte kam (nur Gesehenes)</span>');
+    if (K.wesen.some(function (w) { return w.neu; })) out.push('<span><i class="kkLe kkLeN">neu</i> seit der letzten Karte dazugekommen</span>');
+    if (K.wesen.some(function (w) { return w.gesehen === false; })) out.push('<span><i class="kkLe kkLeZu"></i> außer Sicht: Schatten, wo es zuletzt stand; bedroht und versperrt nichts</span>');
     var wunden = {}, zust = {};
     K.wesen.forEach(function (w) { if (w._wunde) wunden[w._wunde] = 1; (w.zustaende || []).forEach(function (z) { zust[z] = 1; }); });
     if (wunden.angeschlagen) out.push('<span>' + ringBild('angeschlagen') + ' angeschlagen</span>');
@@ -872,7 +901,11 @@
     // seit 1.6: die Spur der Wegstücke mit Stationen, der Geisterstein am aktuellen Stand, Ringe um das Ziel der Aktion und der Bonusaktion
     '.kkWeg{pointer-events:none}.kkWeg .kkStat{fill:#efe2c3;stroke:#3b3028;stroke-width:1.6}.kkZiel{pointer-events:none}' +
     '.kkGeist .kkGk{fill:#efe2c3;fill-opacity:.6;stroke:#3b3028;stroke-width:2;stroke-dasharray:4 3}.kkGeist text{fill:#3b3028;font-family:"EB Garamond",Georgia,serif;font-weight:600}' +
-    '.kkO.kkZielW .kkTok{stroke:#8e3b22;stroke-width:3}.kkO.kkBonZ .kkTok{stroke:#b08d3a;stroke-width:3;stroke-dasharray:4 3}';
+    '.kkO.kkZielW .kkTok{stroke:#8e3b22;stroke-width:3}.kkO.kkBonZ .kkTok{stroke:#b08d3a;stroke-width:3;stroke-dasharray:4 3}' +
+    // seit 1.7: Spuren (blasser Pfeil, Ring am alten Feld), Schatten außer Sicht, „neu“
+    '.kkSpur{pointer-events:none}.kkSpur path{fill:none;stroke:#3b3028;stroke-width:2.2;stroke-opacity:.32;stroke-linecap:round}.kkSpur .kkSpK{fill:#3b3028;fill-opacity:.32}.kkSpur circle{fill:none;stroke:#3b3028;stroke-width:1.4;stroke-opacity:.32;stroke-dasharray:2.5 2}' +
+    '.kkO.kkZuletzt .kkTok{fill-opacity:.35;stroke-dasharray:4 3;stroke:#3b3028}.kkO.kkZuletzt .kkTx,.kkO.kkZuletzt .kkWa,.kkO.kkZuletzt .kkWs,.kkO.kkZuletzt .kkPl{opacity:.45}' +
+    '.kkNeu rect{fill:#2f4f70;stroke:#efe2c3;stroke-width:.8}.kkNeu text{font-family:"EB Garamond",Georgia,serif;font-size:9.5px;font-weight:600;fill:#f6efdd}.kkNeu{pointer-events:none}';
 
   var UI_CSS =
     '.kk{display:flex;flex-direction:column;gap:10px}' +
@@ -914,6 +947,8 @@
     '.kk .kkLeB{border-radius:2px;border:2px solid #2f4f70;background:rgba(176,141,58,.25);box-sizing:border-box}.kk .kkLeR{border-radius:2px;border:2px solid #8e3b22;background:rgba(142,59,34,.1);box-sizing:border-box}' +
     '.kk .kkLeZ{border-radius:2px;border:2px dashed #8e3b22;box-sizing:border-box}.kk .kkLeO{width:0;height:0;border-radius:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #8e3b22}' +
     '.kk .kkLeG{border:2px dashed #3b3028;background:rgba(239,226,195,.6);box-sizing:border-box}' +
+    '.kk .kkLeS{width:18px;height:0;border-radius:0;border-top:2px solid rgba(59,48,40,.45)}.kk .kkLeN{width:auto;height:auto;border-radius:3px;background:#2f4f70;color:#f6efdd;font-style:normal;font-size:9px;line-height:12px;padding:0 4px}' +
+    '.kk .kkLeZu{border:2px dashed #3b3028;background:rgba(142,59,34,.3);box-sizing:border-box}' +
     // seit 1.6: Werkzeuge in einer schmalen Zeile unter der Karte; die Knöpfe der Aktion und der Bonusaktion mit Zeichen in drei Zuständen
     // (wartet: gestrichelt, gewählt: gold, nicht mehr erlaubt: blass); der Kasten „Zug“ mit der Folge als Chips, „Zurück“, Freitext und
     // dem breiten Knopf „Zug abschicken“; nach dem Senden bleibt der Kasten, alles andere wird blass
@@ -1208,7 +1243,7 @@
     function zoneVon(w) { if (!zonen[w._i]) zonen[w._i] = zone(K, w); return zonen[w._i]; }
     function zeigeZone(w) {
       Array.prototype.forEach.call(svg.querySelectorAll('.kkF.kkGz'), function (f) { f.classList.remove('kkGz'); });
-      if (!w || w.art !== 'gegner' || !kampffaehig(w)) return;
+      if (!w || w.art !== 'gegner' || w.gesehen === false || !kampffaehig(w)) return;
       Object.keys(zoneVon(w)).forEach(function (key) { var t = key.split(','), g = feldEl(+t[0], +t[1]); if (g) g.classList.add('kkGz'); });
     }
     function zeigeGefahr(an) {
@@ -1236,7 +1271,7 @@
       });
       g.innerHTML = out.join('');
       K.wesen.forEach(function (w) {
-        if (w === figur || w.art !== 'gegner') return;
+        if (w === figur || w.art !== 'gegner' || w.gesehen === false) return;
         var o = svg.querySelector('.kkO[data-w="' + w._i + '"]'); if (!o) return;
         var ab = abstand(s, w, K);
         if (ab > (wf.rl || wf.r)) o.classList.add('kkFern'); else if (ab > wf.r) o.classList.add('kkLang');
@@ -1348,7 +1383,11 @@
         t.push(esc(teil.trim()));
       });
       if (w.notiz) t.push(esc(w.notiz));
-      if (w.art === 'gegner' && kampffaehig(w)) t.push('bedroht ' + Object.keys(zoneVon(w)).length + ' Felder (gestrichelt)');
+      // seit 1.7: Spur, neu, außer Sicht
+      if (w._vorher) t.push('kam von ' + feldNameK(K, w._vorher[0], w._vorher[1]));
+      if (w.neu) t.push('neu seit der letzten Karte');
+      if (w.gesehen === false) t.push('<b>außer Sicht</b>, zuletzt hier gesehen; kein Ziel');
+      if (w.art === 'gegner' && w.gesehen !== false && kampffaehig(w)) t.push('bedroht ' + Object.keys(zoneVon(w)).length + ' Felder (gestrichelt)');
       return t.join(' · ');
     }
     // was ein neues Wegstück bringt, das die Karte nicht zeigt: Sprung, Ungewisses, Deckung am Ziel
@@ -1386,11 +1425,12 @@
       if (gesendet || !figur) return;
       if (bonusWartet >= 0) {
         var bo = bonus[bonusWartet];
-        if (bonusErlaubt(bo, w, figur)) { Zg.bonusHinzu(bonusWartet, w); bonusWartet = -1; sag(''); }
+        if (w.gesehen === false) sag('<b>' + esc(w.name) + '</b> ist außer Sicht; der Schatten zeigt nur, wo du zuletzt hingesehen hast.');
+        else if (bonusErlaubt(bo, w, figur)) { Zg.bonusHinzu(bonusWartet, w); bonusWartet = -1; sag(''); }
         else sag('<b>' + esc(w === figur ? 'Du selbst' : w.name) + '</b> taugt nicht als Ziel für ' + esc(bo.name) + ' (' + esc(bonusZieleText(bo)) + ').');
         zeigeAlles(); return;
       }
-      if (w !== figur && wartet && !Zg.aktion()) {
+      if (w !== figur && wartet && !Zg.aktion() && w.gesehen !== false) {
         var s = Zg.aktionHinzu(wartet.art, wartet.i, w);
         betrachtet = w; sag(wesenText(w, Zg.standBei(Zg.schritte.indexOf(s))));
         zeigeZone(w); zeigeAlles(); return;

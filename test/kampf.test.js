@@ -126,7 +126,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.6');
+  assert.strictEqual(kampf.version, '1.7');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -247,6 +247,22 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
   Zo.schritte = []; Zo.aktionHinzu('frei', 0);
   assert.strictEqual(Zo.zeile({ nr: 3 }, '', ['Waffe: Keule']), 'Kampf #3 · Figur: bleibt auf 2/B · Aktion: ? · Waffe: Keule', 'eine Aktion ohne Ziel aus aktionen[] (hier ohne Daten)');
   ok('1.6: Folge, Budget, Spurt, Rückzug, Zweitwaffe, Zeichen');
+
+  // 1.7 (Rest von Stufe B): Spuren seit der letzten Karte, neu, außer Sicht
+  var rolf2 = T.wesen[1], hund = T.wesen[3], schuetze = T.wesen[4], t2 = T.wesen[6];
+  assert.deepStrictEqual([rolf2._vorher, hund._vorher, t2.neu, schuetze.gesehen, ulf._vorher, ulf.gesehen], [[12, 10], [24, 10], true, false, null, true], '`vorher`, `neu`, `gesehen` gelesen');
+  assert.strictEqual(kampf.lies({ wesen: [{ id: 'a', name: 'A', art: 'gegner', x: 3, y: 3, vorher: { x: 3, y: 3 } }] }).wesen[0]._vorher, null, 'vorher am selben Feld ist keine Spur');
+  assert.strictEqual(kampf.lies({ wesen: [{ id: 'a', name: 'A', art: 'gegner', x: 3, y: 3, vorher: { x: 5, y: 2 } }] }).wesen[0]._vorher.join(','), '5,2', 'vorher auch als {x, y}');
+  var WT = kampf.wege(T, tf);
+  assert.strictEqual(WT.belegt['25,5'], undefined, 'wer außer Sicht ist, versperrt auf der Karte nichts');
+  assert.ok(WT.dist['25,5'] != null, 'sein letztes Feld ist erreichbar');
+  assert.strictEqual(kampf.gelegenheiten(T, [[25, 6], [27, 7]]).length, 0, 'und er bedroht kein Feld');
+  var eT = kampf.zeichne(TOR);
+  assert.strictEqual((eT.svg.match(/class="kkSp"/g) || []).length, 2, 'zwei Spuren gezeichnet');
+  assert.ok(/kkO kkA-gegner kkZuletzt/.test(eT.svg) && (eT.svg.match(/class="kkNeu"/g) || []).length === 1, 'ein Schatten, ein „neu“');
+  assert.ok(/Spur:/.test(eT.legende) && /außer Sicht/.test(eT.legende) && /dazugekommen/.test(eT.legende), 'die Legende nennt Spur, Schatten und neu');
+  assert.ok(!/Spur:/.test(kampf.zeichne(ZOLL).legende), 'ohne Spuren keine Zeile in der Legende');
+  ok('1.7: Spuren, neu, außer Sicht');
 })();
 
 (async function () {
@@ -528,6 +544,18 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
       ['hieb', 'stich', 'gleißend', 'gleißend', 'psychisch', 'rettung', 'spurt', 'rueckzug', 'aktion', 'aktion'], 'die Zeichen der Schadensarten an den Knöpfen der Aktion');
     assert.deepStrictEqual(await pgT.evaluate(function () { return Array.prototype.map.call(document.querySelectorAll('#kampf .kkBo button svg.kkZc'), function (s) { return s.getAttribute('data-z'); }); }), ['heilung', 'inspiration', 'stich'], 'und der Bonusaktion');
     assert.ok((await pgT.locator('#kampf .kkKan rect.kkSchR').count()) >= 4 && (await pgT.locator('#kampf .kkKan rect.kkSch:not(.kkSchR)').count()) >= 40, 'leichter Schatten an den Treppen, voller an den Böschungen');
+    // 1.7: Spuren, neu, außer Sicht
+    assert.strictEqual(await pgT.locator('#kampf .kkSpur g.kkSp').count(), 2, 'zwei Spuren: Rolf und der Hund');
+    assert.strictEqual(await pgT.locator('#kampf .kkSpur g.kkSp[data-w="3"] polygon.kkSpK').count(), 1, 'die Pfeilspitze am neuen Feld');
+    assert.strictEqual(await pgT.locator('#kampf g.kkO[data-w="4"].kkZuletzt').count(), 1, 'der Schütze als Schatten');
+    assert.strictEqual(await pgT.locator('#kampf g.kkO[data-w="6"] g.kkNeu').count(), 1, 'Torfstecher 2 trägt „neu“');
+    await klickWesen(pgT, 4); // der Schatten: kein Ziel, nur Auskunft
+    assert.ok(/Schütze \(S\) · Gegner · 25\/E · .* · außer Sicht, zuletzt hier gesehen; kein Ziel$/.test(await pgT.innerText('#kampf .kkI')), 'Auskunft zum Schatten: ' + await pgT.innerText('#kampf .kkI'));
+    assert.strictEqual((await folge(pgT)).length, 2, 'die wartende Waffe hat ihn nicht zum Ziel gemacht');
+    assert.strictEqual(await pgT.locator('#kampf .kkF.kkGz').count(), 0, 'keine Zone für einen Schatten');
+    await klickWesen(pgT, 3); // der Hund, mit dem wartenden Langschwert: Ziel, Auskunft mit Spur
+    assert.ok(/Hund \(HU\) · Gegner · 22\/I · 7,5 m von dir · Ulfs Rüde · kam von 24\/J · bedroht 8 Felder/.test(await pgT.innerText('#kampf .kkI')), 'Auskunft mit Spur: ' + await pgT.innerText('#kampf .kkI'));
+    await pgT.click('#kampf button[data-k="zurueck"]'); // die Aktion auf den Hund wieder weg; das Langschwert wartet erneut
     assert.strictEqual(await pgT.locator('#kampf g.kkHs').count(), 3, 'drei Schilder: Böschung West (mit ihrer Treppe), Krone, Böschung Ost');
     await klickWesen(pgT, 2); // Ulf, mit dem wartenden Langschwert: die Aktion vom Stand, außer Reichweite
     assert.ok(!/hoch\b/.test(await pgT.innerText('#kampf .kkI')) && /Ulf \(U\) · Gegner · 21\/H · 6 m von dir · Reichweite 3 m · der Schleusenwärter, Spieß · bedroht/.test(await pgT.innerText('#kampf .kkI')), 'Auskunft ohne Höhe in Worten: ' + await pgT.innerText('#kampf .kkI'));
