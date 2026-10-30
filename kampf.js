@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.4
+ * Version 1.6
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -34,13 +34,22 @@
  * vorn in der Zeile; ohne ihn kriecht sie); Gefolge und Unbeteiligte als Ziel bekommen einen Hinweis in der Lagezeile;
  * der Knopf „Warum?“ ist weg (die Sätze stehen als Tipp an der Lagezeile); der Kartenrahmen ist in der Höhe begrenzt,
  * damit die Pfeile auch nach oben und unten blättern.
+ * Seit 1.6: Der Zug ist eine Folge von Schritten in der Reihenfolge der Tipps (PHB: die Bewegung darf beliebig geteilt
+ * werden, Aktion und Bonusaktion stehen irgendwo dazwischen): jeder Tipp auf ein Feld ein Wegstück vom aktuellen Stand, ein
+ * Tipp auf Waffe oder Zauber und dann auf einen Stein die Aktion von dort, eine Bonusaktion ebenso; Spurt und Rückzug sind
+ * Aktionen (keine stillschweigende Verdoppelung mehr), weitere Aktionen ohne Ziel kommen aus `aktionen[]`; „Zurück“ nimmt den
+ * letzten Schritt; ein Geisterstein steht am aktuellen Stand, die Wegstücke als Spur mit Stationen; die Zweitwaffe nur neben
+ * der Angriffsaktion mit einer leichten Waffe (`waffen[].leicht`); unter der Karte in dieser Reihenfolge: Werkzeuge, Infozeile
+ * (ohne Erklärtext, ohne Höhe in Worten), Lagezeile, Aktion, Bonusaktion, der Kasten „Zug“ mit der Folge, dem Freitext und
+ * dem breiten Knopf „Zug abschicken“, zuletzt die Legende; die Knöpfe tragen das Zeichen ihrer Schadensart (dieselben 13
+ * Umrisse wie der Würfelkasten); Rampen und Treppen bekommen einen leichten Schatten.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.5';
+  var VERSION = '1.6';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -170,6 +179,51 @@
     return '<svg class="kkMo" width="' + b[0] + '" height="16" viewBox="0 0 ' + b[0] + ' 16" role="img" aria-label="' + esc(name || zeichen) + '">' + b[1] + '</svg>';
   }
   var PFEIL = '<svg viewBox="0 0 22 22" aria-hidden="true"><path d="M3 11h14M11 4.5L17.5 11 11 17.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /* Die Zeichen der Schadensarten (seit 1.6): dieselben 13 Umrisse, die der Würfelkasten je Schadensart zeigt (wegwart-wuerfel,
+     wuerfel.js, Stand 3d5d64a805af778d4cb382d64f896f12b0af4415, `FX`: Tabler Icons flame, snowflake, bolt, volume, droplet, flask,
+     ghost, sun, brain, atom, sword, arrow-narrow-right, hammer; MIT-Lizenz, https://tabler.io/icons), als Strichbilder 24 × 24,
+     Strich 2, runde Enden, in Tintenfarbe wie die Zeichen von seite/zeichen.js. Dazu Zeichen für Rettungswurf (shield), Heilung
+     (heart), Inspiration (music), Wirkung (sparkles), Spurt (run), Rückzug (arrow-back-up), eine freie Aktion (hand-stop) und
+     unbekannte Schadensarten (swords). */
+  var ZEICHEN = {
+    'feuer': ['M12 10.941c2.333 -3.308 .167 -7.823 -1 -8.941c0 3.395 -2.235 5.299 -3.667 6.706c-1.43 1.408 -2.333 3.294 -2.333 5.588c0 3.704 3.134 6.706 7 6.706c3.866 0 7 -3.002 7 -6.706c0 -1.712 -1.232 -4.403 -2.333 -5.588c-2.084 3.353 -3.257 3.353 -4.667 2.235'],
+    'kälte': ['M10 4l2 1l2 -1', 'M12 2v6.5l3 1.72', 'M17.928 6.268l.134 2.232l1.866 1.232', 'M20.66 7l-5.629 3.25l.01 3.458', 'M19.928 14.268l-1.866 1.232l-.134 2.232', 'M20.66 17l-5.629 -3.25l-2.99 1.738', 'M14 20l-2 -1l-2 1', 'M12 22v-6.5l-3 -1.72', 'M6.072 17.732l-.134 -2.232l-1.866 -1.232', 'M3.34 17l5.629 -3.25l-.01 -3.458', 'M4.072 9.732l1.866 -1.232l.134 -2.232', 'M3.34 7l5.629 3.25l2.99 -1.738'],
+    'blitz': ['M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11'],
+    'schall': ['M15 8a5 5 0 0 1 0 8', 'M17.7 5a9 9 0 0 1 0 14', 'M6 15h-2a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1h2l3.5 -4.5a.8 .8 0 0 1 1.5 .5v14a.8 .8 0 0 1 -1.5 .5l-3.5 -4.5'],
+    'säure': ['M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546'],
+    'gift': ['M9 3l6 0', 'M10 9l4 0', 'M10 3v6l-4 11a.7 .7 0 0 0 .5 1h11a.7 .7 0 0 0 .5 -1l-4 -11v-6'],
+    'nekrotisch': ['M5 11a7 7 0 0 1 14 0v7a1.78 1.78 0 0 1 -3.1 1.4a1.65 1.65 0 0 0 -2.6 0a1.65 1.65 0 0 1 -2.6 0a1.65 1.65 0 0 0 -2.6 0a1.78 1.78 0 0 1 -3.1 -1.4v-7', 'M10 10l.01 0', 'M14 10l.01 0', 'M10 14a3.5 3.5 0 0 0 4 0'],
+    'gleißend': ['M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0', 'M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7'],
+    'psychisch': ['M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8', 'M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8', 'M17.5 16a3.5 3.5 0 0 0 0 -7h-.5', 'M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0', 'M6.5 16a3.5 3.5 0 0 1 0 -7h.5', 'M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10'],
+    'energie': ['M12 12v.01', 'M19.071 4.929c-1.562 -1.562 -6 .337 -9.9 4.243c-3.905 3.905 -5.804 8.337 -4.242 9.9c1.562 1.561 6 -.338 9.9 -4.244c3.905 -3.905 5.804 -8.337 4.242 -9.9', 'M4.929 4.929c-1.562 1.562 .337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561 -1.562 -.338 -6 -4.244 -9.9c-3.905 -3.905 -8.337 -5.804 -9.9 -4.242'],
+    'hieb': ['M20 4v5l-9 7l-4 4l-3 -3l4 -4l7 -9l5 0', 'M6.5 11.5l6 6'],
+    'stich': ['M5 12l14 0', 'M15 16l4 -4', 'M15 8l4 4'],
+    'wucht': ['M11.414 10l-7.383 7.418a2.091 2.091 0 0 0 0 2.967a2.11 2.11 0 0 0 2.976 0l7.407 -7.385', 'M18.121 15.293l2.586 -2.586a1 1 0 0 0 0 -1.414l-7.586 -7.586a1 1 0 0 0 -1.414 0l-2.586 2.586a1 1 0 0 0 0 1.414l7.586 7.586a1 1 0 0 0 1.414 0'],
+    'rettung': ['M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3'],
+    'heilung': ['M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572'],
+    'inspiration': ['M3 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0', 'M13 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0', 'M9 17v-13h10v13', 'M9 8h10'],
+    'wirkung': ['M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6'],
+    'spurt': ['M11.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0', 'M4 17l5 1l.75 -1.5', 'M15 21v-4l-4 -3l1 -6', 'M7 12v-3l5 -1l3 3l3 1'],
+    'rueckzug': ['M9 14l-4 -4l4 -4', 'M5 10h11a4 4 0 1 1 0 8h-1'],
+    'aktion': ['M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5', 'M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5', 'M14 5.5a1.5 1.5 0 0 1 3 0v6.5', 'M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47'],
+    'schaden': ['M21 3v5l-11 9l-4 4l-3 -3l4 -4l9 -11l5 0', 'M5 13l6 6', 'M14.32 17.32l3.68 3.68l3 -3l-3.365 -3.365', 'M10 5.5l-2 -2.5h-5v5l3 2.5']
+  };
+  var SCHADENSARTEN = ['feuer', 'kälte', 'blitz', 'schall', 'säure', 'gift', 'nekrotisch', 'gleißend', 'psychisch', 'energie', 'hieb', 'stich', 'wucht'];
+  // Das Zeichen zu einer Schadensart („Hieb“, „gleißend“), oder eines der übrigen (`rettung`, `heilung`, …); unbekannte Arten: gekreuzte Klingen
+  function zeichenVon(typ) { var t = String(typ || '').toLowerCase(); return ZEICHEN[t] ? t : t ? 'schaden' : ''; }
+  function zeichenBild(key, name) {
+    var p = ZEICHEN[key]; if (!p) return '';
+    return '<svg class="kkZc" width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="' + esc(name || key) + '" data-z="' + esc(key) + '">' +
+      p.map(function (d) { return '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'; }).join('') + '</svg>';
+  }
+  // Das Zeichen einer wirksamen Waffe oder eines Zaubers: die Schadensart, sonst Heilung, Rettungswurf, Wirkung
+  function waffenZeichen(e) {
+    if (!e) return '';
+    if (e.typ) return zeichenVon(e.typ);
+    if (e.heilung) return 'heilung';
+    if (e.rettung) return 'rettung';
+    return 'wirkung';
+  }
 
   /* ---------- Hilfen ---------- */
   function esc(s) {
@@ -213,6 +267,8 @@
       k.zauber = (Array.isArray(w.zauber) ? w.zauber : []).map(function (z) { var zi = waffeInfo(z); if (zi) { zi.zauber = true; zi.mit = z && z.mit === 'waffe'; } return zi; }).filter(function (x) { return !!x; });
       // seit 1.5: die Bonusaktionen der Figur (`bonus[]`), die Zweitwaffe findet ihre Waffe in `waffen`
       k.bonus = (Array.isArray(w.bonus) ? w.bonus : []).map(function (b) { return bonusInfo(b, k.waffen); }).filter(function (x) { return !!x; });
+      // seit 1.6: weitere Aktionen ohne Ziel (`aktionen[]`: Hilfe, Ausweichen, …); Spurt und Rückzug kennt die Karte selbst
+      k.aktionen = (Array.isArray(w.aktionen) ? w.aktionen : []).map(aktionInfo).filter(function (x) { return !!x; });
       var zt = String(w.zustand || '').toLowerCase();
       k.zustaende = (Array.isArray(w.zustaende) ? w.zustaende : []).map(function (z) { return String(z).toLowerCase().trim(); }).filter(function (z, i, a) { return STATUS[z] && a.indexOf(z) === i; });
       ZUSTAND_WORTE.forEach(function (p) { if (p[0].test(zt) && k.zustaende.indexOf(p[1]) < 0) k.zustaende.push(p[1]); });
@@ -263,7 +319,8 @@
 
   // Dijkstra über das Raster: Kosten in Feldern, Diagonale zählt wie gerade (PHB). Hinauf kostet je Ebene ein Feld
   // extra (Klettern: jeder Meter hoch ein Meter extra), außer eine Stufe über Rampe oder Treppe; hinab kostet nichts.
-  // Liefert Entfernung und Weg.
+  // Liefert Entfernung und Weg. `von` ist die Figur oder (seit 1.6) ein Zwischenstand `{x, y, groesse, schwimmen, _figur}`
+  // nach einem Wegstück; das Ausgangsfeld der Figur bleibt dann frei.
   function wege(K, von) {
     var sp = K.sp, ze = K.ze, b = belegt(K), dist = {}, vor = {}, offen = [];
     var schwimmt = !!(von.schwimmen);
@@ -274,7 +331,7 @@
       if (!k) return 0;
       if (a.wasser && schwimmt) k = 1;
       var w = b[x + ',' + y];
-      if (w && w !== von) { if (w.art === 'gegner') return 0; if (w.art === 'tier' && !w.zahm) return 0; }
+      if (w && w !== von && w !== von._figur) { if (w.art === 'gegner') return 0; if (w.art === 'tier' && !w.zahm) return 0; }
       k += schritt(K, fx, fy, x, y).klettern;
       return k;
     }
@@ -350,8 +407,8 @@
   function waffeInfo(w) {
     if (!w || !w.name) return null;
     var basis = { name: String(w.name), bonus: zahl(w.bonus), schaden: w.schaden ? String(w.schaden) : '', typ: w.typ ? String(w.typ) : '', reichweite: w.reichweite == null ? METER : w.reichweite, zauber: !!w.zauber,
-      // seit 1.4: Zauber mit Rettungswurf (`rettung:'WEI'`, `sg`), Heilung und freie Wirkung als Text
-      rettung: w.rettung ? String(w.rettung).toUpperCase() : '', sg: zahl(w.sg), heilung: w.heilung ? String(w.heilung) : '', wirkung: w.wirkung ? String(w.wirkung) : '' };
+      // seit 1.4: Zauber mit Rettungswurf (`rettung:'WEI'`, `sg`), Heilung und freie Wirkung als Text; seit 1.6 `leicht` (PHB: leichte Waffe, für die Zweitwaffe)
+      rettung: w.rettung ? String(w.rettung).toUpperCase() : '', sg: zahl(w.sg), heilung: w.heilung ? String(w.heilung) : '', wirkung: w.wirkung ? String(w.wirkung) : '', leicht: w.leicht === true };
     var modi = (Array.isArray(w.modi) ? w.modi : []).filter(function (mo) { return mo && mo.name; }).map(function (mo) {
       var k = { name: String(mo.name), bonus: zahl(mo.bonus), schaden: mo.schaden ? String(mo.schaden) : '', typ: mo.typ ? String(mo.typ) : '', reichweite: mo.reichweite, zeichen: '' };
       k.zeichen = modusZeichen(k); return k;
@@ -364,7 +421,7 @@
   // Schaden der Waffe, Name, Bonus und Schadensart des Zaubers, wo er sie nennt
   function wirksam(wf, mi, mitWaffe) {
     if (!wf) return null;
-    var e = { name: wf.name, bonus: wf.bonus, schaden: wf.schaden, typ: wf.typ, reichweite: wf.reichweite, zauber: wf.zauber, mit: !!wf.mit,
+    var e = { name: wf.name, bonus: wf.bonus, schaden: wf.schaden, typ: wf.typ, reichweite: wf.reichweite, zauber: wf.zauber, mit: !!wf.mit, leicht: !!wf.leicht,
       rettung: wf.rettung || '', sg: wf.sg == null ? null : wf.sg, heilung: wf.heilung || '', wirkung: wf.wirkung || '' };
     e.ohneWurf = !!(e.rettung || e.heilung || (e.zauber && e.bonus == null && !e.mit)); // kein Angriffswurf: Rettungswurf, Heilung, reine Wirkung
     var mo = wf.modi && wf.modi.length ? wf.modi[Math.max(0, Math.min(wf.modi.length - 1, mi == null ? wf.modus : mi))] : null;
@@ -445,6 +502,15 @@
     s += ' auf ' + ziel.name;
     if (ab > weit) return s + ' (außer Reichweite: ' + m(ab) + ', ' + bo.name + ' reicht ' + m(weit) + ')';
     return s + ' (' + m(ab) + (dh ? ', ' + hochTief(dh) : '') + (bo.rl && ab > bo.r ? '; lange Reichweite' : '') + ')';
+  }
+
+  /* ---------- Aktionen ohne Ziel (seit 1.6) ---------- */
+  // Eine Aktion der Figur aus `aktionen[]`: `name`, `wirkung` als freier Text, `zeichen` (ein Schlüssel aus ZEICHEN, sonst die Hand).
+  // Spurt und Rückzug stehen nicht hier; die Karte kennt sie selbst (PHB: beide sind Aktionen).
+  function aktionInfo(a) {
+    if (!a || !a.name) return null;
+    var z = String(a.zeichen || '').toLowerCase();
+    return { name: String(a.name), wirkung: a.wirkung ? String(a.wirkung) : '', zeichen: ZEICHEN[z] ? z : 'aktion' };
   }
 
   function hatZustand(w, liste) { var z = w && w.zustaende || []; return liste.some(function (s) { return z.indexOf(s) >= 0; }); }
@@ -577,7 +643,8 @@
     return t.join(' · ');
   }
   function lageKurz(L, wf, ziel) {
-    if (L.status === 'aus') return 'Ziel: ' + ziel.name + ' (außer Reichweite: ' + L.grund + ')';
+    // seit 1.6 nennt auch „außer Reichweite“ die Waffe, denn die Aktion steht fest in der Folge
+    if (L.status === 'aus') return (wf.zauber ? 'Zauber: ' : 'Angriff: ') + wf.name + ' auf ' + ziel.name + ' (außer Reichweite: ' + L.grund + ')';
     var k = [m(L.abstand) + (L.dh ? ', ' + hochTief(L.dh) : '')];
     if (wf.ohneWurf) {
       if (wf.rettung) k.push('Rettungswurf ' + wf.rettung + (wf.sg != null ? ' SG ' + wf.sg : ''));
@@ -622,7 +689,16 @@
         if (dh <= 0) return;
         var stufe = dh === 1 && (istStufe(K, x, y) || istStufe(K, nx, ny));
         var x1 = s[2] === 'e' ? X + Z : X, y1 = s[2] === 's' ? Y + Z : Y, x2 = s[2] === 'w' ? X : X + Z, y2 = s[2] === 'n' ? Y : Y + Z;
-        if (stufe) { out.push('<path d="M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2 + '" class="kkSt"/>'); return; }
+        if (stufe) {
+          // seit 1.6: auch an Rampen und Treppen ein leichter Schatten (zwei schmale Streifen), damit die Höhe zu sehen ist; dazu die Stufenlinie
+          var bs = 6, ts = s[2] === 's' || s[2] === 'e' ? 0.75 : 1, sts = [.16, .07];
+          for (var j = 0; j < 2; j++) {
+            var oj = j * bs / 2, wj = bs / 2, rj;
+            if (s[2] === 'n') rj = [X, Y + oj, Z, wj]; else if (s[2] === 's') rj = [X, Y + Z - oj - wj, Z, wj]; else if (s[2] === 'w') rj = [X + oj, Y, wj, Z]; else rj = [X + Z - oj - wj, Y, wj, Z];
+            out.push('<rect x="' + rj[0] + '" y="' + rj[1] + '" width="' + rj[2] + '" height="' + rj[3] + '" class="kkSch kkSchR" style="opacity:' + Math.round(sts[j] * ts * 100) / 100 + '"/>');
+          }
+          out.push('<path d="M' + x1 + ' ' + y1 + 'L' + x2 + ' ' + y2 + '" class="kkSt"/>'); return;
+        }
         // Licht von links oben: nach rechts und unten fällt der Schatten voll, nach links und oben etwas schwächer
         var b = Math.min(Z * 0.8, 7 + 5 * dh), tiefe = Math.min(1.6, 0.85 + 0.25 * dh) * (s[2] === 's' || s[2] === 'e' ? 0.75 : 1), st = [.36, .24, .13, .05];
         for (var i = 0; i < 4; i++) {
@@ -750,10 +826,11 @@
     ['.', '=', 'e', 'g', '+', '/', '^', ':', 'd', ',', 'm', 'i', '~', 'o', 'O', '#', 'x', '?'].forEach(function (c) {
       if (da[c]) out.push('<span title="' + esc(ARTEN[c].name) + '">' + kachelBild(c) + ' ' + esc(ARTEN[c].kurz) + '</span>');
     });
-    if (K.hoehen.some(function (r) { return r.some(function (h) { return h > 0; }); })) out.push('<span>' + hoeheBild() + ' höher: heller, mit Schatten auf das tiefere Feld (je Ebene 1,5 m)</span>');
+    if (K.hoehen.some(function (r) { return r.some(function (h) { return h > 0; }); })) out.push('<span>' + hoeheBild() + ' höher: heller, mit Schatten auf das tiefere Feld (je Ebene 1,5 m; an Rampen und Treppen leicht)</span>');
     var arten = {}; K.wesen.forEach(function (w) { arten[w.art] = 1; });
     Object.keys(ART_WESEN).forEach(function (a) { if (arten[a]) out.push('<span><i class="kkLe" style="background:' + ART_WESEN[a] + '"></i> ' + ART_NAME[a] + '</span>'); });
-    out.push('<span><i class="kkLe kkLeB"></i> Bewegung: der blaue Rahmen reicht, so weit die Figur in diesem Zug kommt, gestrichelt mit Spurt (Felder gold getönt)</span>',
+    out.push('<span><i class="kkLe kkLeB"></i> Bewegung: der blaue Rahmen reicht, so weit die Figur vom aktuellen Stand noch kommt, gestrichelt mit Spurt (Felder gold getönt)</span>',
+      '<span><i class="kkLe kkLeG"></i> Geisterstein: wo die Figur nach den Wegstücken steht; die Spur mit Stationen ist der Weg</span>',
       '<span><i class="kkLe kkLeR"></i> Reichweite der Waffe von dort; blasse Gegner außer Reichweite</span>',
       '<span><i class="kkLe kkLeZ"></i> bedroht: Reichweite eines Gegners (Tipp auf ihn, oder „Gefahr“)</span>',
       '<span><i class="kkLe kkLeO"></i> Gelegenheitsangriff beim Verlassen</span>');
@@ -791,7 +868,11 @@
     '.kkF.kkGz .kkK{stroke:#8e3b22;stroke-width:1.8;stroke-dasharray:5 3}.kkF.kkGzA .kkK{stroke:#8e3b22;stroke-width:1.2;stroke-dasharray:4 3;stroke-opacity:.75}' +
     '.kkWeg .kkOa{fill:#8e3b22;stroke:#efe2c3;stroke-width:1.2}.kkO.kkFern{opacity:.4}.kkO.kkLang{opacity:.7}' +
     // seit 1.4: der blaue Rahmen der Bewegung (gestrichelt mit Spurt)
-    '.kkBew{pointer-events:none}.kkBew .kkBw{fill:none;stroke:#2f4f70;stroke-width:2.2;stroke-linecap:square}.kkBew .kkBwS{fill:none;stroke:#2f4f70;stroke-width:1.3;stroke-dasharray:5 3;stroke-opacity:.8}';
+    '.kkBew{pointer-events:none}.kkBew .kkBw{fill:none;stroke:#2f4f70;stroke-width:2.2;stroke-linecap:square}.kkBew .kkBwS{fill:none;stroke:#2f4f70;stroke-width:1.3;stroke-dasharray:5 3;stroke-opacity:.8}' +
+    // seit 1.6: die Spur der Wegstücke mit Stationen, der Geisterstein am aktuellen Stand, Ringe um das Ziel der Aktion und der Bonusaktion
+    '.kkWeg{pointer-events:none}.kkWeg .kkStat{fill:#efe2c3;stroke:#3b3028;stroke-width:1.6}.kkZiel{pointer-events:none}' +
+    '.kkGeist .kkGk{fill:#efe2c3;fill-opacity:.6;stroke:#3b3028;stroke-width:2;stroke-dasharray:4 3}.kkGeist text{fill:#3b3028;font-family:"EB Garamond",Georgia,serif;font-weight:600}' +
+    '.kkO.kkZielW .kkTok{stroke:#8e3b22;stroke-width:3}.kkO.kkBonZ .kkTok{stroke:#b08d3a;stroke-width:3;stroke-dasharray:4 3}';
 
   var UI_CSS =
     '.kk{display:flex;flex-direction:column;gap:10px}' +
@@ -801,44 +882,175 @@
     '.kk .kkR svg{display:block;height:auto}' +
     '.kk .kkZl{position:sticky;left:0;height:0;width:0;overflow:visible;z-index:1;pointer-events:none}' +
     '.kk .kkZl span{position:absolute;left:0;width:22px;text-align:center;font-family:"IM Fell English","EB Garamond",Georgia,serif;font-size:13px;line-height:18px;color:#3b3028;background:rgba(239,226,195,.92);border-radius:0 4px 4px 0;transform:translateY(-50%)}' +
-    '.kk .kkI{margin:0;font-size:14px;line-height:1.55;color:var(--text-secondary);min-height:44px}' +
+    '.kk .kkI{margin:0;font-size:14px;line-height:1.55;color:var(--text-secondary)}.kk .kkI:empty{display:none}' +
     '.kk .kkI b{font-weight:500;color:var(--text-primary)}' +
     '.kk .kkB{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
     '.kk input{flex:1 1 180px;min-width:120px;font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--border-300,#c8bda4);border-radius:6px;background:transparent;color:var(--text-primary)}' +
     '.kk .kkL{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;font-size:12px;color:var(--text-secondary)}' +
     '.kk .kkL span{display:flex;align-items:center;gap:6px}.kk .kkL code{font-size:12px;padding:0 4px;border:1px solid var(--border-300,#c8bda4);border-radius:3px}' +
     '.kk .kkLe{display:inline-block;width:12px;height:12px;border-radius:50%;flex:0 0 auto}.kk [hidden]{display:none!important}' +
-    '.kk.kkFertig .kkB button[data-k="zug"]{opacity:.5;pointer-events:none}' +
-    // seit 1.3: Kachelbilder in der Legende, Zeile mit Freitext und Pfeil, Modus-Zeichen an der Waffe, Zauberzeile, Plakette in der Reihenfolge
+    // seit 1.3: Kachelbilder in der Legende, Modus-Zeichen an der Waffe, Plakette in der Reihenfolge
     '.kk .kkKb{display:inline-block;vertical-align:middle;border-radius:3px;flex:0 0 auto}' +
-    '.kk .kkB.kkZug{flex-wrap:nowrap}.kk .kkB.kkZug input{flex:1 1 auto;min-width:0}' +
-    '.kk .kkPfeil{flex:0 0 auto;width:46px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0}.kk .kkPfeil svg{width:22px;height:22px;display:block}' +
-    '.kk .kkMo{display:inline-block;height:16px;vertical-align:-3px;margin-left:6px}.kk button.kkMit{outline:2px dashed #b08d3a;outline-offset:-2px}' +
+    '.kk .kkMo{display:inline-block;height:16px;vertical-align:-3px;margin-left:6px}' +
     '.kk .kkIt{position:relative}.kk .kkIt .kkKb{position:absolute;right:-5px;top:-5px;width:13px;height:13px;border-radius:50%}' +
-    // seit 1.4: Pfeile zum Blättern am Kartenrand, Trefferpunkte im Kopf, „Aktion zuerst“
+    // seit 1.4: Pfeile zum Blättern am Kartenrand, Trefferpunkte im Kopf
     '.kk .kkRW{position:relative}.kk .kkBl{position:absolute;z-index:2;width:30px;height:30px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;opacity:.92;box-shadow:0 1px 4px rgba(0,0,0,.25)}' +
     '.kk .kkBl svg{width:17px;height:17px;display:block}.kk .kkBl-w{left:8px;top:50%;transform:translateY(-50%) rotate(180deg)}.kk .kkBl-e{right:8px;top:50%;transform:translateY(-50%)}' +
     '.kk .kkBl-n{top:8px;left:50%;transform:translateX(-50%) rotate(-90deg)}.kk .kkBl-s{bottom:8px;left:50%;transform:translateX(-50%) rotate(90deg)}' +
     '.kk .kkTp .kkTpB{display:inline-block;width:64px;height:8px;border:1px solid var(--border-300,#c8bda4);border-radius:4px;vertical-align:middle;overflow:hidden;background:rgba(0,0,0,.05)}.kk .kkTp .kkTpB i{display:block;height:100%;background:#4d5b33}' +
     '.kk .kkTp.kkTpA .kkTpB i{background:#c48a2a}.kk .kkTp.kkTpS .kkTpB i{background:#a3261c}' +
-    '.kk .kkB.kkZug button[data-k="zuerst"]{flex:0 0 auto;font-size:13px}' +
-    // seit 1.2: Kopf mit Ziel und Uhren, Initiativleiste, Waffen, Lagezeile, Legende
+    // seit 1.2: Kopf mit Ziel und Uhren, Initiativleiste, Lagezeile
     '.kk .kkKopf2{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;line-height:1.45;color:var(--text-secondary)}.kk .kkKopf2 b{font-weight:500;color:var(--text-primary)}' +
     '.kk .kkIni{display:flex;align-items:center;gap:6px;overflow-x:auto;font-size:13px;color:var(--text-secondary);padding:2px 0}' +
     '.kk .kkIni .kkInL{flex:0 0 auto;margin-right:2px}' +
     '.kk .kkIt{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;color:#f6efdd;font-family:"EB Garamond",Georgia,serif;font-weight:600;font-size:12px;border:2px solid transparent;cursor:pointer;flex:0 0 auto;box-sizing:border-box}' +
     '.kk .kkIt.kkGeh{opacity:.38}.kk .kkIt.kkJetzt{border-color:#b08d3a;box-shadow:0 0 0 2px rgba(176,141,58,.4);cursor:default}.kk .kkIt.kkSelI{border-color:#efe2c3;box-shadow:0 0 0 2px #b08d3a}' +
     '.kk .kkIni .kkInT{flex:0 0 auto;font-size:12px;margin:0 2px}' +
-    '.kk .kkB .kkWl{font-size:13px;color:var(--text-secondary)}' +
-    '.kk button[aria-pressed="true"]{outline:2px solid #b08d3a;outline-offset:-2px}' +
+    '.kk .kkB .kkWl{font-size:13px;color:var(--text-secondary);flex:0 0 auto}' +
     '.kk .kkA{margin:0;font-size:14px;line-height:1.55;padding:6px 10px;border-radius:6px;border:1px solid var(--border-300,#c8bda4);color:var(--text-primary)}' +
     '.kk .kkA.kkVor{border-color:#4d5b33;background:rgba(77,91,51,.09)}.kk .kkA.kkNach{border-color:#8e3b22;background:rgba(142,59,34,.09)}.kk .kkA.kkAus{color:var(--text-secondary)}' +
     '.kk .kkA b{font-weight:500}.kk .kkA .kkHw{color:#8e3b22;font-weight:500}' +
-    // seit 1.5: Bonusaktionen (eigener Block), „Aufstehen“ in der Zugzeile
-    '.kk .kkB.kkBo button.kkBoZ{outline:2px dashed #b08d3a;outline-offset:-2px}.kk .kkB.kkZug button[data-k="auf"]{flex:0 0 auto;font-size:13px}' +
     '.kk .kkOaT{color:#8e3b22;font-weight:500}' +
     '.kk .kkLeB{border-radius:2px;border:2px solid #2f4f70;background:rgba(176,141,58,.25);box-sizing:border-box}.kk .kkLeR{border-radius:2px;border:2px solid #8e3b22;background:rgba(142,59,34,.1);box-sizing:border-box}' +
-    '.kk .kkLeZ{border-radius:2px;border:2px dashed #8e3b22;box-sizing:border-box}.kk .kkLeO{width:0;height:0;border-radius:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #8e3b22}';
+    '.kk .kkLeZ{border-radius:2px;border:2px dashed #8e3b22;box-sizing:border-box}.kk .kkLeO{width:0;height:0;border-radius:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #8e3b22}' +
+    '.kk .kkLeG{border:2px dashed #3b3028;background:rgba(239,226,195,.6);box-sizing:border-box}' +
+    // seit 1.6: Werkzeuge in einer schmalen Zeile unter der Karte; die Knöpfe der Aktion und der Bonusaktion mit Zeichen in drei Zuständen
+    // (wartet: gestrichelt, gewählt: gold, nicht mehr erlaubt: blass); der Kasten „Zug“ mit der Folge als Chips, „Zurück“, Freitext und
+    // dem breiten Knopf „Zug abschicken“; nach dem Senden bleibt der Kasten, alles andere wird blass
+    '.kk .kkWz{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:-2px}.kk .kkWz button{font-size:12px;padding:3px 9px;min-height:28px;line-height:1.2}' +
+    '.kk .kkZc{display:inline-block;width:16px;height:16px;vertical-align:-3px;margin-right:5px;flex:0 0 auto}' +
+    '.kk .kkB button.kkWart{outline:2px dashed #b08d3a;outline-offset:-2px}' +
+    '.kk .kkB button.kkGold{outline:2px solid #b08d3a;outline-offset:-2px;background:rgba(176,141,58,.16)}' +
+    '.kk .kkB button.kkBlass{opacity:.42}.kk .kkB button.kkMit{box-shadow:inset 0 -3px 0 rgba(176,141,58,.75)}' +
+    '.kk .kkZk{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--border-300,#c8bda4);border-radius:8px}' +
+    '.kk .kkZkT{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--text-secondary)}.kk .kkZkT b{font-weight:500;color:var(--text-primary)}' +
+    '.kk .kkFo{display:flex;flex-wrap:wrap;gap:6px;align-items:center}' +
+    '.kk .kkCh{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:1.3;padding:3px 9px;border-radius:14px;border:1px solid var(--border-300,#c8bda4);color:var(--text-primary);background:transparent;font-family:inherit}' +
+    '.kk .kkCh-weg{border-color:#2f4f70}.kk .kkCh-ak{border-color:#b08d3a;background:rgba(176,141,58,.16)}.kk .kkCh-bo{border-color:#b08d3a;border-style:dashed;background:rgba(176,141,58,.08)}' +
+    '.kk .kkCh-oa{border-color:#8e3b22;color:#8e3b22}.kk .kkCh-steht{color:var(--text-secondary);border-style:dotted}' +
+    '.kk button.kkCh-auf{cursor:pointer}.kk button.kkCh-auf[aria-pressed="false"]{color:var(--text-secondary);border-style:dotted}' +
+    '.kk .kkFo button[data-k="zurueck"]{margin-left:auto;font-size:13px}.kk .kkFo button[data-k="zurueck"][disabled]{opacity:.42}' +
+    '.kk .kkZk input{flex:1 1 auto;width:100%;box-sizing:border-box}' +
+    '.kk button.kkSenden{width:100%;box-sizing:border-box;font-size:15px;font-weight:500;padding:10px 12px;min-height:44px}.kk button.kkSenden[disabled]{opacity:.55}' +
+    '.kk .kkZkS{margin:0;font-size:13px;color:var(--text-secondary)}.kk .kkZkS b{font-weight:500;color:var(--text-primary)}' +
+    '.kk.kkFertig .kkRW,.kk.kkFertig .kkWz,.kk.kkFertig .kkI,.kk.kkFertig .kkA,.kk.kkFertig .kkAk,.kk.kkFertig .kkBo,.kk.kkFertig .kkL{opacity:.5;pointer-events:none}';
+
+  /* ---------- Der Zug als Folge (seit 1.6) ---------- */
+  // Der Spieler baut den Zug als Folge von Schritten, in der Reihenfolge, in der er sie tut (PHB: die Bewegung darf beliebig
+  // geteilt werden, Aktion und Bonusaktion stehen irgendwo dazwischen, nur die Summe zählt): Wegstücke (`weg`, je vom aktuellen
+  // Stand aus gerechnet), höchstens eine Aktion (`aktion`: `waffe` oder `zauber` mit Ziel, `spurt`, `rueckzug` oder `frei` aus
+  // `aktionen[]`) und höchstens eine Bonusaktion (`bonus`). Liegt die Figur, steht `aufstehen` vorn (halbe Bewegung, PHB);
+  // abgewählt kriecht sie (jedes Feld doppelt, also ebenfalls die halbe Bewegung). Spurt gibt die Bewegung noch einmal dazu,
+  // Rückzug nimmt den folgenden Wegstücken die Gelegenheitsangriffe; je Gegner zählt ein Gelegenheitsangriff im ganzen Zug einmal.
+  function zugModell(K, figur) {
+    var liegtFigur = liegt(figur), basis = Math.max(0, Math.floor((+figur.bewegung || 9) / METER));
+    var Zg = { schritte: [], aufstehen: liegtFigur, liegt: liegtFigur, basis: basis, modus: figur.waffen.map(function (w) { return w.modus || 0; }), waffeIdx: 0 };
+    function standObj(x, y) { return { x: x, y: y, groesse: figur.groesse, schwimmen: !!figur.schwimmen, _figur: figur }; }
+    Zg.kriecht = function () { return liegtFigur && !Zg.aufstehen; };
+    Zg.aktion = function () { for (var i = 0; i < Zg.schritte.length; i++) if (Zg.schritte[i].art === 'aktion') return Zg.schritte[i]; return null; };
+    Zg.bonus = function () { for (var i = 0; i < Zg.schritte.length; i++) if (Zg.schritte[i].art === 'bonus') return Zg.schritte[i]; return null; };
+    Zg.hatSpurt = function () { var a = Zg.aktion(); return !!(a && a.kind === 'spurt'); };
+    // was Spurt dazugäbe: die Bewegung noch einmal; kriechend die Hälfte (jedes Feld zählt doppelt)
+    Zg.spurtMehr = function () { return Zg.kriecht() ? Math.floor(basis / 2) : basis; };
+    Zg.budget = function () {
+      var grund = liegtFigur ? Math.floor(basis / 2) : basis;
+      return grund + (Zg.hatSpurt() ? Zg.spurtMehr() : 0);
+    };
+    Zg.verbraucht = function () { var s = 0; Zg.schritte.forEach(function (st) { if (st.art === 'weg') s += st.d; }); return s; };
+    Zg.rest = function () { return Zg.budget() - Zg.verbraucht(); };
+    Zg.bewegt = function () { return Zg.schritte.some(function (s) { return s.art === 'weg'; }); };
+    // der Stand vor dem Schritt i (von dort geht eine Aktion aus), und der aktuelle Stand nach allen Schritten
+    Zg.standBei = function (i) { var s = null; for (var k = 0; k < i && k < Zg.schritte.length; k++) if (Zg.schritte[k].art === 'weg') s = Zg.schritte[k]; return s ? standObj(s.x, s.y) : figur; };
+    Zg.stand = function () { return Zg.standBei(Zg.schritte.length); };
+    Zg.wege = function () { return wege(K, Zg.stand()); };
+    Zg.wegHinzu = function (x, y) {
+      var W = Zg.wege(), key = x + ',' + y, d = W.dist[key], st = Zg.stand(), w = W.belegt[key];
+      if (x === st.x && y === st.y) return { fehler: 'steht' };
+      if (w && w !== figur) return { fehler: 'besetzt', wesen: w };
+      if (d == null) return { fehler: 'unerreichbar' };
+      if (d > Zg.rest()) return { fehler: 'zuweit', d: d, rest: Zg.rest(), spurt: !Zg.aktion() && d <= Zg.rest() + Zg.spurtMehr() };
+      var p = pfad(W, x, y), s = { art: 'weg', x: x, y: y, p: p, d: d, hoehe: pfadHoehe(K, p) };
+      Zg.schritte.push(s);
+      return { ok: true, schritt: s };
+    };
+    Zg.aktionHinzu = function (kind, idx, ziel) { if (Zg.aktion()) return null; var s = { art: 'aktion', kind: kind, idx: idx == null ? 0 : idx, ziel: ziel || null }; Zg.schritte.push(s); return s; };
+    Zg.bonusHinzu = function (idx, ziel) { if (Zg.bonus()) return null; var s = { art: 'bonus', idx: idx, ziel: ziel || null }; Zg.schritte.push(s); return s; };
+    Zg.zurueck = function () { if (!Zg.schritte.length) return null; var s = Zg.schritte.pop(); Zg.pruefe(); return s; };
+    Zg.entferne = function (schritt) { var i = Zg.schritte.indexOf(schritt); if (i >= 0) Zg.schritte.splice(i, 1); Zg.pruefe(); };
+    // Die Zweitwaffe (PHB): nur neben der Angriffsaktion mit einer leichten Waffe; ein Zauber ist keine Angriffsaktion
+    Zg.zweitwaffeErlaubt = function (a) { a = a === undefined ? Zg.aktion() : a; return !!(a && a.kind === 'waffe' && figur.waffen[a.idx] && figur.waffen[a.idx].leicht); };
+    // Nach einer Änderung (Zurück, Spurt weg, Aufstehen abgewählt): Wegstücke über dem Budget fallen samt allem danach, eine Zweitwaffe ohne ihre Angriffsaktion fällt
+    Zg.pruefe = function () {
+      var neu = [], verb = 0, b = Zg.budget(), a = null, stop = false;
+      Zg.schritte.forEach(function (s) {
+        if (stop) return;
+        if (s.art === 'weg') { if (verb + s.d > b) { stop = true; return; } verb += s.d; }
+        if (s.art === 'bonus' && figur.bonus[s.idx] && figur.bonus[s.idx].art === 'waffe' && !Zg.zweitwaffeErlaubt(a)) return;
+        if (s.art === 'aktion') a = s;
+        neu.push(s);
+      });
+      Zg.schritte = neu;
+    };
+    // Gelegenheitsangriffe je Wegstück (Liste je Schritt, leer bei Aktion und Bonusaktion): je Gegner einmal im ganzen Zug, nach Rückzug keine mehr
+    Zg.gelegenheiten = function () {
+      var out = [], schon = {}, frei = false;
+      Zg.schritte.forEach(function (s) {
+        if (s.art === 'aktion' && s.kind === 'rueckzug') frei = true;
+        if (s.art !== 'weg') { out.push([]); return; }
+        var l = frei ? [] : gelegenheiten(K, s.p).filter(function (o) { return !schon[o.wesen._i]; });
+        l.forEach(function (o) { schon[o.wesen._i] = 1; });
+        out.push(l);
+      });
+      return out;
+    };
+    // die wirksame Waffe eines Aktionsschritts (Waffe in ihrem Modus; ein Zauber „mit Waffe“ nimmt die zuletzt gewählte Waffe)
+    Zg.waffeAkt = function () { var w = figur.waffen[Math.min(Zg.waffeIdx, figur.waffen.length - 1)]; return w ? wirksam(w, Zg.modus[Math.min(Zg.waffeIdx, figur.waffen.length - 1)], null) : null; };
+    Zg.wirksam = function (kind, idx) {
+      if (kind === 'waffe') { var w = figur.waffen[idx]; return w ? wirksam(w, Zg.modus[idx], null) : null; }
+      if (kind === 'zauber') { var z = figur.zauber[idx]; return z ? wirksam(z, null, z.mit ? Zg.waffeAkt() : null) : null; }
+      return null;
+    };
+    Zg.lage = function (s) {
+      var i = Zg.schritte.indexOf(s), wf = Zg.wirksam(s.kind, s.idx);
+      if (!wf || !s.ziel) return null;
+      return { L: angriffsLage(K, Zg.standBei(i < 0 ? Zg.schritte.length : i), s.ziel, wf, Zg.kriecht()), wf: wf };
+    };
+    Zg.aktionText = function (s) {
+      if (s.kind === 'spurt') return 'Spurt';
+      if (s.kind === 'rueckzug') return 'Rückzug';
+      if (s.kind === 'frei') { var a = figur.aktionen[s.idx]; return 'Aktion: ' + (a ? a.name : '?'); }
+      var wf = Zg.wirksam(s.kind, s.idx);
+      if (!wf) return '';
+      if (!s.ziel) return (wf.zauber ? 'Zauber: ' : 'Waffe: ') + wf.name;
+      var A = Zg.lage(s);
+      return lageKurz(A.L, wf, s.ziel);
+    };
+    Zg.wegText = function (s, kurz) {
+      var t = (Zg.kriecht() ? 'kriecht nach ' : 'nach ') + feldNameK(K, s.x, s.y) + ' (' + m(s.d) + ')';
+      if (s.hoehe.klettern) t += ' · klettert ' + m(s.hoehe.klettern);
+      if (s.hoehe.sprung) t += ' · springt ' + m(s.hoehe.sprung) + ' hinab';
+      return kurz ? t.replace(/^(kriecht )?nach /, '$1→ ') : t;
+    };
+    function oaText(l) { return l.length ? 'verlässt ' + namen(l.map(function (o) { return o.wesen; })) + ': Gelegenheitsangriff' + (l.length > 1 ? 'e' : '') : ''; }
+    Zg.oaText = oaText;
+    // Die Zugzeile, wie sie an die Spielleitung geht: die Folge von links nach rechts, hinten „Weg 7,5 von 9 m“ und der Freitext;
+    // `extra` hängt an, was keinen Schritt hat (eine Waffe, die noch wartet; eine Bonusaktion ohne Ziel; ein Ziel ohne Waffen)
+    Zg.zeile = function (D, freitext, extra) {
+      var t = [], oa = Zg.gelegenheiten();
+      if (liegtFigur && Zg.aufstehen) t.push('steht auf');
+      if (!Zg.bewegt()) t.push((Zg.kriecht() ? 'bleibt liegen auf ' : 'bleibt auf ') + feldNameK(K, figur.x, figur.y));
+      Zg.schritte.forEach(function (s, i) {
+        if (s.art === 'weg') { t.push(Zg.wegText(s, false)); if (oa[i].length) t.push(oaText(oa[i])); }
+        else if (s.art === 'aktion') t.push(Zg.aktionText(s));
+        else if (s.art === 'bonus') { var bo = figur.bonus[s.idx]; if (bo) t.push(bonusZeile(K, bo, s.ziel, Zg.standBei(i), figur)); }
+      });
+      (extra || []).forEach(function (x) { if (x) t.push(x); });
+      if (Zg.bewegt()) t.push('Weg ' + m(Zg.verbraucht()).replace(/ m$/, '') + ' von ' + m(Zg.budget()));
+      if (freitext) t.push(freitext);
+      return 'Kampf #' + (D.nr || '?') + ' · ' + figur.name + ': ' + t.join(' · ');
+    };
+    return Zg;
+  }
 
   /* ---------- Einbau ins Widget ---------- */
   function schriftLaden() {
@@ -854,20 +1066,14 @@
   function einbauen(el, D) {
     schriftLaden();
     var e = zeichne(D), K = e.karte, W = e.breite, H = e.hoehe, figur = K.figur;
-    var liegtFigur = !!(figur && liegt(figur));
-    var budget = figur ? Math.max(0, Math.floor((+figur.bewegung || 9) / METER)) : 0;
-    // liegt die Figur, kostet das Aufstehen die halbe Bewegung (PHB); bleibt sie liegen, kriecht sie, und jedes Feld zählt
-    // doppelt: in beiden Fällen die halbe Bewegung. Der Schalter „Aufstehen“ (seit 1.5) ist vorgewählt.
-    if (liegtFigur) budget = Math.floor(budget / 2);
-    var aufstehen = liegtFigur;
-    var Wg = figur ? wege(K, figur) : null;
-    // Bonusaktionen (seit 1.5): ein Knopf je Bonusaktion; die gewählte wartet auf einen zweiten Tipp, der ihr Ziel wählt
-    var bonus = figur ? figur.bonus : [], bonusIdx = -1, bonusZiel = null, bonusWartet = false;
-    // Waffen und Zauber (seit 1.3): ein Knopf je Waffe, der Modus (einhändig/beidhändig, Nahkampf/geworfen) wechselt mit
-    // einem weiteren Tipp auf die gewählte Waffe; Zauber in eigener Zeile, einer „mit Waffe“ nutzt die gewählte Waffe
-    var waffen = figur ? figur.waffen : [], zauber = figur ? figur.zauber : [];
-    var angriffArt = waffen.length ? 'waffe' : zauber.length ? 'zauber' : '', waffeIdx = 0, zauberIdx = 0;
-    var modusIdx = waffen.map(function (w) { return w.modus || 0; });
+    var Zg = figur ? zugModell(K, figur) : null;
+    var waffen = figur ? figur.waffen : [], zauber = figur ? figur.zauber : [], bonus = figur ? figur.bonus : [], aktionen = figur ? figur.aktionen : [];
+    // die Wahl, die auf ein Ziel wartet: die erste Waffe ist vorgewählt (sonst der erste Zauber); eine Bonusaktion wartet nach ihrem Tipp
+    var wartet = waffen.length ? { art: 'waffe', i: 0 } : zauber.length ? { art: 'zauber', i: 0 } : null, bonusWartet = -1;
+    var betrachtet = null;     // das angetippte Wesen (Auskunft und Zone)
+    var zielOhne = null;       // ohne Waffen und Zauber: das angetippte Ziel, für die Zugzeile („Ziel: Räuber 1 (10,5 m)“)
+    var gesendet = false, stufe = 0, gefahrAn = false;
+    var STUFEN = [1, 1.8, 2.8, 4];
     // Kopf: Ziel, Uhren und Lage (seit 1.2), Trefferpunkte der Figur (seit 1.4)
     var kopf2 = [];
     if (figur && figur._tp) {
@@ -894,61 +1100,110 @@
           (w === figur && i < reihe.length - 1 ? '<span class="kkInT" aria-hidden="true">›</span>' : '');
       }).join('') + '</div>';
     }
-    function reichText(e) { return ' · Reichweite ' + m(e.r) + (e.rl ? ' (' + m(e.rl) + ')' : ''); }
-    function waffeAkt() { var w = waffen.length ? waffen[Math.min(waffeIdx, waffen.length - 1)] : null; return w ? wirksam(w, modusIdx[waffeIdx], null) : null; }
-    function zauberAkt() { var z = zauber.length ? zauber[Math.min(zauberIdx, zauber.length - 1)] : null; return z ? wirksam(z, null, z.mit ? waffeAkt() : null) : null; }
-    function waffenHtml() {
-      var mitAn = angriffArt === 'zauber' && zauber.length && zauber[Math.min(zauberIdx, zauber.length - 1)].mit;
-      var w1 = waffen.length ? '<span class="kkWl">Waffe</span>' + waffen.map(function (w, i) {
-        var e = wirksam(w, modusIdx[i], null), mo = w.modi.length ? w.modi[modusIdx[i]] : null, an = angriffArt === 'waffe' && i === waffeIdx;
-        var tipp = e.name + waffeText(e) + reichText(e) + (an && w.modi.length > 1 ? ' · noch einmal tippen: ' + w.modi[(modusIdx[i] + 1) % w.modi.length].name : '');
-        return '<button type="button" data-k="waffe" data-i="' + i + '" aria-pressed="' + (an ? 'true' : 'false') + '"' + (mitAn && i === waffeIdx ? ' class="kkMit"' : '') + ' title="' + esc(tipp) + '">' + esc(w.name) + (mo ? modusBild(mo.zeichen, mo.name) : '') + '</button>';
-      }).join('') : '';
-      var w2 = zauber.length ? '<span class="kkWl">Zauber</span>' + zauber.map(function (z, i) {
-        var e = wirksam(z, null, z.mit ? waffeAkt() : null), an = angriffArt === 'zauber' && i === zauberIdx;
-        var tipp = e.name + waffeText(e) + reichText(e) + (z.mit ? ' · mit der gewählten Waffe' : '');
-        return '<button type="button" data-k="zauber" data-i="' + i + '" aria-pressed="' + (an ? 'true' : 'false') + '" title="' + esc(tipp) + '">' + esc(z.name) + '</button>';
-      }).join('') : '';
-      var w3 = bonus.length ? '<span class="kkWl">Bonusaktion</span>' + bonus.map(function (bo, i) {
-        var an = i === bonusIdx;
-        var tipp = bo.name + bonusWerte(bo) + ' · Reichweite ' + m(bo.r) + (bo.rl ? ' (' + m(bo.rl) + ')' : '') + (bo.ohneZiel ? '' : ' · Ziel: ' + bonusZieleText(bo)) + (bo.wirkung ? ' · ' + bo.wirkung : '') + (an ? ' · noch einmal tippen: abwählen' : '');
-        return '<button type="button" data-k="bonus" data-i="' + i + '" aria-pressed="' + (an ? 'true' : 'false') + '"' + (an && bonusWartet ? ' class="kkBoZ"' : '') + ' title="' + esc(tipp) + '">' + esc(bo.name) + '</button>';
-      }).join('') : '';
-      return [w1, w2, w3];
-    }
-    function bonusAkt() { return bonusIdx >= 0 && bonusIdx < bonus.length ? bonus[bonusIdx] : null; }
     el.classList.add('kk');
     el.innerHTML = '<style>' + UI_CSS + '</style>' +
       '<div class="kkKopf"><span>' + esc(D.titel || 'Kampfkarte') + '</span><small>' + (D.runde ? 'Runde ' + esc(D.runde) + ' · ' : '') +
-      (figur ? esc(figur.name) + ' · Bewegung ' + m(budget) + (liegtFigur ? ' (liegt)' : '') : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
+      (figur ? esc(figur.name) + ' · Bewegung ' + m(Zg.basis) + (Zg.liegt ? ' (liegt)' : '') : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
       (kopf2.length ? '<div class="kkKopf2">' + kopf2.join('') + '</div>' : '') + ini +
-      // der Rahmen der Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht
+      // 1. die Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht; darunter die Werkzeuge in einer schmalen Zeile
       '<div class="kkRW"><div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
       ['w', 'e', 'n', 's'].map(function (r) { return '<button type="button" class="kkBl kkBl-' + r + '" data-k="blatt" data-r="' + r + '" aria-label="' + ({ w: 'Karte nach links', e: 'Karte nach rechts', n: 'Karte nach oben', s: 'Karte nach unten' })[r] + '" hidden>' + PFEIL + '</button>'; }).join('') + '</div>' +
+      '<div class="kkWz" role="toolbar" aria-label="Werkzeuge"><button type="button" data-k="minus" aria-label="Kleiner" title="Kleiner">−</button><button type="button" data-k="plus" aria-label="Größer" title="Größer">+</button>' +
+      '<button type="button" data-k="figur" title="Die Karte zur Figur rücken">Zur Figur</button><button type="button" data-k="gefahr" aria-pressed="false" title="Alle Felder, die ein Gegner bedroht">Gefahr</button><button type="button" data-k="leg" aria-expanded="false" title="Die Legende, ganz unten">Legende</button></div>' +
+      // 2. die Infozeile: nur, was die Karte nicht zeigen kann; 3. die Lagezeile zum Angriff
       '<p class="kkI" aria-live="polite"></p>' +
       '<p class="kkA" hidden></p>' +
-      '<div class="kkB kkW"' + (waffen.length ? '' : ' hidden') + '></div><div class="kkB kkZb"' + (zauber.length ? '' : ' hidden') + '></div><div class="kkB kkBo"' + (bonus.length ? '' : ' hidden') + '></div>' +
-      '<div class="kkB kkZug">' + (liegtFigur ? '<button type="button" data-k="auf" aria-pressed="true" title="Aufstehen kostet die halbe Bewegung und hebt den Nachteil vom Boden auf (PHB); abgewählt bleibt die Figur liegen und kriecht">Aufstehen</button>' : '') +
-      '<button type="button" data-k="zuerst" aria-pressed="false" title="Erst Angriff oder Zauber vom Stand aus, dann der Weg (etwa um die Reaktion eines Gegners zu verbrauchen)">Aktion zuerst</button>' +
-      '<input type="text" maxlength="120" placeholder="und dann … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
-      '<button type="button" class="kkPfeil" data-k="zug" aria-label="Zug abschicken" title="Zug abschicken · ohne Zielfeld bleibt die Figur stehen">' + PFEIL + '</button></div>' +
-      '<div class="kkB"><button type="button" data-k="minus" aria-label="Kleiner">−</button><button type="button" data-k="plus" aria-label="Größer">+</button>' +
-      '<button type="button" data-k="figur">Zur Figur</button><button type="button" data-k="gefahr" aria-pressed="false" title="Alle Felder, die ein Gegner bedroht">Gefahr</button><button type="button" data-k="leg" aria-expanded="false">Legende</button></div>' +
+      // 4. Aktion, 5. Bonusaktion, 6. der Kasten „Zug“
+      '<div class="kkB kkAk"' + (figur ? '' : ' hidden') + '></div><div class="kkB kkBo"' + (bonus.length ? '' : ' hidden') + '></div>' +
+      '<div class="kkZk"' + (figur ? '' : ' hidden') + '><div class="kkZkT"><b>Zug</b><span class="kkZkW"></span></div><div class="kkFo"></div>' +
+      '<input type="text" maxlength="120" placeholder="und sonst … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
+      '<button type="button" class="kkSenden" data-k="zug">Zug abschicken</button><p class="kkZkS" hidden></p></div>' +
+      // 7. die Legende, eingeklappt
       '<div class="kkL" hidden>' + e.legende + '</div>';
     var rahmen = el.querySelector('.kkR'), svg = rahmen.querySelector('svg'), info = el.querySelector('.kkI'), eingabe = el.querySelector('input');
     var leg = el.querySelector('.kkL'), bLeg = el.querySelector('[data-k="leg"]'), angriff = el.querySelector('.kkA');
-    var zielFeld = null, zielWesen = null, gesendet = false, stufe = 0, gefahrAn = false, zuerst = false;
-    var STUFEN = [1, 1.8, 2.8, 4];
 
     function $(q) { return el.querySelector(q); }
     function feldEl(x, y) { return svg.querySelector('g.kkF[data-x="' + x + '"][data-y="' + y + '"]'); }
-    function sag(t) { info.innerHTML = t; }
-    // die wirksame Waffe: die gewählte Waffe in ihrem Modus, oder der gewählte Zauber (mit der Waffe, wenn er sie nutzt)
-    function waffe() { return angriffArt === 'zauber' ? zauberAkt() : waffeAkt(); }
-    function zeigeWaffen() { var h = waffenHtml(); $('.kkW').innerHTML = h[0]; $('.kkZb').innerHTML = h[1]; $('.kkBo').innerHTML = h[2]; }
-    zeigeWaffen();
+    function sag(t) { info.innerHTML = t || ''; }
+    function reichText(x) { return ' · Reichweite ' + m(x.r) + (x.rl ? ' (' + m(x.rl) + ')' : ''); }
 
-    // bedrohte Felder: die Zone des gewählten Gegners (kkGz) und auf „Gefahr“ alle (kkGzA)
+    /* ---- die Knöpfe der Aktion und der Bonusaktion ---- */
+    function knopf(k, i, kl, pressed, blass, tipp, inhalt) {
+      return '<button type="button" data-k="' + k + '"' + (i == null ? '' : ' data-i="' + i + '"') + ' class="' + kl.join(' ') + '" aria-pressed="' + (pressed ? 'true' : 'false') + '"' +
+        (blass ? ' aria-disabled="true"' : '') + ' title="' + esc(tipp) + '">' + inhalt + '</button>';
+    }
+    function zeigeKnoepfe() {
+      if (!figur) return;
+      var a = Zg.aktion(), b = Zg.bonus(), out = [], nurEine = 'nur eine Aktion je Zug; „Zurück“ oder ein Tipp auf die gewählte nimmt sie aus dem Zug';
+      var mitWaffe = (a && a.kind === 'zauber' && zauber[a.idx] && zauber[a.idx].mit) || (!a && wartet && wartet.art === 'zauber' && zauber[wartet.i] && zauber[wartet.i].mit);
+      out.push('<span class="kkWl">Aktion</span>');
+      waffen.forEach(function (w, i) {
+        var e2 = wirksam(w, Zg.modus[i], null), mo = w.modi.length ? w.modi[Zg.modus[i]] : null;
+        var gold = !!(a && a.kind === 'waffe' && a.idx === i), wart = !a && !!(wartet && wartet.art === 'waffe' && wartet.i === i), blass = !!a && !gold;
+        var tipp = e2.name + waffeText(e2) + reichText(e2) + (w.leicht ? ' · leicht' : '') +
+          ((gold || wart) && w.modi.length > 1 ? ' · noch einmal tippen: ' + w.modi[(Zg.modus[i] + 1) % w.modi.length].name : gold ? ' · noch einmal tippen: aus dem Zug nehmen' : wart ? ' · wartet: tippe auf einen Stein als Ziel' : blass ? ' · ' + nurEine : '');
+        out.push(knopf('waffe', i, ['kkKn', gold ? 'kkGold' : '', wart ? 'kkWart' : '', blass ? 'kkBlass' : '', mitWaffe && i === Zg.waffeIdx ? 'kkMit' : ''].filter(Boolean), gold, blass, tipp,
+          zeichenBild(waffenZeichen(e2), e2.typ || 'Waffe') + esc(w.name) + (mo ? modusBild(mo.zeichen, mo.name) : '')));
+      });
+      zauber.forEach(function (z, i) {
+        var e2 = wirksam(z, null, z.mit ? Zg.waffeAkt() : null);
+        var gold = !!(a && a.kind === 'zauber' && a.idx === i), wart = !a && !!(wartet && wartet.art === 'zauber' && wartet.i === i), blass = !!a && !gold;
+        var tipp = e2.name + waffeText(e2) + reichText(e2) + (z.mit ? ' · mit der gewählten Waffe' : '') + (gold ? ' · noch einmal tippen: aus dem Zug nehmen' : wart ? ' · wartet: tippe auf einen Stein als Ziel' : blass ? ' · ' + nurEine : '');
+        out.push(knopf('zauber', i, ['kkKn', gold ? 'kkGold' : '', wart ? 'kkWart' : '', blass ? 'kkBlass' : ''].filter(Boolean), gold, blass, tipp,
+          zeichenBild(waffenZeichen(e2), e2.typ || (e2.heilung ? 'Heilung' : e2.rettung ? 'Rettungswurf' : 'Wirkung')) + esc(z.name)));
+      });
+      [['spurt', 'Spurt', 'Spurt ist eine Aktion (PHB): die Bewegung noch einmal dazu (' + m(Zg.spurtMehr()) + ')'], ['rueckzug', 'Rückzug', 'Rückzug ist eine Aktion (PHB): die Wegstücke danach lösen keinen Gelegenheitsangriff aus']].forEach(function (q) {
+        var gold = !!(a && a.kind === q[0]), blass = !!a && !gold;
+        out.push(knopf(q[0], null, ['kkKn', gold ? 'kkGold' : '', blass ? 'kkBlass' : ''].filter(Boolean), gold, blass, q[2] + (gold ? ' · noch einmal tippen: aus dem Zug nehmen' : blass ? ' · ' + nurEine : ''), zeichenBild(q[0], q[1]) + q[1]));
+      });
+      aktionen.forEach(function (ak, i) {
+        var gold = !!(a && a.kind === 'frei' && a.idx === i), blass = !!a && !gold;
+        out.push(knopf('aktion', i, ['kkKn', gold ? 'kkGold' : '', blass ? 'kkBlass' : ''].filter(Boolean), gold, blass, ak.name + (ak.wirkung ? ' · ' + ak.wirkung : '') + (gold ? ' · noch einmal tippen: aus dem Zug nehmen' : blass ? ' · ' + nurEine : ''), zeichenBild(ak.zeichen, ak.name) + esc(ak.name)));
+      });
+      $('.kkAk').innerHTML = out.join('');
+      var bo = ['<span class="kkWl">Bonusaktion</span>'];
+      bonus.forEach(function (x, i) {
+        var gold = !!(b && b.idx === i), wart = !b && bonusWartet === i, zw = x.art === 'waffe' && !Zg.zweitwaffeErlaubt(), blass = (!!b && !gold) || (!b && zw);
+        var tipp = x.name + bonusWerte(x) + ' · Reichweite ' + m(x.r) + (x.rl ? ' (' + m(x.rl) + ')' : '') + (x.ohneZiel ? '' : ' · Ziel: ' + bonusZieleText(x)) + (x.wirkung ? ' · ' + x.wirkung : '') +
+          (gold ? ' · noch einmal tippen: aus dem Zug nehmen' : wart ? ' · wartet: tippe auf einen Stein als Ziel' : zw && !b ? ' · nur neben einer leichten Waffe und der Angriffsaktion (PHB)' : blass ? ' · nur eine Bonusaktion je Zug' : '');
+        var z = x.art === 'waffe' ? zeichenVon(x.typ || 'schaden') : x.art === 'heilung' ? 'heilung' : x.art === 'inspiration' ? 'inspiration' : 'wirkung';
+        bo.push(knopf('bonus', i, ['kkKn', gold ? 'kkGold' : '', wart ? 'kkWart' : '', blass ? 'kkBlass' : ''].filter(Boolean), gold, blass, tipp, zeichenBild(z, x.art === 'waffe' ? x.typ || 'Zweitwaffe' : x.art) + esc(x.name)));
+      });
+      $('.kkBo').innerHTML = bo.join('');
+    }
+
+    /* ---- der Kasten „Zug“: die Folge als Chips ---- */
+    function chip(kl, text, tipp) { return '<span class="kkCh ' + kl + '"' + (tipp ? ' title="' + esc(tipp) + '"' : '') + '>' + text + '</span>'; }
+    function aktionKurz(s) {
+      if (s.kind === 'spurt') return zeichenBild('spurt', 'Spurt') + 'Spurt (+' + m(Zg.spurtMehr()) + ')';
+      if (s.kind === 'rueckzug') return zeichenBild('rueckzug', 'Rückzug') + 'Rückzug';
+      if (s.kind === 'frei') { var ak = aktionen[s.idx]; return zeichenBild(ak ? ak.zeichen : 'aktion', 'Aktion') + 'Aktion: ' + esc(ak ? ak.name : '?'); }
+      var wf = Zg.wirksam(s.kind, s.idx); if (!wf) return '';
+      var A = Zg.lage(s), t = esc((wf.zauber ? 'Zauber: ' : 'Angriff: ') + wf.name + (s.ziel ? ' auf ' + s.ziel.name : ''));
+      if (A && A.L.status === 'aus') t += ' <span class="kkOaT">(außer Reichweite)</span>';
+      else if (A) t += ' (' + m(A.L.abstand) + ')';
+      return zeichenBild(waffenZeichen(wf), wf.typ || 'Aktion') + t;
+    }
+    function zeigeKasten() {
+      if (!figur) return;
+      var out = [], oa = Zg.gelegenheiten();
+      if (Zg.liegt) out.push('<button type="button" class="kkCh kkCh-auf" data-k="auf" aria-pressed="' + (Zg.aufstehen ? 'true' : 'false') + '" title="Aufstehen kostet die halbe Bewegung und hebt den Nachteil vom Boden auf (PHB); abgewählt bleibt die Figur liegen und kriecht (jedes Feld zählt doppelt)">' + (Zg.aufstehen ? 'steht auf' : 'bleibt liegen') + '</button>');
+      if (!Zg.bewegt()) out.push(chip('kkCh-steht', (Zg.kriecht() ? 'bleibt liegen auf ' : 'bleibt auf ') + esc(feldNameK(K, figur.x, figur.y)), 'Ohne Wegstück bleibt die Figur stehen; ein Tipp auf ein Feld zieht dorthin'));
+      Zg.schritte.forEach(function (s, i) {
+        if (s.art === 'weg') {
+          var fa = feldArt(s.x, s.y);
+          out.push(chip('kkCh-weg', esc(Zg.wegText(s, true)), feldNameK(K, s.x, s.y) + (fa ? ': ' + fa : '') + ' · ' + m(s.d) + (i === Zg.schritte.length - 1 ? ' · ein Tipp auf den Geisterstein nimmt das Stück zurück' : '')));
+          if (oa[i].length) out.push(chip('kkCh-oa', esc(Zg.oaText(oa[i])), 'Wer die Reichweite eines Gegners verlässt, fängt dessen Reaktion, außer er nimmt die Aktion Rückzug (PHB)'));
+        } else if (s.art === 'aktion') out.push(chip('kkCh-ak', aktionKurz(s), Zg.aktionText(s)));
+        else if (s.art === 'bonus') { var bo = bonus[s.idx]; if (bo) out.push(chip('kkCh-bo', zeichenBild(bo.art === 'waffe' ? zeichenVon(bo.typ || 'schaden') : bo.art === 'heilung' ? 'heilung' : bo.art === 'inspiration' ? 'inspiration' : 'wirkung', bo.art) + esc(bonusZeile(K, bo, s.ziel, Zg.standBei(i), figur)), bo.wirkung)); }
+      });
+      out.push('<button type="button" data-k="zurueck"' + (Zg.schritte.length ? '' : ' disabled') + ' title="Den letzten Schritt aus dem Zug nehmen">Zurück</button>');
+      $('.kkFo').innerHTML = out.join('');
+      $('.kkZkW').textContent = 'Weg ' + m(Zg.verbraucht()).replace(/ m$/, '') + ' von ' + m(Zg.budget());
+    }
+
+    /* ---- die Karte: Erreichbares, Rahmen, Spur, Geisterstein, Reichweite, Zonen ---- */
     var zonen = {};
     function zoneVon(w) { if (!zonen[w._i]) zonen[w._i] = zone(K, w); return zonen[w._i]; }
     function zeigeZone(w) {
@@ -961,14 +1216,19 @@
       if (!an) return;
       gegnerAktiv(K).forEach(function (g) { Object.keys(zoneVon(g)).forEach(function (key) { var t = key.split(','), f = feldEl(+t[0], +t[1]); if (f) f.classList.add('kkGzA'); }); });
     }
-    // Reichweite der gewählten Waffe vom Standort aus: ein rotes Quadrat (normal), gestrichelt die lange Reichweite;
-    // Gegner außer Reichweite werden blass
+    // die Waffe, deren Reichweite die Karte zeigt, und von wo: die Aktion von ihrem Stand, sonst die wartende Waffe vom aktuellen Stand
+    function reichweiteWaffe() {
+      var a = Zg.aktion();
+      if (a && (a.kind === 'waffe' || a.kind === 'zauber')) return { wf: Zg.wirksam(a.kind, a.idx), stand: Zg.standBei(Zg.schritte.indexOf(a)) };
+      if (!a && wartet) return { wf: Zg.wirksam(wartet.art, wartet.i), stand: Zg.stand() };
+      return null;
+    }
     function zeigeReich() {
-      var g = svg.querySelector('.kkReich'), wf = waffe();
+      var g = svg.querySelector('.kkReich'), rw = reichweiteWaffe();
       Array.prototype.forEach.call(svg.querySelectorAll('.kkO.kkFern,.kkO.kkLang'), function (o) { o.classList.remove('kkFern'); o.classList.remove('kkLang'); });
       if (!g) return;
-      if (!wf || !figur) { g.innerHTML = ''; return; }
-      var s = standAktion(), gr = s.groesse || 1, out = [];
+      if (!rw || !rw.wf) { g.innerHTML = ''; return; }
+      var wf = rw.wf, s = rw.stand, gr = s.groesse || 1, out = [];
       [wf.r, wf.rl].forEach(function (r, i) {
         if (!r) return;
         var x1 = Math.max(1, s.x - r), y1 = Math.max(1, s.y - r), x2 = Math.min(K.sp, s.x + gr - 1 + r), y2 = Math.min(K.ze, s.y + gr - 1 + r);
@@ -982,17 +1242,6 @@
         if (ab > (wf.rl || wf.r)) o.classList.add('kkFern'); else if (ab > wf.r) o.classList.add('kkLang');
       });
     }
-
-    // erreichbare Felder markieren
-    if (Wg) Object.keys(Wg.dist).forEach(function (key) {
-      var t = key.split(','), x = +t[0], y = +t[1], d = Wg.dist[key];
-      if (!d || Wg.belegt[key]) return;
-      var g = feldEl(x, y);
-      if (!g) return;
-      if (d <= budget) g.classList.add('kkEr'); else if (d <= budget * 2) g.classList.add('kkSp');
-    });
-    // der blaue Rahmen der Bewegung (seit 1.4): die Grenze der Felder, die die Figur in diesem Zug erreicht,
-    // gestrichelt die Grenze mit Spurt
     function umriss(inSet) {
       var d = '';
       Object.keys(inSet).forEach(function (key) {
@@ -1004,26 +1253,228 @@
       });
       return d;
     }
-    (function zeigeBewegung() {
+    // erreichbare Felder vom aktuellen Stand mit dem Rest der Bewegung, gold getönt, und der blaue Rahmen darum (gestrichelt mit Spurt)
+    function zeigeBewegung() {
       var g = svg.querySelector('.kkBew');
-      if (!g || !Wg || !figur) return;
-      var nah = {}, weit = {};
-      Object.keys(Wg.dist).forEach(function (key) { var d = Wg.dist[key]; if (d <= budget) nah[key] = 1; if (d <= budget * 2) weit[key] = 1; });
-      // Felder mit einem Wesen darauf, rundum erreichbar, gehören zum Rahmen dazu (sonst zeichnet er Löcher um jeden Stein)
-      [nah, weit].forEach(function (set) {
-        K.wesen.forEach(function (w) {
-          for (var dx = 0; dx < w.groesse; dx++) for (var dy = 0; dy < w.groesse; dy++) {
-            var x = w.x + dx, y = w.y + dy, n = 0;
-            [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (s) { if (set[(x + s[0]) + ',' + (y + s[1])]) n++; });
-            if (n >= 3) set[x + ',' + y] = 1;
-          }
-        });
+      Array.prototype.forEach.call(svg.querySelectorAll('.kkF.kkEr'), function (f) { f.classList.remove('kkEr'); });
+      if (!g || !figur) return;
+      var Wg = Zg.wege(), rest = Zg.rest(), nah = {};
+      Object.keys(Wg.dist).forEach(function (key) {
+        var d = Wg.dist[key];
+        if (d > rest) return;
+        nah[key] = 1;
+        if (!d || (Wg.belegt[key] && Wg.belegt[key] !== figur)) return;
+        var t = key.split(','), f = feldEl(+t[0], +t[1]);
+        if (f) f.classList.add('kkEr');
       });
-      g.innerHTML = '<path class="kkBwS" d="' + umriss(weit) + '"/><path class="kkBw" d="' + umriss(nah) + '"/>';
-    })();
+      // Felder mit einem Wesen darauf, rundum erreichbar, gehören zum Rahmen dazu (sonst zeichnet er Löcher um jeden Stein)
+      K.wesen.forEach(function (w) {
+        for (var dx = 0; dx < w.groesse; dx++) for (var dy = 0; dy < w.groesse; dy++) {
+          var x = w.x + dx, y = w.y + dy, n = 0;
+          [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (s) { if (nah[(x + s[0]) + ',' + (y + s[1])]) n++; });
+          if (n >= 3) nah[x + ',' + y] = 1;
+        }
+      });
+      g.innerHTML = rest > 0 ? '<path class="' + (Zg.hatSpurt() ? 'kkBwS' : 'kkBw') + '" d="' + umriss(nah) + '"/>' : '';
+    }
+    // die Spur der Wegstücke (gestrichelt, Punkte an den Stationen, rote Dreiecke, wo ein Gegner den Gelegenheitsangriff bekommt) und der
+    // Geisterstein am aktuellen Stand
+    function zeigeWeg() {
+      var g = svg.querySelector('.kkWeg'), gz = svg.querySelector('.kkZiel'), out = [], oa = Zg.gelegenheiten();
+      Zg.schritte.forEach(function (s, i) {
+        if (s.art !== 'weg') return;
+        var p = s.p;
+        out.push('<path d="' + p.map(function (q, j) { return (j ? 'L' : 'M') + (px(q[0]) + Z / 2) + ' ' + (py(q[1]) + Z / 2); }).join('') + '"/>');
+        oa[i].forEach(function (o) {
+          var a = p[o.schritt - 1], b = p[o.schritt], cx = (px(a[0]) + px(b[0])) / 2 + Z / 2, cy = (py(a[1]) + py(b[1])) / 2 + Z / 2;
+          out.push('<polygon class="kkOa" points="' + cx + ',' + (cy - 7) + ' ' + (cx + 7) + ',' + (cy + 6) + ' ' + (cx - 7) + ',' + (cy + 6) + '"><title>' + esc('Gelegenheitsangriff: ' + o.wesen.name) + '</title></polygon>');
+        });
+        out.push('<circle class="kkStat" cx="' + (px(s.x) + Z / 2) + '" cy="' + (py(s.y) + Z / 2) + '" r="4"/>');
+      });
+      g.innerHTML = out.join('');
+      var st = Zg.stand();
+      if (st === figur) { gz.innerHTML = ''; return; }
+      var gr = figur.groesse, cx = px(st.x) + Z * gr / 2, cy = py(st.y) + Z * gr / 2, r = Z * gr * 0.4, schrift = Math.max(10, Math.min(16, r * (figur.kurz.length > 2 ? 0.75 : 1)));
+      gz.innerHTML = '<g class="kkGeist"><title>' + esc(figur.name + ' nach den Wegstücken: ' + feldNameK(K, st.x, st.y)) + '</title><circle class="kkGk" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' +
+        '<text x="' + cx + '" y="' + (cy + schrift * 0.36) + '" text-anchor="middle" font-size="' + schrift + '">' + esc(figur.kurz) + '</text></g>';
+    }
+    function zeigeRinge() {
+      Array.prototype.forEach.call(svg.querySelectorAll('.kkO.kkSel,.kkO.kkZielW,.kkO.kkBonZ'), function (o) { o.classList.remove('kkSel'); o.classList.remove('kkZielW'); o.classList.remove('kkBonZ'); });
+      Array.prototype.forEach.call(el.querySelectorAll('.kkIt.kkSelI'), function (i) { i.classList.remove('kkSelI'); });
+      function mark(w, kl) { if (!w) return; var o = svg.querySelector('.kkO[data-w="' + w._i + '"]'); if (o) o.classList.add(kl); }
+      var a = Zg ? Zg.aktion() : null, b = Zg ? Zg.bonus() : null;
+      if (a && a.ziel) mark(a.ziel, 'kkZielW');
+      if (b && b.ziel && b.ziel !== figur) mark(b.ziel, 'kkBonZ');
+      if (betrachtet) { mark(betrachtet, 'kkSel'); var it = el.querySelector('.kkIt[data-w="' + betrachtet._i + '"]'); if (it) it.classList.add('kkSelI'); }
+    }
+    // die Lagezeile zum Angriff (seit 1.2): grün bei Vorteil, rot bei Nachteil, blass außer Reichweite; nur mit Ziel
+    function zeigeLage() {
+      var a = Zg ? Zg.aktion() : null, A = a && a.ziel && (a.kind === 'waffe' || a.kind === 'zauber') ? Zg.lage(a) : null;
+      if (!A) { angriff.hidden = true; angriff.innerHTML = ''; angriff.title = ''; return; }
+      var L = A.L, warum = L.warum.slice();
+      if (Zg.gelegenheiten().some(function (l) { return l.length; })) warum.push('Gelegenheitsangriff: Wer die Reichweite eines Gegners verlässt, fängt dessen Reaktion, außer er nimmt die Aktion Rückzug (PHB).');
+      angriff.hidden = false;
+      angriff.className = 'kkA' + (L.status === 'aus' ? ' kkAus' : L.netto > 0 ? ' kkVor' : L.netto < 0 ? ' kkNach' : '');
+      angriff.innerHTML = lageText(L, A.wf, a.ziel);
+      angriff.title = warum.join('\n');
+    }
+    function zeigeAlles() {
+      if (!figur) return;
+      zeigeKnoepfe(); zeigeKasten(); zeigeBewegung(); zeigeWeg(); zeigeReich(); zeigeRinge(); zeigeLage();
+    }
 
+    /* ---- Texte für die Infozeile: nur, was die Karte nicht zeigt ---- */
+    function feldArt(x, y) {
+      var a = ARTEN[K.raster[y - 1][x - 1]] || ARTEN['?'];
+      if (a.unbekannt) return '';
+      return a.kurz + (a.kosten === 2 ? ', schwierig' : '') + (istStufe(K, x, y) && !a.stufe ? ', Rampe' : '');
+    }
+    function zielText(von, w) {
+      var ab = abstand(von, w, K), dh = hoeheVon(K, w) - hoeheVon(K, von);
+      return m(ab) + (dh ? ', ' + m(Math.abs(dh)) + (dh > 0 ? ' höher' : ' tiefer') : '');
+    }
+    // was die Figur über ein Wesen weiß (seit 1.4): Art, Feld, Entfernung vom Stand, Reichweite, Wunde, Zustände, Notiz; keine Höhe in Worten (1.6)
+    function wesenText(w, von) {
+      var t = ['<b>' + esc(w.name) + '</b>' + (w.kurz !== w.name ? ' (' + esc(w.kurz) + ')' : '') + ' · ' + ART_NAME[w.art] + (w.groesse > 1 ? ', ' + w.groesse + ' × ' + w.groesse + ' Felder' : '')];
+      t.push(feldNameK(K, w.x, w.y) + ' · ' + zielText(von, w) + ' von ' + (von === figur ? 'dir' : feldNameK(K, von.x, von.y)));
+      if (w._r && w._r > 1) t.push('Reichweite ' + m(w._r));
+      if (w._wunde) t.push({ angeschlagen: 'angeschlagen', schwer: 'schwer verletzt', tot: 'tot' }[w._wunde]);
+      if (w._tp) t.push('TP ' + w._tp[0] + '/' + w._tp[1]);
+      (w.zustaende || []).forEach(function (z) { t.push(z); });
+      String(w.zustand || '').split(/[,;]\s*/).forEach(function (teil) {
+        var tl = teil.toLowerCase().trim();
+        if (!tl) return;
+        if (ZUSTAND_WORTE.some(function (p) { return p[0].test(tl); }) || /tot|verletzt|verwundet|blut|angeschlagen|sterbend/.test(tl)) return;
+        t.push(esc(teil.trim()));
+      });
+      if (w.notiz) t.push(esc(w.notiz));
+      if (w.art === 'gegner' && kampffaehig(w)) t.push('bedroht ' + Object.keys(zoneVon(w)).length + ' Felder (gestrichelt)');
+      return t.join(' · ');
+    }
+    // was ein neues Wegstück bringt, das die Karte nicht zeigt: Sprung, Ungewisses, Deckung am Ziel
+    function wegHinweis(s) {
+      var t = [], a = ARTEN[K.raster[s.y - 1][s.x - 1]];
+      if (s.hoehe.sprung) t.push('springt ' + m(s.hoehe.sprung) + ' hinab (1W6 Wucht je 3 m, am Boden)');
+      if (a && a.unbekannt) t.push('ins Ungewisse');
+      if (a && a.deckung) t.push(a.deckung + ' Deckung auf ' + feldNameK(K, s.x, s.y));
+      return t.join(' · ');
+    }
+    // was in die Zugzeile kommt, ohne ein Schritt zu sein: die Waffe, die noch wartet (seit 1.3.1), die Bonusaktion ohne Ziel, das Ziel ohne Waffen
+    function extras() {
+      var x = [];
+      if (!Zg.aktion() && wartet) { var wf = Zg.wirksam(wartet.art, wartet.i); if (wf) x.push((wf.zauber ? 'Zauber: ' : 'Waffe: ') + wf.name); }
+      if (!Zg.bonus() && bonusWartet >= 0 && bonus[bonusWartet]) x.push(bonusZeile(K, bonus[bonusWartet], null, Zg.stand(), figur));
+      if (zielOhne) x.push('Ziel: ' + zielOhne.name + ' (' + zielText(Zg.stand(), zielOhne) + ')');
+      return x;
+    }
+    // Nach dem Senden bleibt der Kasten mit der Folge stehen, alles andere wird blass; ohne sendPrompt sagt der Kasten, was in den Chat gehört
+    function senden(s) {
+      var sb = $('button[data-k="zug"]'), zs = $('.kkZkS');
+      zs.hidden = false;
+      if (typeof sendPrompt === 'function') {
+        gesendet = true; el.classList.add('kkFertig'); sb.disabled = true;
+        sb.textContent = 'Abgeschickt';
+        zs.innerHTML = '<b>' + esc(s) + '</b> · Die Spielleitung erzählt, was geschieht.';
+        sendPrompt(s);
+      } else zs.innerHTML = 'Schreib das in den Chat: <b>' + esc(s) + '</b>';
+    }
+
+    /* ---- Tipps: Wesen, Felder, Knöpfe ---- */
+    // ein Tipp auf einen Stein (Karte oder Reihenfolge): die wartende Bonusaktion nimmt ihn, sonst die wartende Waffe (die Aktion vom
+    // aktuellen Stand), sonst nennt die Infozeile, was die Figur über ihn weiß, und die Karte seine Zone
+    function tippWesen(w) {
+      if (gesendet || !figur) return;
+      if (bonusWartet >= 0) {
+        var bo = bonus[bonusWartet];
+        if (bonusErlaubt(bo, w, figur)) { Zg.bonusHinzu(bonusWartet, w); bonusWartet = -1; sag(''); }
+        else sag('<b>' + esc(w === figur ? 'Du selbst' : w.name) + '</b> taugt nicht als Ziel für ' + esc(bo.name) + ' (' + esc(bonusZieleText(bo)) + ').');
+        zeigeAlles(); return;
+      }
+      if (w !== figur && wartet && !Zg.aktion()) {
+        var s = Zg.aktionHinzu(wartet.art, wartet.i, w);
+        betrachtet = w; sag(wesenText(w, Zg.standBei(Zg.schritte.indexOf(s))));
+        zeigeZone(w); zeigeAlles(); return;
+      }
+      if (w === figur) { betrachtet = null; sag(''); zeigeZone(null); zeigeAlles(); return; }
+      betrachtet = betrachtet === w ? null : w;
+      if (!waffen.length && !zauber.length) zielOhne = betrachtet;
+      sag(betrachtet ? wesenText(w, Zg.stand()) : '');
+      zeigeZone(betrachtet); zeigeAlles();
+    }
+    function tippFeld(x, y) {
+      if (gesendet || !figur) return;
+      var r = Zg.wegHinzu(x, y);
+      if (r.ok) { sag(wegHinweis(r.schritt)); zeigeAlles(); return; }
+      if (r.fehler === 'steht') {
+        // ein Tipp auf den aktuellen Stand (den Geisterstein) nimmt das letzte Wegstück zurück
+        var letzt = Zg.schritte[Zg.schritte.length - 1];
+        if (letzt && letzt.art === 'weg') { Zg.zurueck(); sag(''); zeigeAlles(); }
+        return;
+      }
+      if (r.fehler === 'besetzt') { sag('Da steht schon jemand: <b>' + esc(r.wesen.name) + '</b>.'); return; }
+      if (r.fehler === 'unerreichbar') { var a = ARTEN[K.raster[y - 1][x - 1]]; if (a && a.kosten) sag('Nach ' + esc(feldNameK(K, x, y)) + ' führt in diesem Zug kein Weg.'); return; }
+      sag('Bis ' + esc(feldNameK(K, x, y)) + ' sind es ' + m(r.d) + ', du hast noch ' + m(r.rest) + (r.spurt ? '; <b>Spurt</b> (eine Aktion) brächte dich hin.' : '; so weit kommst du in diesem Zug nicht.'));
+    }
+    svg.addEventListener('click', function (ev) {
+      var t = ev.target, o = t && t.closest ? t.closest('.kkO') : null;
+      if (o) { var w = K.wesen[+o.getAttribute('data-w')]; if (w) tippWesen(w); return; }
+      var f = t && t.closest ? t.closest('g.kkF') : null;
+      if (!f) return;
+      tippFeld(+f.getAttribute('data-x'), +f.getAttribute('data-y'));
+    });
+    el.addEventListener('click', function (ev) {
+      var it = ev.target && ev.target.closest ? ev.target.closest('.kkIt[data-w]') : null;
+      if (it) { var wi = K.wesen[+it.getAttribute('data-w')]; if (wi) tippWesen(wi); return; }
+      var b = ev.target && ev.target.closest ? ev.target.closest('button[data-k]') : null;
+      if (!b) return;
+      var k = b.getAttribute('data-k'), i = +b.getAttribute('data-i') || 0;
+      if (k === 'leg') { leg.hidden = !leg.hidden; bLeg.setAttribute('aria-expanded', String(!leg.hidden)); return; }
+      if (k === 'plus') { stufe = Math.min(STUFEN.length - 1, stufe + 1); stelle(); zurFigur(); return; }
+      if (k === 'minus') { stufe = Math.max(0, stufe - 1); stelle(); zurFigur(); return; }
+      if (k === 'figur') { zurFigur(); return; }
+      if (k === 'blatt') { blaettern(b.getAttribute('data-r')); return; }
+      if (k === 'gefahr') { gefahrAn = !gefahrAn; b.setAttribute('aria-pressed', String(gefahrAn)); zeigeGefahr(gefahrAn); return; }
+      if (gesendet || !figur) { if (k === 'zug' && !figur) sag('Ohne Figur auf der Karte gibt es keinen Zug; schreib in den Chat, was sie tut.'); return; }
+      var a = Zg.aktion(), bo = Zg.bonus();
+      if (k === 'waffe') {
+        var w2 = waffen[i]; if (!w2) return;
+        if (a) {
+          if (a.kind === 'waffe' && a.idx === i) { if (w2.modi.length > 1) Zg.modus[i] = (Zg.modus[i] + 1) % w2.modi.length; else { Zg.entferne(a); wartet = { art: 'waffe', i: i }; } }
+          else if (a.kind === 'zauber' && zauber[a.idx] && zauber[a.idx].mit && Zg.waffeIdx === i && w2.modi.length > 1) Zg.modus[i] = (Zg.modus[i] + 1) % w2.modi.length;
+          else return;
+        } else if (wartet && wartet.art === 'waffe' && wartet.i === i) { if (w2.modi.length > 1) Zg.modus[i] = (Zg.modus[i] + 1) % w2.modi.length; else wartet = null; }
+        else { wartet = { art: 'waffe', i: i }; Zg.waffeIdx = i; }
+      } else if (k === 'zauber') {
+        if (!zauber[i]) return;
+        if (a) { if (a.kind === 'zauber' && a.idx === i) { Zg.entferne(a); wartet = { art: 'zauber', i: i }; } else return; }
+        else if (wartet && wartet.art === 'zauber' && wartet.i === i) wartet = null;
+        else wartet = { art: 'zauber', i: i };
+      } else if (k === 'spurt' || k === 'rueckzug' || k === 'aktion') {
+        var kind = k === 'aktion' ? 'frei' : k;
+        if (k === 'aktion' && !aktionen[i]) return;
+        if (a) { if (a.kind === kind && (kind !== 'frei' || a.idx === i)) Zg.entferne(a); else return; }
+        else Zg.aktionHinzu(kind, i, null);
+      } else if (k === 'bonus') {
+        var x = bonus[i]; if (!x) return;
+        if (bo) { if (bo.idx === i) Zg.entferne(bo); else return; }
+        else if (bonusWartet === i) bonusWartet = -1;
+        else {
+          if (x.art === 'waffe' && !Zg.zweitwaffeErlaubt()) return;
+          if (x.ohneZiel) Zg.bonusHinzu(i, null); else if (x.nurSelbst) Zg.bonusHinzu(i, figur); else bonusWartet = i;
+        }
+      } else if (k === 'auf') { Zg.aufstehen = !Zg.aufstehen; Zg.pruefe(); }
+      else if (k === 'zurueck') { Zg.zurueck(); sag(''); }
+      else if (k === 'zug') { senden(Zg.zeile(D, (eingabe.value || '').trim(), extras())); return; }
+      zeigeAlles();
+    });
+    el.addEventListener('keydown', function (ev) {
+      var it = ev.target && ev.target.classList && ev.target.classList.contains('kkIt') ? ev.target : null;
+      if (it && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); it.click(); }
+    });
+    eingabe.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); $('[data-k="zug"]').click(); } });
+
+    /* ---- Blättern, Größe, zur Figur (seit 1.1 und 1.4) ---- */
     var leiste = el.querySelector('.kkZl'), rahmenW = el.querySelector('.kkRW');
-    // Blättern (seit 1.4): vier Pfeile am Rand, jeder nur zu sehen, wenn die Karte in seine Richtung weitergeht
     function pfeile() {
       var l = rahmen.scrollLeft, t = rahmen.scrollTop, mw = rahmen.scrollWidth - rahmen.clientWidth, mh = rahmen.scrollHeight - rahmen.clientHeight;
       var an = { w: l > 4, e: l < mw - 4, n: t > 4, s: t < mh - 4 };
@@ -1040,7 +1491,6 @@
       var faktor = STUFEN[stufe];
       if (!stufe) { var minZ = 36; faktor = Math.max(1, minZ / (breit / (W / Z))); }
       svg.style.width = Math.round(breit * faktor) + 'px';
-      // Zeilenbuchstaben links, die beim Scrollen stehen bleiben; nur wenn die Karte breiter ist als der Rahmen
       var f = Math.round(breit * faktor) / W, zl = [];
       if (faktor > 1.02) for (var y = 1; y <= K.ze; y++) zl.push('<span style="top:' + Math.round((py(y) + Z / 2) * f) + 'px">' + (ZEILEN[(D._uy + y - 2) % 26] || '?') + '</span>');
       leiste.innerHTML = zl.join('');
@@ -1053,250 +1503,13 @@
       rahmen.scrollTop = Math.max(0, (py(figur.y) + Z / 2) * f - rahmen.clientHeight / 2);
       pfeile();
     }
-    function zeigeWeg(p) {
-      var g = svg.querySelector('.kkWeg');
-      if (!p || p.length < 2) { g.innerHTML = ''; return; }
-      var out = ['<path d="' + p.map(function (q, i) { return (i ? 'L' : 'M') + (px(q[0]) + Z / 2) + ' ' + (py(q[1]) + Z / 2); }).join('') + '"/>'];
-      // ein rotes Dreieck, wo die Figur die Reichweite eines Gegners verlässt (Gelegenheitsangriff)
-      gelegenheiten(K, p).forEach(function (o) {
-        var a = p[o.schritt - 1], b = p[o.schritt], cx = (px(a[0]) + px(b[0])) / 2 + Z / 2, cy = (py(a[1]) + py(b[1])) / 2 + Z / 2;
-        out.push('<polygon class="kkOa" points="' + cx + ',' + (cy - 7) + ' ' + (cx + 7) + ',' + (cy + 6) + ' ' + (cx - 7) + ',' + (cy + 6) + '"><title>' + esc('Gelegenheitsangriff: ' + o.wesen.name) + '</title></polygon>');
-      });
-      g.innerHTML = out.join('');
-    }
-    function zeigeZiel(x, y) {
-      var g = svg.querySelector('.kkZiel');
-      g.innerHTML = x ? '<path d="M' + (px(x) + Z / 2) + ' ' + (py(y) + 4) + 'L' + (px(x) + Z - 4) + ' ' + (py(y) + Z / 2) + 'L' + (px(x) + Z / 2) + ' ' + (py(y) + Z - 4) + 'L' + (px(x) + 4) + ' ' + (py(y) + Z / 2) + 'Z"/>' : '';
-      Array.prototype.forEach.call(svg.querySelectorAll('.kkF.kkZi'), function (f) { f.classList.remove('kkZi'); });
-      if (x) { var f = feldEl(x, y); if (f) f.classList.add('kkZi'); }
-    }
-    function feldText(x, y) { var h = hoehe(K, x, y); return feldName(D, x, y) + (h > 0 ? ' (' + m(h) + ' hoch)' : ''); }
-    // die Art eines Felds für die Infozeile (seit 1.4): „seichtes Wasser, schwierig“
-    function feldArt(x, y) {
-      var a = ARTEN[K.raster[y - 1][x - 1]] || ARTEN['?'];
-      if (a.unbekannt) return '';
-      return a.kurz + (a.kosten === 2 ? ', schwierig' : '') + (istStufe(K, x, y) && !a.stufe ? ', Rampe' : '');
-    }
-    // was die Figur über ein Wesen weiß (seit 1.4): Art, Feld und Höhe, Entfernung, Reichweite, Zustände, Wunde, Notiz
-    function wesenText(w, von) {
-      var t = ['<b>' + esc(w.name) + '</b>' + (w.kurz !== w.name ? ' (' + esc(w.kurz) + ')' : '') + ' · ' + ART_NAME[w.art] + (w.groesse > 1 ? ', ' + w.groesse + ' × ' + w.groesse + ' Felder' : '')];
-      t.push(feldText(w.x, w.y) + ' · ' + zielText(von) + ' von ' + (von === figur ? 'dir' : feldName(D, von.x, von.y)));
-      if (w._r && w._r > 1) t.push('Reichweite ' + m(w._r));
-      if (w._wunde) t.push({ angeschlagen: 'angeschlagen', schwer: 'schwer verletzt', tot: 'tot' }[w._wunde]);
-      if (w._tp) t.push('TP ' + w._tp[0] + '/' + w._tp[1]);
-      (w.zustaende || []).forEach(function (z) { t.push(z); });
-      // vom freien `zustand` nur, was Plaketten und Wundring nicht schon sagen
-      String(w.zustand || '').split(/[,;]\s*/).forEach(function (teil) {
-        var tl = teil.toLowerCase().trim();
-        if (!tl) return;
-        if (ZUSTAND_WORTE.some(function (p) { return p[0].test(tl); }) || /tot|verletzt|verwundet|blut|angeschlagen|sterbend/.test(tl)) return;
-        t.push(esc(teil.trim()));
-      });
-      if (w.notiz) t.push(esc(w.notiz));
-      if (w.art === 'gegner' && kampffaehig(w)) t.push('bedroht ' + Object.keys(zoneVon(w)).length + ' Felder (gestrichelt)');
-      return t.join(' · ');
-    }
-    function wegText(p) {
-      var ph = pfadHoehe(K, p), t = [];
-      if (ph.klettern) t.push('klettert ' + m(ph.klettern));
-      if (ph.sprung) t.push('springt ' + m(ph.sprung) + ' hinab');
-      return t;
-    }
-    function zielText(von) {
-      var ab = abstand(von, zielWesen, K), dh = hoeheVon(K, zielWesen) - hoeheVon(K, von);
-      return m(ab) + (dh ? ', ' + m(Math.abs(dh)) + (dh > 0 ? ' höher' : ' tiefer') : '');
-    }
-    function stand() { return zielFeld ? { x: zielFeld[0], y: zielFeld[1], groesse: figur.groesse } : figur; }
-    // von wo die Aktion ausgeht: vom Zielfeld, oder vom Stand, wenn „Aktion zuerst“ gewählt ist (seit 1.4)
-    function standAktion() { return zuerst ? figur : stand(); }
-    // Gelegenheitsangriffe auf dem Weg, als Satz („verlässt Räuber 2 und Räuber 3: Gelegenheitsangriffe“)
-    function oaText(p, html) {
-      var o = gelegenheiten(K, p);
-      if (!o.length) return '';
-      var s = 'verlässt ' + namen(o.map(function (q) { return q.wesen; })) + ': Gelegenheitsangriff' + (o.length > 1 ? 'e' : '');
-      return html ? '<span class="kkOaT">' + esc(s) + '</span>' : s;
-    }
-    // Die Lage des Angriffs mit der gewählten Waffe auf das gewählte Ziel, vom Zielfeld aus oder vom Stand; null ohne Waffen
-    function angriffsZeile() {
-      var wf = waffe();
-      if (!wf || !zielWesen) return null;
-      var bewegt = !!zielFeld && !zuerst;
-      return { L: angriffsLage(K, bewegt ? stand() : figur, zielWesen, wf, liegtFigur && !aufstehen), wf: wf };
-    }
-    function lage() {
-      if (!figur) { sag('Die Figur steht nicht auf der Karte; die Spielleitung erzählt die Lage.'); angriff.hidden = true; return; }
-      var t = [], p = zielFeld ? pfad(Wg, zielFeld[0], zielFeld[1]) : null, oa = p ? gelegenheiten(K, p) : [];
-      if (zielFeld) {
-        var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]], fa = feldArt(zielFeld[0], zielFeld[1]);
-        t.push('<b>' + esc(figur.name) + '</b> nach ' + feldText(zielFeld[0], zielFeld[1]) + (fa ? ', ' + esc(fa) : '') + ' · ' + m(d));
-        wegText(p).forEach(function (s) { t.push(/springt/.test(s) ? s + ' (1W6 Wucht je 3 m, am Boden)' : s); });
-        if (d > budget) t.push('<b>Spurt</b>');
-        var a = ARTEN[K.raster[zielFeld[1] - 1][zielFeld[0] - 1]];
-        if (a && a.unbekannt) t.push('ins Ungewisse');
-        if (a && a.deckung) t.push(a.deckung + ' Deckung');
-        if (liegtFigur) t.push(aufstehen ? 'steht auf (halbe Bewegung)' : 'kriecht (liegt weiter: Nachteil)');
-        if (oa.length) t.push(oaText(p, true));
-      } else if (!zielWesen) {
-        var hf = hoeheVon(K, figur), fa0 = feldArt(figur.x, figur.y);
-        t.push('<b>' + esc(figur.name) + '</b> ' + (liegtFigur ? 'liegt auf ' : 'steht auf ') + feldName(D, figur.x, figur.y) + (fa0 ? ' (' + esc(fa0) + ')' : '') + (hf > 0 ? ', ' + m(hf) + ' hoch' : '') + (liegtFigur ? (aufstehen ? ' und steht auf (halbe Bewegung; „Aufstehen“ abwählen, um liegen zu bleiben)' : ' und bleibt liegen (kriecht, Angriffe mit Nachteil)') : '') + '. Tippe auf ein Feld, um zu ziehen (blauer Rahmen: bis ' + m(budget) + ', gestrichelt mit Spurt bis ' + m(budget * 2) + '), oder auf ein Wesen; der Pfeil schickt den Zug, ohne Feld bleibt die Figur stehen.');
-      }
-      if (zielFeld && zuerst) t.push('<b>Aktion zuerst</b>, dann der Weg');
-      var A = angriffsZeile(), zeilen = [];
-      // das angetippte Wesen (seit 1.4): was die Figur über es weiß, als eigene Zeile vor dem Weg
-      if (zielWesen) zeilen.push(wesenText(zielWesen, standAktion()));
-      if (t.length) zeilen.push(t.join(' · '));
-      // die Bonusaktion (seit 1.5): wartet auf ihr Ziel, oder steht mit Ziel und Entfernung da
-      var bo = bonusAkt();
-      if (bo) {
-        if (bonusWartet) zeilen.push('<b>Bonusaktion: ' + esc(bo.name) + '</b> · tippe auf einen Stein als Ziel (' + esc(bonusZieleText(bo)) + ')');
-        else zeilen.push('<b>' + esc(bonusZeile(K, bo, bonusZiel, standAktion(), figur)).replace(/^Bonusaktion: /, 'Bonusaktion:</b> ') + (bonusZiel && bonusZiel.art === 'gefolge' && bo.art === 'waffe' ? ' <span class="kkHw">(dein eigener Mann)</span>' : ''));
-      }
-      sag(zeilen.join('<br>'));
-      // die Lagezeile zum Angriff (seit 1.2): grün bei Vorteil, rot bei Nachteil, blass außer Reichweite
-      if (A) {
-        var L = A.L, warum = L.warum.slice();
-        if (oa.length) warum.push('Gelegenheitsangriff: Wer die Reichweite eines Gegners verlässt, fängt dessen Reaktion, außer er nimmt die Aktion Rückzug (PHB).');
-        angriff.hidden = false;
-        angriff.className = 'kkA' + (L.status === 'aus' ? ' kkAus' : L.netto > 0 ? ' kkVor' : L.netto < 0 ? ' kkNach' : '');
-        angriff.innerHTML = lageText(L, A.wf, zielWesen);
-        angriff.title = warum.join('\n'); // seit 1.5 statt „Warum?“: die Sätze als Tipp an der Zeile
-      } else { angriff.hidden = true; angriff.innerHTML = ''; angriff.title = ''; }
-      zeigeReich();
-    }
-    // Die Zugzeile: Weg, dann Aktion; mit „Aktion zuerst“ (seit 1.4) die Aktion vom Stand aus, „dann“ der Weg
-    function zeile() {
-      var bewegt = !!zielFeld, weg = '', aktion = '', kriecht = liegtFigur && !aufstehen;
-      if (!bewegt) weg = (kriecht ? 'bleibt liegen auf ' : 'bleibt auf ') + feldName(D, figur.x, figur.y);
-      else {
-        var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]], p = pfad(Wg, zielFeld[0], zielFeld[1]);
-        weg = (kriecht ? 'kriecht nach ' : 'nach ') + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d);
-        wegText(p).forEach(function (w) { weg += ' · ' + w; });
-        if (d > budget) weg += ' · Spurt';
-        var oa = oaText(p, false);
-        if (oa) weg += ' · ' + oa;
-      }
-      if (zielWesen) {
-        var A = angriffsZeile();
-        if (A) aktion = lageKurz(A.L, A.wf, zielWesen);
-        else aktion = 'Ziel: ' + zielWesen.name + ' (' + zielText(standAktion()) + ')';
-      } else {
-        // ohne angetipptes Ziel (seit 1.3.1): die gewählte Waffe oder der gewählte Zauber steht trotzdem in der Zeile,
-        // damit „auf den Schützen“ im Freitext nicht ohne den Zauber ankommt
-        var wf0 = waffe();
-        if (wf0) aktion = (wf0.zauber ? 'Zauber: ' : 'Waffe: ') + wf0.name;
-      }
-      // Aufstehen (seit 1.5) steht vorn in der Zeile; die Bonusaktion hängt hinten an, vor dem Freitext
-      var vorn = liegtFigur && aufstehen ? 'steht auf · ' : '';
-      var s = 'Kampf #' + (D.nr || '?') + ' · ' + figur.name;
-      if (zuerst && bewegt && aktion) s += ': ' + vorn + aktion + ', dann ' + weg;
-      else s += (vorn ? ': ' + vorn : ' ') + weg + (aktion ? ' · ' + aktion : '');
-      var bo = bonusAkt();
-      if (bo) s += ' · ' + bonusZeile(K, bo, bonusZiel, standAktion(), figur);
-      var a = (eingabe.value || '').trim();
-      if (a) s += ' · ' + a;
-      return s;
-    }
-    function senden(s) {
-      if (typeof sendPrompt === 'function') {
-        gesendet = true; el.classList.add('kkFertig');
-        sag('Abgeschickt: ' + esc(s) + ' · Die Spielleitung erzählt, was geschieht.');
-        sendPrompt(s);
-      } else sag('Schreib das in den Chat: <b>' + esc(s) + '</b>');
-    }
-
-    // ein Wesen als Ziel wählen (Tipp auf den Spielstein oder in der Leiste); noch einmal tippen hebt es auf
-    function waehle(w) {
-      var alt = svg.querySelector('.kkO.kkSel'); if (alt) alt.classList.remove('kkSel');
-      var altI = el.querySelector('.kkIt.kkSelI'); if (altI) altI.classList.remove('kkSelI');
-      if (zielWesen === w || !w) zielWesen = null;
-      else {
-        zielWesen = w;
-        var o = svg.querySelector('.kkO[data-w="' + w._i + '"]'); if (o) o.classList.add('kkSel');
-        var it = el.querySelector('.kkIt[data-w="' + w._i + '"]'); if (it) it.classList.add('kkSelI');
-      }
-      zeigeZone(zielWesen);
-      lage();
-    }
-    // ein Tipp auf einen Stein (seit 1.5): wartet eine Bonusaktion auf ihr Ziel, nimmt sie ihn; sonst wählt er das Ziel der Aktion
-    function tippWesen(w) {
-      var bo = bonusAkt();
-      if (bo && bonusWartet) {
-        if (bonusErlaubt(bo, w, figur)) { bonusZiel = w; bonusWartet = false; zeigeWaffen(); lage(); }
-        else sag('<b>' + esc(w === figur ? 'Du selbst' : w.name) + '</b> taugt nicht als Ziel für ' + esc(bo.name) + ' (' + esc(bonusZieleText(bo)) + '); tippe auf ein anderes Wesen, oder wähle die Bonusaktion ab.');
-        return true;
-      }
-      return false;
-    }
-    svg.addEventListener('click', function (ev) {
-      if (gesendet) return;
-      var t = ev.target;
-      var o = t && t.closest ? t.closest('.kkO') : null;
-      if (o) {
-        var w = K.wesen[+o.getAttribute('data-w')];
-        if (w && tippWesen(w)) return;
-        if (w && w !== figur) { waehle(w); return; }
-        if (w === figur) { zielFeld = null; zeigeWeg(null); zeigeZiel(0); lage(); return; }
-      }
-      var f = t && t.closest ? t.closest('g.kkF') : null;
-      if (!f || !figur) return;
-      var x = +f.getAttribute('data-x'), y = +f.getAttribute('data-y'), key = x + ',' + y;
-      if (Wg.belegt[key] && Wg.belegt[key] !== figur) { sag('Da steht schon jemand: <b>' + esc(Wg.belegt[key].name) + '</b>.'); return; }
-      var d = Wg.dist[key];
-      if (d == null || (!d && x === figur.x && y === figur.y)) { zielFeld = null; zeigeWeg(null); zeigeZiel(0); lage(); return; }
-      if (d > budget * 2) { sag('Bis ' + feldText(x, y) + ' sind es ' + m(d) + '; so weit kommst du in einem Zug nicht, auch mit Spurt nicht (' + m(budget * 2) + ').'); return; }
-      if (zielFeld && zielFeld[0] === x && zielFeld[1] === y) { zielFeld = null; zeigeWeg(null); zeigeZiel(0); }
-      else { zielFeld = [x, y]; zeigeWeg(pfad(Wg, x, y)); zeigeZiel(x, y); }
-      lage();
-    });
-    el.addEventListener('click', function (ev) {
-      var it = ev.target && ev.target.closest ? ev.target.closest('.kkIt[data-w]') : null;
-      if (it && !gesendet) { var wi = K.wesen[+it.getAttribute('data-w')]; if (wi && !tippWesen(wi) && wi !== figur) waehle(wi); return; }
-      var b = ev.target && ev.target.closest ? ev.target.closest('button[data-k]') : null;
-      if (!b) return;
-      var k = b.getAttribute('data-k');
-      if (k === 'leg') { leg.hidden = !leg.hidden; bLeg.setAttribute('aria-expanded', String(!leg.hidden)); }
-      else if (k === 'plus') { stufe = Math.min(STUFEN.length - 1, stufe + 1); stelle(); zurFigur(); }
-      else if (k === 'minus') { stufe = Math.max(0, stufe - 1); stelle(); zurFigur(); }
-      else if (k === 'figur') zurFigur();
-      else if (k === 'blatt') blaettern(b.getAttribute('data-r'));
-      else if (k === 'zuerst') { if (gesendet) return; zuerst = !zuerst; b.setAttribute('aria-pressed', String(zuerst)); lage(); }
-      else if (k === 'gefahr') { gefahrAn = !gefahrAn; b.setAttribute('aria-pressed', String(gefahrAn)); zeigeGefahr(gefahrAn); }
-      else if (k === 'waffe') {
-        if (gesendet) return;
-        var wi2 = +b.getAttribute('data-i') || 0, w2 = waffen[wi2];
-        if (angriffArt === 'waffe' && wi2 === waffeIdx && w2 && w2.modi.length > 1) modusIdx[wi2] = (modusIdx[wi2] + 1) % w2.modi.length; // Modus wechseln
-        else { waffeIdx = wi2; angriffArt = 'waffe'; }
-        zeigeWaffen(); lage();
-      }
-      else if (k === 'zauber') {
-        if (gesendet) return;
-        zauberIdx = +b.getAttribute('data-i') || 0; angriffArt = 'zauber';
-        zeigeWaffen(); lage();
-      }
-      else if (k === 'bonus') {
-        if (gesendet) return;
-        var bi = +b.getAttribute('data-i') || 0, bo2 = bonus[bi];
-        if (bi === bonusIdx) { bonusIdx = -1; bonusZiel = null; bonusWartet = false; }
-        else { bonusIdx = bi; bonusZiel = bo2 && bo2.nurSelbst ? figur : null; bonusWartet = !!(bo2 && !bo2.ohneZiel && !bo2.nurSelbst); }
-        zeigeWaffen(); lage();
-      }
-      else if (k === 'auf') { if (gesendet) return; aufstehen = !aufstehen; b.setAttribute('aria-pressed', String(aufstehen)); lage(); }
-      else if (k === 'zug') {
-        if (!figur) { sag('Ohne Figur auf der Karte gibt es keinen Zug; schreib in den Chat, was sie tut.'); return; }
-        if (gesendet) return;
-        senden(zeile());
-      }
-    });
-    el.addEventListener('keydown', function (ev) {
-      var it = ev.target && ev.target.classList && ev.target.classList.contains('kkIt') ? ev.target : null;
-      if (it && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); it.click(); }
-    });
-    eingabe.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); $('[data-k="zug"]').click(); } });
 
     if (window.ResizeObserver) new ResizeObserver(stelle).observe(rahmen);
     else window.addEventListener('resize', stelle);
-    stelle(); zurFigur(); lage();
-    if (D.hinweis) info.innerHTML = esc(D.hinweis) + ' · ' + info.innerHTML;
+    stelle(); zurFigur();
+    if (!figur) sag('Die Figur steht nicht auf der Karte; die Spielleitung erzählt die Lage.');
+    else zeigeAlles();
+    if (D.hinweis) sag(esc(D.hinweis) + (info.innerHTML ? ' · ' + info.innerHTML : ''));
   }
 
   function start() {
@@ -1308,7 +1521,9 @@
   if (typeof module !== 'undefined' && module.exports) module.exports = { zeichne: zeichne, lies: lies, wege: wege, pfad: pfad, pfadHoehe: pfadHoehe, abstand: abstand, hoehe: hoehe, feldName: feldName,
     felder: felder, waffeInfo: waffeInfo, bedroht: bedroht, zone: zone, gelegenheiten: gelegenheiten, linie: linie, deckung: deckung, angriffsLage: angriffsLage, lageKurz: lageKurz,
     wirksam: wirksam, kampffaehig: kampffaehig, wehrlos: wehrlos, kachelBild: kachelBild, plaketteBild: plaketteBild, zustaende: Object.keys(STATUS), arten: ARTEN, version: VERSION,
-    bonusInfo: bonusInfo, bonusErlaubt: bonusErlaubt, bonusZeile: bonusZeile };
+    bonusInfo: bonusInfo, bonusErlaubt: bonusErlaubt, bonusZeile: bonusZeile,
+    // seit 1.6: der Zug als Folge, die Zeichen der Schadensarten, Aktionen ohne Ziel
+    zugModell: zugModell, zeichenBild: zeichenBild, zeichenVon: zeichenVon, waffenZeichen: waffenZeichen, schadensarten: SCHADENSARTEN, aktionInfo: aktionInfo };
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
