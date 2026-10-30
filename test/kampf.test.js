@@ -9,6 +9,7 @@ var code = fs.readFileSync(path.join(__dirname, '..', 'kampf.js'), 'utf8');
 var KAMPF = require('./kampf-beispiel.js');
 var HOEHE = require('./kampf-hoehe-beispiel.js');
 var STUFEA = require('./kampf-stufe-a-beispiel.js');
+var DREI = require('./kampf-1-3-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -117,6 +118,29 @@ function klickWesen(pg, i) {
   assert.deepStrictEqual([L.status, L.grund], ['aus', '3 m höher'], 'direkt unter der Kante: die Höhe ist der Grund');
   assert.strictEqual(kampf.bedroht(hochA, hochA.wesen[1], 2, 2), false, 'von 3 m oben bedroht ein Schwert das Feld darunter nicht');
   ok('Stufe A: Waffen, Zonen, Gelegenheitsangriffe, Deckung, Lage');
+
+  // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
+  var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
+  assert.strictEqual(kampf.version, '1.3');
+  assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
+  assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
+  var e1 = kampf.wirksam(bf.waffen[0], 1, null);
+  assert.deepStrictEqual([e1.name, e1.bonus, e1.schaden, e1.typ, e1.r, e1.rl], ['Langschwert, beidhändig', 4, '1W10+2', 'Hieb', 1, 0], 'beidhändig: der Modus überschreibt den Schaden');
+  var e2 = kampf.wirksam(bf.waffen[1], 1, null);
+  assert.deepStrictEqual([e2.name, e2.r, e2.rl, e2.fern], ['Dolch, geworfen', 4, 12, true], 'geworfen: 6/18 m');
+  var e3 = kampf.wirksam(bf.zauber[1], null, e2);
+  assert.deepStrictEqual([e3.name, e3.bonus, e3.schaden, e3.typ, e3.r, e3.rl, e3.zauber], ['Zielsicherer Schlag mit Dolch, geworfen', 4, '1W4+2', 'gleißend', 4, 12, true], 'Zauber mit Waffe: Reichweite und Schaden der Waffe, Schadensart des Zaubers');
+  assert.deepStrictEqual([bf.zauber[0].r, bf.zauber[0].zauber, bf.zauber[0].mit], [12, true, false], 'Starry Wisp: 18 m');
+  assert.deepStrictEqual(b1.zustaende, ['ergibt sich']); assert.strictEqual(kampf.kampffaehig(b1), false, 'wer sich ergibt, kämpft nicht');
+  assert.deepStrictEqual([b2.zustaende, b2._wunde], [['vergiftet', 'liegend'], 'schwer'], 'Wörter in zustand werden zu Plaketten, die Wunde aus zustand');
+  assert.strictEqual(kampf.wehrlos(b4), true, 'bewusstlos ist wehrlos'); assert.strictEqual(kampf.kampffaehig(b4), false);
+  assert.strictEqual(hanno.zustaende.length, 5);
+  assert.strictEqual(kampf.gelegenheiten(B, [[8, 2], [9, 3]]).length, 0, 'wer sich ergibt, löst keinen Gelegenheitsangriff aus');
+  var L2 = kampf.angriffsLage(B, { x: 5, y: 7, groesse: 1 }, b4, kampf.wirksam(bf.waffen[0], 0, null), false);
+  assert.deepStrictEqual([L2.status, L2.vor, L2.netto], ['in', ['Ziel wehrlos'], 1], 'auf den Bewusstlosen: Vorteil');
+  assert.ok(kampf.kachelBild('~').indexOf('<svg') === 0 && kampf.plaketteBild('ergibt sich').indexOf('kkPl') > 0, 'Bilder für die Legende');
+  assert.strictEqual(kampf.zustaende.length, 20, 'zwanzig Zustände mit Plakette (Lagebild 1.2)');
+  ok('1.3: Modi, Zauber mit Waffe, Zustände, Wunden');
 })();
 
 (async function () {
@@ -149,10 +173,14 @@ function klickWesen(pg, i) {
     assert.ok(/Spurt/.test(await pg2.innerText('#kampf .kkI')), 'mit Spurt');
     await klickFeld(pg2, 14, 3);
     assert.ok(/Da steht schon jemand/.test(await pg2.innerText('#kampf .kkI')), 'besetztes Feld');
-    await pg2.click('#kampf button[data-k="bleib"]');
-    assert.ok(/Schreib das in den Chat: Kampf #7 · Probefigur bleibt auf 4\/E/.test(await pg2.innerText('#kampf .kkI')), 'ohne sendPrompt');
+    await klickFeld(pg2, 4, 5); // das eigene Feld hebt das Ziel auf
+    assert.strictEqual(await pg2.locator('#kampf button[data-k="bleib"]').count(), 0, 'seit 1.3 kein Knopf „Bleiben“ mehr');
+    await pg2.click('#kampf button[data-k="zug"]');
+    assert.ok(/Schreib das in den Chat: Kampf #7 · Probefigur bleibt auf 4\/E/.test(await pg2.innerText('#kampf .kkI')), 'ohne Zielfeld bleibt die Figur, ohne sendPrompt: ' + await pg2.innerText('#kampf .kkI'));
     await pg2.click('#kampf button[data-k="leg"]');
-    assert.ok((await pg2.locator('#kampf .kkL span').count()) >= 15, 'Legende');
+    var legN = await pg2.locator('#kampf .kkL span').count();
+    assert.ok(legN >= 12 && legN <= 26, 'Legende, knapp: ' + legN);
+    assert.ok((await pg2.locator('#kampf .kkL svg.kkKb').count()) >= 6, 'Kachelbilder in der Legende');
     ok('Grenzen, Spurt, ohne sendPrompt');
 
     var pgH = await seite(b, HOEHE);
@@ -174,7 +202,9 @@ function klickWesen(pg, i) {
 
     var pg3 = await seite(b, { nr: 1, titel: 'Leer', wesen: [{ id: 'r', name: 'Räuber', art: 'gegner', x: 2, y: 2 }] });
     assert.ok(/Die Figur steht nicht auf der Karte/.test(await pg3.innerText('#kampf .kkI')), 'ohne Figur');
-    assert.strictEqual(await pg3.locator('#kampf rect.kkN').count(), 0, 'ohne boden ist alles Boden');
+    assert.strictEqual(await pg3.locator('#kampf rect[fill="url(#kkM-nebel)"]').count(), 0, 'ohne boden ist alles Boden');
+    assert.strictEqual(await pg3.locator('#kampf rect[fill="url(#kkM-stein)"]').count(), 36 * 12, 'Steinboden als Kachel');
+    assert.strictEqual(await pg3.locator('#kampf svg defs pattern').count(), 12, 'zwölf Kacheln in den defs');
     ok('ohne Figur');
 
     // Stufe A im Widget: Kopf, Reihenfolge, Waffen, Reichweite, Zonen, Lagezeile, Zugzeile
@@ -219,10 +249,66 @@ function klickWesen(pg, i) {
     assert.strictEqual(await pgA2.locator('#kampf .kkF.kkGz').count(), 19, 'und zeigt seine Zone (Spieß, 3 m, ohne die Wand)');
     await pgA2.click('#kampf .kkIt[data-w="3"]');
     assert.strictEqual(await pgA2.locator('#kampf .kkF.kkGz').count(), 0, 'noch einmal: aufgehoben');
-    await pgA2.click('#kampf button[data-k="bleib"]');
+    await pgA2.press('#kampf input', 'Enter'); // der Pfeil, auch mit Enter im Freitext; ohne Zielfeld bleibt die Figur
     var gA2 = await pgA2.evaluate(function () { return GESENDET; });
     assert.deepStrictEqual(gA2, ['Kampf #9 · Probefigur bleibt auf 4/E']);
-    ok('Leiste und Bleiben');
+    ok('Leiste und Stehenbleiben');
+
+    // 1.3 im Widget: Kacheln, Schatten, Modi, Zauber, Zustände
+    var pgD = await seite(b, DREI);
+    assert.ok((await pgD.locator('#kampf rect[fill="url(#kkM-wasser)"]').count()) >= 20, 'tiefes Wasser als Kachel');
+    assert.ok((await pgD.locator('#kampf rect[fill="url(#kkM-gras)"]').count()) >= 20, 'Gras als Kachel');
+    assert.strictEqual(await pgD.locator('#kampf rect[fill="url(#kkM-eis)"]').count(), 4, 'Eis als Kachel');
+    assert.ok((await pgD.locator('#kampf .kkKan rect.kkSch').count()) >= 12, 'Schatten an der Böschung');
+    assert.strictEqual(await pgD.locator('#kampf g.kkHs').count(), 2, 'ein Schild je Fläche: Böschung +3 m und die Stufe +1,5 m');
+    assert.strictEqual(await pgD.locator('#kampf button[data-k="waffe"]').count(), 2, 'zwei Waffen');
+    assert.strictEqual(await pgD.locator('#kampf button[data-k="zauber"]').count(), 2, 'zwei Zauber');
+    assert.strictEqual(await pgD.locator('#kampf button[data-k="bleib"]').count(), 0, 'kein „Bleiben“');
+    assert.strictEqual(await pgD.locator('#kampf button.kkPfeil[data-k="zug"] svg').count(), 1, 'der Pfeil schickt den Zug');
+    assert.strictEqual(await pgD.getAttribute('#kampf button[data-k="waffe"][data-i="0"] svg.kkMo', 'aria-label'), 'einhändig', 'Langschwert zeigt eine Faust');
+    await klickWesen(pgD, 3); // Räuber 3 auf der Böschung
+    assert.ok(/Angriff: Langschwert, einhändig \+4 · 1W8\+2 Hieb/.test(await pgD.innerText('#kampf .kkA')), 'Lagezeile einhändig: ' + await pgD.innerText('#kampf .kkA'));
+    await pgD.click('#kampf button[data-k="waffe"][data-i="0"]'); // noch einmal: beidhändig
+    assert.strictEqual(await pgD.getAttribute('#kampf button[data-k="waffe"][data-i="0"] svg.kkMo', 'aria-label'), 'beidhändig', 'zwei Fäuste');
+    assert.ok(/Angriff: Langschwert, beidhändig \+4 · 1W10\+2 Hieb/.test(await pgD.innerText('#kampf .kkA')), 'Lagezeile beidhändig: ' + await pgD.innerText('#kampf .kkA'));
+    await pgD.click('#kampf button[data-k="waffe"][data-i="1"]'); // Dolch, Nahkampf
+    assert.strictEqual(await pgD.getAttribute('#kampf button[data-k="waffe"][data-i="1"]', 'aria-pressed'), 'true');
+    assert.strictEqual(await pgD.locator('#kampf .kkReich rect').count(), 1, 'Dolch im Nahkampf: ein Quadrat');
+    await pgD.click('#kampf button[data-k="waffe"][data-i="1"]'); // geworfen
+    assert.strictEqual(await pgD.getAttribute('#kampf button[data-k="waffe"][data-i="1"] svg.kkMo', 'aria-label'), 'geworfen', 'Fadenkreuz');
+    assert.strictEqual(await pgD.locator('#kampf .kkReich rect').count(), 2, 'geworfen: normale und lange Reichweite');
+    await pgD.click('#kampf button[data-k="zauber"][data-i="1"]'); // Zielsicherer Schlag mit dem Dolch, geworfen
+    assert.strictEqual(await pgD.locator('#kampf button[data-k="waffe"][data-i="1"].kkMit').count(), 1, 'die Waffe des Zaubers ist markiert');
+    var AD = await pgD.innerText('#kampf .kkA');
+    assert.ok(/Zauber: Zielsicherer Schlag mit Dolch, geworfen \+4 · 1W4\+2 gleißend/.test(AD), 'Zauber mit Waffe: ' + AD);
+    await pgD.click('#kampf button[data-k="zauber"][data-i="0"]');
+    assert.ok(/Zauber: Starry Wisp \+4 · 1W8 gleißend · Räuber 3: 13,5 m, 3 m höher/.test(await pgD.innerText('#kampf .kkA')), 'Starry Wisp: ' + await pgD.innerText('#kampf .kkA'));
+    await pgD.click('#kampf button[data-k="zug"]');
+    var gD = await pgD.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gD, ['Kampf #11 · Probefigur bleibt auf 9/C · Zauber: Starry Wisp auf Räuber 3 (13,5 m, 3 m höher)']);
+    ok('1.3: Kacheln, Schatten, Modi, Zauber');
+
+    var pgE = await seite(b, DREI);
+    await klickWesen(pgE, 1); // Räuber 1 ergibt sich
+    assert.strictEqual(await pgE.locator('#kampf .kkF.kkGz').count(), 0, 'wer sich ergibt, bedroht kein Feld');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="1"] g.kkPl').count(), 1, 'eine Plakette: die weiße Fahne');
+    assert.strictEqual(await pgE.$eval('#kampf g.kkO[data-w="1"] g.kkPl title', function (e) { return e.textContent; }), 'ergibt sich');
+    assert.strictEqual(await pgE.locator('#kampf .kkIt[data-w="1"] svg.kkKb').count(), 1, 'die Plakette auch in der Reihenfolge');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="2"] circle.kkWs').count(), 1, 'schwer verletzt: roter Ring');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="2"] g.kkPl').count(), 2, 'vergiftet und liegend (aus dem Wort „am Boden“)');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="4"].kkBlass').count(), 1, 'bewusstlos: blass');
+    assert.strictEqual(await pgE.locator('#kampf g.kkO[data-w="5"] g.kkPl').count(), 4, 'fünf Zustände: drei Plaketten und „+2“');
+    assert.ok(/\+2/.test(await pgE.$eval('#kampf g.kkO[data-w="5"]', function (e) { return e.textContent; })), '„+2“ am Stein');
+    await pgE.click('#kampf button[data-k="gefahr"]');
+    var gz = await pgE.locator('#kampf .kkF.kkGzA').count();
+    assert.ok(gz >= 20 && gz <= 32, 'Gefahr: nur Räuber 2 und 3 bedrohen (' + gz + ')');
+    await pgE.click('#kampf button[data-k="leg"]');
+    var legT = await pgE.innerText('#kampf .kkL');
+    assert.ok(/ergibt sich/.test(legT) && /schwer verletzt/.test(legT) && /Gras/.test(legT) && /Eis/.test(legT) && !/Planken/.test(legT), 'Legende nennt, was vorkommt: ' + legT.replace(/\n/g, ' | '));
+    await klickWesen(pgE, 4); // der Bewusstlose
+    await klickFeld(pgE, 5, 7);
+    assert.ok(/Vorteil: Ziel wehrlos/.test(await pgE.innerText('#kampf .kkA')), 'wehrlos: Vorteil: ' + await pgE.innerText('#kampf .kkA'));
+    ok('1.3: Zustände, Wunden, Gefahr, Legende');
 
     var OA = { nr: 3, titel: 'Gasse', figur: 'f', spalten: 8, zeilen: 4, boden: ['########', '........', '........', '........'],
       wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 2, y: 2, bewegung: 9, waffen: [{ name: 'Keule', reichweite: 1.5 }] }, { id: 'r', name: 'Räuber', art: 'gegner', x: 3, y: 3 }] };
