@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.19 (30. Oktober 2026)
+
+Gegenüber 3.18 (29. Oktober 2026). Anlass: Kampfkarte 1.6 (unten) und der Probezug dazu, den der Weltenhüter abgenommen hat. Die Werkstatt bleibt 3.16. Neuer Stand der Tische: `tische_stand` = `1c689e20f4f92f1a2da84e81e4bd1d9c7d457b51` (Kampfkarte 1.6; die übrigen Tische sind seit 1.1 unverändert); der Würfelkasten bleibt.
+
+- **Kampfkarte** (4.2, 12.6): der neue Stand; der Zug ist eine Folge von Wegstücken, einer Aktion und einer Bonusaktion in der Reihenfolge der Tipps, die die Spielleitung von links nach rechts erzählt, mit den Reaktionen der Gegner an ihrer Stelle; Spurt und Rückzug sind Aktionen, die Zweitwaffe gibt es nur neben der Angriffsaktion mit einer leichten Waffe, Aufstehen kostet die halbe Bewegung, Kriechen zählt doppelt; eine zweite Aktion im Freitext gilt nicht.
+- **Optionen im Kampf** (12.6): Steht die Karte, sind die vier Optionen keine Angriffe (Gespräch, Einschüchtern, Hilfszauber, Rückzug, Rast); der Hieb kommt über die Karte. Wer sich ergibt oder flieht, bedroht kein Feld und löst keinen Gelegenheitsangriff aus.
+- **Daten der Karte** (12.6): je sichtbarem Wesen `reichweite`, `bewegung` als Schätzung, `zustaende`, `tp` nur, wo die Figur sie wissen darf; bei der Figur Waffen mit Modi und `leicht`, Zauber, `tp`, `bonus[]`, `aktionen[]`; `ursprung` für Ausschnitte; `?` für Ungesehenes; `ziel` nur, wenn eindeutig; Böschungen als Ebene, Rampe nur an Stufen; Beinamen in `notiz`.
+- **Erzählung nach dem Wurf** (6.3): Schaden und verbleibende Trefferpunkte eines Ziels gehören nicht in die Erzählung; der Kasten zeigt den Wurf, die 🎲-Zeile den der Spielleitung, die Erzählung die Wirkung.
 
 ## Kampfkarte 1.6 (30. Oktober 2026)
 
