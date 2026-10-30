@@ -37,8 +37,11 @@ module.exports = {
       ],
       zauber: [
         { name: 'Starry Wisp', bonus: 4, schaden: '1W8', typ: 'gleißend', reichweite: 18 },
-        { name: 'Zielsicherer Schlag', mit: 'waffe', typ: 'gleißend' }
-      ] },
+        { name: 'Zielsicherer Schlag', mit: 'waffe', typ: 'gleißend' },
+        // seit 1.4: Zauber mit Rettungswurf und Heilung
+        { name: 'Dissonant Whispers', rettung: 'WEI', sg: 12, schaden: '3W6', typ: 'psychisch', reichweite: 18, wirkung: 'halb bei Erfolg; muss mit seiner Reaktion fliehen' },
+        { name: 'Healing Word', heilung: '2W4+2', reichweite: 18 }
+      ], tp: [8, 27] },
     { id: 'r1', name: 'Räuber 1', art: 'gegner', x: 7, y: 2, zustaende: ['ergibt sich'], notiz: 'hat den Spieß fallen lassen' },
     { id: 'r2', name: 'Räuber 2', art: 'gegner', x: 11, y: 2, zustand: 'schwer verletzt, am Boden', zustaende: ['vergiftet'] },
     { id: 'r3', name: 'Räuber 3', art: 'gegner', x: 18, y: 3, reichweite: 3, notiz: 'Spieß, auf der Böschung' },

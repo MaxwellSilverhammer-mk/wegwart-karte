@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.3.1
+ * Version 1.4
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -24,13 +24,17 @@
  * (`modi`: einhändig/beidhändig, Nahkampf/geworfen; ein Tipp auf die gewählte Waffe wechselt, Faust, zwei Fäuste,
  * Fadenkreuz), Zauber (`zauber`) eine eigene Zeile, ein Zauber `mit:'waffe'` nutzt die gewählte Waffe; der Pfeil
  * schickt den Zug (ohne Zielfeld bleibt die Figur stehen). Die Legende nennt nur, was auf der Karte vorkommt.
+ * Seit 1.4: ein blauer Rahmen zeigt, wie weit die Figur in diesem Zug kommt (gestrichelt mit Spurt); vier Pfeile am
+ * Kartenrand blättern, wo die Karte weitergeht; ein Tipp auf ein Wesen nennt, was die Figur über es weiß; Zauber mit
+ * Rettungswurf (`rettung`, `sg`), Heilung (`heilung`) und Wirkung (`wirkung`) stehen in der Zauberzeile; „Aktion
+ * zuerst“ dreht die Zugzeile um („Zauber: … auf Räuber 2, dann nach 13/C“); `tp: [jetzt, max]` der Figur im Kopf.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.3.1';
+  var VERSION = '1.4';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -147,12 +151,12 @@
   }
   function plaketteBild(key, s) { return '<svg class="kkKb" width="' + (s || 16) + '" height="' + (s || 16) + '" viewBox="-8 -8 16 16" aria-hidden="true">' + plakette(key, 0, 0, 7) + '</svg>'; }
   // Die Zeichen der Waffenmodi am Knopf: eine Faust (einhändig, Nahkampf), zwei Fäuste (beidhändig), ein Fadenkreuz (geworfen, Schuss)
-  // Faust von der Seite: drei Knöchel oben, der Daumen liegt als heller Bogen über den Fingern
-  var FAUST = '<path d="M1.5 10V12.6A1.6 1.6 0 0 0 3.1 14.2H12.4A2.1 2.1 0 0 0 14.5 12.1V6.4A2 2 0 0 0 10.5 6.4A2 2 0 0 0 6.5 6.4V8.4A1.6 1.6 0 0 0 3.3 8.4Z" fill="currentColor"/>' +
-    '<path d="M3.6 10.4H8.6A1.5 1.5 0 0 1 8.6 13.4H4.6" fill="none" stroke="#fff" stroke-width="1.1" stroke-opacity=".9" stroke-linecap="round"/>';
+  // Faust von der Seite als Umriss (seit 1.4): drei Knöchel oben, der Daumen als Bogen über den Fingern, nur Linien
+  var FAUST = '<path d="M1.6 9.6V12.4A1.8 1.8 0 0 0 3.4 14.2H12.2A2.2 2.2 0 0 0 14.4 12V6.6A2.1 2.1 0 0 0 10.2 6.6A2.1 2.1 0 0 0 6 6.6V8.6A1.7 1.7 0 0 0 2.6 8.6Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>' +
+    '<path d="M3.2 10.6H8.4A1.6 1.6 0 0 1 8.4 13.8H4.2M10.2 6.6V9.4M6 8.6V9.6" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>';
   var MODUS_BILD = {
     faust: [16, FAUST],
-    faeuste: [24, '<g transform="translate(-0.2 1.2) scale(.82)">' + FAUST + '</g><g transform="translate(11 1.2) scale(.82)">' + FAUST + '</g>'],
+    faeuste: [26, '<g transform="translate(-0.4 1) scale(.86)">' + FAUST + '</g><g transform="translate(12.2 1) scale(.86)">' + FAUST + '</g>'],
     kreuz: [16, '<circle cx="8" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.2V5M8 11v3.8M1.2 8H5M11 8h3.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/>']
   };
   function modusBild(zeichen, name) {
@@ -205,6 +209,13 @@
       k.zustaende = (Array.isArray(w.zustaende) ? w.zustaende : []).map(function (z) { return String(z).toLowerCase().trim(); }).filter(function (z, i, a) { return STATUS[z] && a.indexOf(z) === i; });
       ZUSTAND_WORTE.forEach(function (p) { if (p[0].test(zt) && k.zustaende.indexOf(p[1]) < 0) k.zustaende.push(p[1]); });
       k._wunde = /(^|[^a-zäöü])tot([^a-zäöü]|$)/.test(zt) ? 'tot' : /schwer verletzt|schwer verwundet|sterbend|angeschlagen schwer/.test(zt) ? 'schwer' : /verwundet|verletzt|blut|angeschlagen/.test(zt) ? 'angeschlagen' : '';
+      // seit 1.4: Trefferpunkte (`tp: [jetzt, max]` oder `tp` und `tpMax`), für die Figur im Kopf; die Wundstufe folgt daraus
+      var tpa = Array.isArray(w.tp) ? [+w.tp[0], +w.tp[1]] : (isFinite(+w.tp) && isFinite(+w.tpMax) ? [+w.tp, +w.tpMax] : null);
+      if (tpa && isFinite(tpa[0]) && tpa[1] > 0) {
+        k._tp = [Math.max(0, tpa[0]), tpa[1]];
+        if (!k._wunde) k._wunde = k._tp[0] <= 0 ? '' : k._tp[0] * 4 <= k._tp[1] ? 'schwer' : k._tp[0] * 2 <= k._tp[1] ? 'angeschlagen' : '';
+        if (k._tp[0] <= 0 && k.zustaende.indexOf('bewusstlos') < 0 && k._wunde !== 'tot') k.zustaende.push('bewusstlos');
+      }
       return k;
     });
     var figur = null;
@@ -330,7 +341,9 @@
   // (einhändig/beidhändig, Nahkampf/geworfen …), jeder Modus überschreibt, was er nennt; `modus` wählt vor (Index).
   function waffeInfo(w) {
     if (!w || !w.name) return null;
-    var basis = { name: String(w.name), bonus: zahl(w.bonus), schaden: w.schaden ? String(w.schaden) : '', typ: w.typ ? String(w.typ) : '', reichweite: w.reichweite == null ? METER : w.reichweite, zauber: !!w.zauber };
+    var basis = { name: String(w.name), bonus: zahl(w.bonus), schaden: w.schaden ? String(w.schaden) : '', typ: w.typ ? String(w.typ) : '', reichweite: w.reichweite == null ? METER : w.reichweite, zauber: !!w.zauber,
+      // seit 1.4: Zauber mit Rettungswurf (`rettung:'WEI'`, `sg`), Heilung und freie Wirkung als Text
+      rettung: w.rettung ? String(w.rettung).toUpperCase() : '', sg: zahl(w.sg), heilung: w.heilung ? String(w.heilung) : '', wirkung: w.wirkung ? String(w.wirkung) : '' };
     var modi = (Array.isArray(w.modi) ? w.modi : []).filter(function (mo) { return mo && mo.name; }).map(function (mo) {
       var k = { name: String(mo.name), bonus: zahl(mo.bonus), schaden: mo.schaden ? String(mo.schaden) : '', typ: mo.typ ? String(mo.typ) : '', reichweite: mo.reichweite, zeichen: '' };
       k.zeichen = modusZeichen(k); return k;
@@ -343,7 +356,9 @@
   // Schaden der Waffe, Name, Bonus und Schadensart des Zaubers, wo er sie nennt
   function wirksam(wf, mi, mitWaffe) {
     if (!wf) return null;
-    var e = { name: wf.name, bonus: wf.bonus, schaden: wf.schaden, typ: wf.typ, reichweite: wf.reichweite, zauber: wf.zauber, mit: !!wf.mit };
+    var e = { name: wf.name, bonus: wf.bonus, schaden: wf.schaden, typ: wf.typ, reichweite: wf.reichweite, zauber: wf.zauber, mit: !!wf.mit,
+      rettung: wf.rettung || '', sg: wf.sg == null ? null : wf.sg, heilung: wf.heilung || '', wirkung: wf.wirkung || '' };
+    e.ohneWurf = !!(e.rettung || e.heilung || (e.zauber && e.bonus == null && !e.mit)); // kein Angriffswurf: Rettungswurf, Heilung, reine Wirkung
     var mo = wf.modi && wf.modi.length ? wf.modi[Math.max(0, Math.min(wf.modi.length - 1, mi == null ? wf.modus : mi))] : null;
     if (mo) {
       e.name = wf.name + ', ' + mo.name;
@@ -363,7 +378,11 @@
     return e;
   }
   function bonusText(b) { return b == null ? '' : (b >= 0 ? '+' : '−') + Math.abs(b); }
-  function waffeText(wf) { return (wf.bonus != null ? ' ' + bonusText(wf.bonus) : '') + (wf.schaden ? ' · ' + wf.schaden : '') + (wf.typ ? ' ' + wf.typ : ''); }
+  function waffeText(wf) {
+    if (wf.rettung) return ' · Rettungswurf ' + wf.rettung + (wf.sg != null ? ' gegen SG ' + wf.sg : '') + (wf.schaden ? ' · ' + wf.schaden + (wf.typ ? ' ' + wf.typ : '') : '') + (wf.wirkung ? ' · ' + wf.wirkung : '');
+    if (wf.heilung) return ' · ' + wf.heilung + ' Heilung' + (wf.wirkung ? ' · ' + wf.wirkung : '');
+    return (wf.bonus != null ? ' ' + bonusText(wf.bonus) : '') + (wf.schaden ? ' · ' + wf.schaden : '') + (wf.typ ? ' ' + wf.typ : '') + (wf.wirkung ? ' · ' + wf.wirkung : '');
+  }
   function hatZustand(w, liste) { var z = w && w.zustaende || []; return liste.some(function (s) { return z.indexOf(s) >= 0; }); }
   // Wer wehrlos ist (bewusstlos, gelähmt, betäubt, kampfunfähig, versteinert, tot), wird mit Vorteil getroffen;
   // wer sich ergibt oder flieht, bedroht dazu kein Feld mehr
@@ -448,6 +467,15 @@
       L.grund = (flach <= weit && Math.abs(dh) > weit) ? hochTief(dh) : m(ab) + ', ' + wf.name + ' reicht ' + m(weit);
       return L;
     }
+    // seit 1.4: ohne Angriffswurf (Rettungswurf, Heilung, Wirkung) zählen nur Reichweite und Sichtlinie
+    if (wf.ohneWurf) {
+      var dk0 = deckung(K, stand, ziel);
+      if (dk0.stufe === 3) { L.status = 'aus'; L.grund = 'keine Sichtlinie, ' + dk0.grund; L.warum.push('Ganze Deckung: ' + dk0.grund + ' liegt zwischen euch; ohne Sichtlinie kein Ziel (PHB).'); return L; }
+      if (wf.rettung) L.warum.push('Kein Angriffswurf: ' + ziel.name + ' legt einen Rettungswurf auf ' + wf.rettung + (wf.sg != null ? ' gegen SG ' + wf.sg : '') + ' ab' + (dk0.stufe && wf.rettung === 'GES' ? '; Deckung gibt ' + dk0.rk + ' auf GES-Rettungswürfe (PHB)' : '') + '.');
+      if (hatZustand(ziel, ['taub']) && wf.rettung) { L.nach.push('Ziel ist taub'); L.warum.push('Ein Ziel, das nicht hören kann, ist gegen Zauber mit Stimme meist im Vorteil oder gar nicht betroffen (PHB, je Zauber).'); }
+      L.netto = L.nach.length ? -1 : 0;
+      return L;
+    }
     if (L.status === 'lang') { L.nach.push('lange Reichweite'); L.warum.push('Nachteil: Jenseits der normalen Reichweite trifft ein Fernkampfangriff mit Nachteil (PHB).'); }
     var nah = ab <= 1;
     if (liegt(ziel)) {
@@ -473,6 +501,7 @@
     var t = [(wf.zauber ? 'Zauber: ' : 'Angriff: ') + '<b>' + esc(wf.name) + '</b>' + esc(waffeText(wf))];
     if (L.status === 'aus') { t.push('<b>' + esc(ziel.name) + '</b>: außer Reichweite (' + esc(L.grund) + ')'); return t.join(' · '); }
     t.push('<b>' + esc(ziel.name) + '</b>: ' + m(L.abstand) + (L.dh ? ', ' + hochTief(L.dh) : '') + (L.status === 'lang' ? ' · lange Reichweite: Nachteil' : ' · in Reichweite'));
+    if (wf.ohneWurf) { L.nach.forEach(function (v) { t.push(esc(v)); }); return t.join(' · '); }
     if (L.deckung.stufe) t.push(esc(L.deckung.name) + ' Deckung ' + L.deckung.stern);
     L.vor.forEach(function (v) { t.push('Vorteil: ' + esc(v)); });
     L.nach.forEach(function (v) { if (v !== 'lange Reichweite') t.push('Nachteil: ' + esc(v)); });
@@ -482,6 +511,11 @@
   function lageKurz(L, wf, ziel) {
     if (L.status === 'aus') return 'Ziel: ' + ziel.name + ' (außer Reichweite: ' + L.grund + ')';
     var k = [m(L.abstand) + (L.dh ? ', ' + hochTief(L.dh) : '')];
+    if (wf.ohneWurf) {
+      if (wf.rettung) k.push('Rettungswurf ' + wf.rettung + (wf.sg != null ? ' SG ' + wf.sg : ''));
+      L.nach.forEach(function (v) { k.push(v); });
+      return 'Zauber: ' + wf.name + ' auf ' + ziel.name + ' (' + k.join('; ') + ')';
+    }
     if (L.status === 'lang') k.push('lange Reichweite');
     if (L.deckung.stufe) k.push(L.deckung.name + ' Deckung');
     L.vor.forEach(function (v) { k.push('Vorteil: ' + v); });
@@ -623,7 +657,7 @@
       var t = String(n.text), w = t.length * 5.9 + 10, cx = px(+n.x) + Z / 2, cy = py(+n.y) + Z - 9;
       out.push('<g class="kkNo"><rect x="' + (cx - w / 2) + '" y="' + (cy - 7) + '" width="' + w + '" height="14" rx="4"/><text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle">' + esc(t) + '</text></g>');
     });
-    out.push('<g class="kkReich"></g><g class="kkWeg"></g><g class="kkZiel"></g>');
+    out.push('<g class="kkBew"></g><g class="kkReich"></g><g class="kkWeg"></g><g class="kkZiel"></g>');
     // Wesen
     K.wesen.forEach(function (w) { out.push(wesenSvg(K, w)); });
     out.push('</svg>');
@@ -651,7 +685,7 @@
     if (K.hoehen.some(function (r) { return r.some(function (h) { return h > 0; }); })) out.push('<span>' + hoeheBild() + ' höher: heller, mit Schatten auf das tiefere Feld (je Ebene 1,5 m)</span>');
     var arten = {}; K.wesen.forEach(function (w) { arten[w.art] = 1; });
     Object.keys(ART_WESEN).forEach(function (a) { if (arten[a]) out.push('<span><i class="kkLe" style="background:' + ART_WESEN[a] + '"></i> ' + ART_NAME[a] + '</span>'); });
-    out.push('<span><i class="kkLe kkLeG" style="background:' + F.gold + '"></i> erreichbar, blasser mit Spurt</span>',
+    out.push('<span><i class="kkLe kkLeB"></i> Bewegung: der blaue Rahmen reicht, so weit die Figur in diesem Zug kommt, gestrichelt mit Spurt (Felder gold getönt)</span>',
       '<span><i class="kkLe kkLeR"></i> Reichweite der Waffe von dort; blasse Gegner außer Reichweite</span>',
       '<span><i class="kkLe kkLeZ"></i> bedroht: Reichweite eines Gegners (Tipp auf ihn, oder „Gefahr“)</span>',
       '<span><i class="kkLe kkLeO"></i> Gelegenheitsangriff beim Verlassen</span>');
@@ -687,7 +721,9 @@
     // seit 1.2: Reichweite der Waffe, bedrohte Felder, Gelegenheitsangriff, Gegner außer Reichweite
     '.kkReich rect{fill:#8e3b22;fill-opacity:.07;stroke:#8e3b22;stroke-width:2;pointer-events:none}.kkReich rect.kkRl{fill:none;stroke-dasharray:7 4;stroke-width:1.4;stroke-opacity:.8}' +
     '.kkF.kkGz .kkK{stroke:#8e3b22;stroke-width:1.8;stroke-dasharray:5 3}.kkF.kkGzA .kkK{stroke:#8e3b22;stroke-width:1.2;stroke-dasharray:4 3;stroke-opacity:.75}' +
-    '.kkWeg .kkOa{fill:#8e3b22;stroke:#efe2c3;stroke-width:1.2}.kkO.kkFern{opacity:.4}.kkO.kkLang{opacity:.7}';
+    '.kkWeg .kkOa{fill:#8e3b22;stroke:#efe2c3;stroke-width:1.2}.kkO.kkFern{opacity:.4}.kkO.kkLang{opacity:.7}' +
+    // seit 1.4: der blaue Rahmen der Bewegung (gestrichelt mit Spurt)
+    '.kkBew{pointer-events:none}.kkBew .kkBw{fill:none;stroke:#2f4f70;stroke-width:2.2;stroke-linecap:square}.kkBew .kkBwS{fill:none;stroke:#2f4f70;stroke-width:1.3;stroke-dasharray:5 3;stroke-opacity:.8}';
 
   var UI_CSS =
     '.kk{display:flex;flex-direction:column;gap:10px}' +
@@ -711,6 +747,13 @@
     '.kk .kkPfeil{flex:0 0 auto;width:46px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0}.kk .kkPfeil svg{width:22px;height:22px;display:block}' +
     '.kk .kkMo{display:inline-block;height:16px;vertical-align:-3px;margin-left:6px}.kk button.kkMit{outline:2px dashed #b08d3a;outline-offset:-2px}' +
     '.kk .kkIt{position:relative}.kk .kkIt .kkKb{position:absolute;right:-5px;top:-5px;width:13px;height:13px;border-radius:50%}' +
+    // seit 1.4: Pfeile zum Blättern am Kartenrand, Trefferpunkte im Kopf, „Aktion zuerst“
+    '.kk .kkRW{position:relative}.kk .kkBl{position:absolute;z-index:2;width:30px;height:30px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;opacity:.92;box-shadow:0 1px 4px rgba(0,0,0,.25)}' +
+    '.kk .kkBl svg{width:17px;height:17px;display:block}.kk .kkBl-w{left:8px;top:50%;transform:translateY(-50%) rotate(180deg)}.kk .kkBl-e{right:8px;top:50%;transform:translateY(-50%)}' +
+    '.kk .kkBl-n{top:8px;left:50%;transform:translateX(-50%) rotate(-90deg)}.kk .kkBl-s{bottom:8px;left:50%;transform:translateX(-50%) rotate(90deg)}' +
+    '.kk .kkTp .kkTpB{display:inline-block;width:64px;height:8px;border:1px solid var(--border-300,#c8bda4);border-radius:4px;vertical-align:middle;overflow:hidden;background:rgba(0,0,0,.05)}.kk .kkTp .kkTpB i{display:block;height:100%;background:#4d5b33}' +
+    '.kk .kkTp.kkTpA .kkTpB i{background:#c48a2a}.kk .kkTp.kkTpS .kkTpB i{background:#a3261c}' +
+    '.kk .kkB.kkZug button[data-k="zuerst"]{flex:0 0 auto;font-size:13px}' +
     // seit 1.2: Kopf mit Ziel und Uhren, Initiativleiste, Waffen, Lagezeile, Legende
     '.kk .kkKopf2{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;line-height:1.45;color:var(--text-secondary)}.kk .kkKopf2 b{font-weight:500;color:var(--text-primary)}' +
     '.kk .kkIni{display:flex;align-items:center;gap:6px;overflow-x:auto;font-size:13px;color:var(--text-secondary);padding:2px 0}' +
@@ -725,7 +768,7 @@
     '.kk .kkA b{font-weight:500}.kk .kkA button{font-size:12px;margin-left:6px}' +
     '.kk .kkWarum{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.5;color:var(--text-secondary)}' +
     '.kk .kkOaT{color:#8e3b22;font-weight:500}' +
-    '.kk .kkLeG{border-radius:2px;opacity:.6}.kk .kkLeR{border-radius:2px;border:2px solid #8e3b22;background:rgba(142,59,34,.1);box-sizing:border-box}' +
+    '.kk .kkLeB{border-radius:2px;border:2px solid #2f4f70;background:rgba(176,141,58,.25);box-sizing:border-box}.kk .kkLeR{border-radius:2px;border:2px solid #8e3b22;background:rgba(142,59,34,.1);box-sizing:border-box}' +
     '.kk .kkLeZ{border-radius:2px;border:2px dashed #8e3b22;box-sizing:border-box}.kk .kkLeO{width:0;height:0;border-radius:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #8e3b22}';
 
   /* ---------- Einbau ins Widget ---------- */
@@ -751,8 +794,12 @@
     var waffen = figur ? figur.waffen : [], zauber = figur ? figur.zauber : [];
     var angriffArt = waffen.length ? 'waffe' : zauber.length ? 'zauber' : '', waffeIdx = 0, zauberIdx = 0;
     var modusIdx = waffen.map(function (w) { return w.modus || 0; });
-    // Kopf: Ziel, Uhren und Lage (seit 1.2)
+    // Kopf: Ziel, Uhren und Lage (seit 1.2), Trefferpunkte der Figur (seit 1.4)
     var kopf2 = [];
+    if (figur && figur._tp) {
+      var tpq = Math.max(0, Math.min(100, Math.round(figur._tp[0] / figur._tp[1] * 100)));
+      kopf2.push('<span class="kkTp' + (tpq <= 25 ? ' kkTpS' : tpq <= 50 ? ' kkTpA' : '') + '"><b>TP:</b> ' + figur._tp[0] + '/' + figur._tp[1] + ' <i class="kkTpB" aria-hidden="true"><i style="width:' + tpq + '%"></i></i></span>');
+    }
     if (D.ziel) kopf2.push('<span class="kkZiel"><b>Ziel:</b> ' + esc(D.ziel) + '</span>');
     (Array.isArray(D.uhren) ? D.uhren : []).forEach(function (u) {
       if (!u || !u.name) return;
@@ -795,18 +842,21 @@
       '<div class="kkKopf"><span>' + esc(D.titel || 'Kampfkarte') + '</span><small>' + (D.runde ? 'Runde ' + esc(D.runde) + ' · ' : '') +
       (figur ? esc(figur.name) + ' · Bewegung ' + m(budget) : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
       (kopf2.length ? '<div class="kkKopf2">' + kopf2.join('') + '</div>' : '') + ini +
-      '<div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
+      // der Rahmen der Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht
+      '<div class="kkRW"><div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
+      ['w', 'e', 'n', 's'].map(function (r) { return '<button type="button" class="kkBl kkBl-' + r + '" data-k="blatt" data-r="' + r + '" aria-label="' + ({ w: 'Karte nach links', e: 'Karte nach rechts', n: 'Karte nach oben', s: 'Karte nach unten' })[r] + '" hidden>' + PFEIL + '</button>'; }).join('') + '</div>' +
       '<p class="kkI" aria-live="polite"></p>' +
       '<p class="kkA" hidden></p>' +
       '<div class="kkB kkW"' + (waffen.length ? '' : ' hidden') + '></div><div class="kkB kkZb"' + (zauber.length ? '' : ' hidden') + '></div>' +
-      '<div class="kkB kkZug"><input type="text" maxlength="120" placeholder="und dann … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
+      '<div class="kkB kkZug"><button type="button" data-k="zuerst" aria-pressed="false" title="Erst Angriff oder Zauber vom Stand aus, dann der Weg (etwa um die Reaktion eines Gegners zu verbrauchen)">Aktion zuerst</button>' +
+      '<input type="text" maxlength="120" placeholder="und dann … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
       '<button type="button" class="kkPfeil" data-k="zug" aria-label="Zug abschicken" title="Zug abschicken · ohne Zielfeld bleibt die Figur stehen">' + PFEIL + '</button></div>' +
       '<div class="kkB"><button type="button" data-k="minus" aria-label="Kleiner">−</button><button type="button" data-k="plus" aria-label="Größer">+</button>' +
       '<button type="button" data-k="figur">Zur Figur</button><button type="button" data-k="gefahr" aria-pressed="false" title="Alle Felder, die ein Gegner bedroht">Gefahr</button><button type="button" data-k="leg" aria-expanded="false">Legende</button></div>' +
       '<div class="kkL" hidden>' + e.legende + '</div>';
     var rahmen = el.querySelector('.kkR'), svg = rahmen.querySelector('svg'), info = el.querySelector('.kkI'), eingabe = el.querySelector('input');
     var leg = el.querySelector('.kkL'), bLeg = el.querySelector('[data-k="leg"]'), angriff = el.querySelector('.kkA');
-    var zielFeld = null, zielWesen = null, gesendet = false, stufe = 0, gefahrAn = false, warumAn = false;
+    var zielFeld = null, zielWesen = null, gesendet = false, stufe = 0, gefahrAn = false, warumAn = false, zuerst = false;
     var STUFEN = [1, 1.8, 2.8, 4];
 
     function $(q) { return el.querySelector(q); }
@@ -837,7 +887,7 @@
       Array.prototype.forEach.call(svg.querySelectorAll('.kkO.kkFern,.kkO.kkLang'), function (o) { o.classList.remove('kkFern'); o.classList.remove('kkLang'); });
       if (!g) return;
       if (!wf || !figur) { g.innerHTML = ''; return; }
-      var s = stand(), gr = s.groesse || 1, out = [];
+      var s = standAktion(), gr = s.groesse || 1, out = [];
       [wf.r, wf.rl].forEach(function (r, i) {
         if (!r) return;
         var x1 = Math.max(1, s.x - r), y1 = Math.max(1, s.y - r), x2 = Math.min(K.sp, s.x + gr - 1 + r), y2 = Math.min(K.ze, s.y + gr - 1 + r);
@@ -860,8 +910,50 @@
       if (!g) return;
       if (d <= budget) g.classList.add('kkEr'); else if (d <= budget * 2) g.classList.add('kkSp');
     });
+    // der blaue Rahmen der Bewegung (seit 1.4): die Grenze der Felder, die die Figur in diesem Zug erreicht,
+    // gestrichelt die Grenze mit Spurt
+    function umriss(inSet) {
+      var d = '';
+      Object.keys(inSet).forEach(function (key) {
+        var t = key.split(','), x = +t[0], y = +t[1], X = px(x), Y = py(y);
+        if (!inSet[x + ',' + (y - 1)]) d += 'M' + X + ' ' + Y + 'H' + (X + Z);
+        if (!inSet[x + ',' + (y + 1)]) d += 'M' + X + ' ' + (Y + Z) + 'H' + (X + Z);
+        if (!inSet[(x - 1) + ',' + y]) d += 'M' + X + ' ' + Y + 'V' + (Y + Z);
+        if (!inSet[(x + 1) + ',' + y]) d += 'M' + (X + Z) + ' ' + Y + 'V' + (Y + Z);
+      });
+      return d;
+    }
+    (function zeigeBewegung() {
+      var g = svg.querySelector('.kkBew');
+      if (!g || !Wg || !figur) return;
+      var nah = {}, weit = {};
+      Object.keys(Wg.dist).forEach(function (key) { var d = Wg.dist[key]; if (d <= budget) nah[key] = 1; if (d <= budget * 2) weit[key] = 1; });
+      // Felder mit einem Wesen darauf, rundum erreichbar, gehören zum Rahmen dazu (sonst zeichnet er Löcher um jeden Stein)
+      [nah, weit].forEach(function (set) {
+        K.wesen.forEach(function (w) {
+          for (var dx = 0; dx < w.groesse; dx++) for (var dy = 0; dy < w.groesse; dy++) {
+            var x = w.x + dx, y = w.y + dy, n = 0;
+            [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (s) { if (set[(x + s[0]) + ',' + (y + s[1])]) n++; });
+            if (n >= 3) set[x + ',' + y] = 1;
+          }
+        });
+      });
+      g.innerHTML = '<path class="kkBwS" d="' + umriss(weit) + '"/><path class="kkBw" d="' + umriss(nah) + '"/>';
+    })();
 
-    var leiste = el.querySelector('.kkZl');
+    var leiste = el.querySelector('.kkZl'), rahmenW = el.querySelector('.kkRW');
+    // Blättern (seit 1.4): vier Pfeile am Rand, jeder nur zu sehen, wenn die Karte in seine Richtung weitergeht
+    function pfeile() {
+      var l = rahmen.scrollLeft, t = rahmen.scrollTop, mw = rahmen.scrollWidth - rahmen.clientWidth, mh = rahmen.scrollHeight - rahmen.clientHeight;
+      var an = { w: l > 4, e: l < mw - 4, n: t > 4, s: t < mh - 4 };
+      Object.keys(an).forEach(function (r) { var b = rahmenW.querySelector('.kkBl-' + r); if (b) b.hidden = !an[r]; });
+    }
+    function blaettern(r) {
+      var dx = r === 'e' ? rahmen.clientWidth * 0.8 : r === 'w' ? -rahmen.clientWidth * 0.8 : 0, dy = r === 's' ? rahmen.clientHeight * 0.8 : r === 'n' ? -rahmen.clientHeight * 0.8 : 0;
+      if (rahmen.scrollBy) rahmen.scrollBy({ left: dx, top: dy, behavior: 'smooth' }); else { rahmen.scrollLeft += dx; rahmen.scrollTop += dy; }
+      setTimeout(pfeile, 400);
+    }
+    rahmen.addEventListener('scroll', pfeile);
     function stelle() {
       var breit = rahmen.getBoundingClientRect().width || 380;
       var faktor = STUFEN[stufe];
@@ -871,12 +963,14 @@
       var f = Math.round(breit * faktor) / W, zl = [];
       if (faktor > 1.02) for (var y = 1; y <= K.ze; y++) zl.push('<span style="top:' + Math.round((py(y) + Z / 2) * f) + 'px">' + (ZEILEN[(D._uy + y - 2) % 26] || '?') + '</span>');
       leiste.innerHTML = zl.join('');
+      pfeile();
     }
     function zurFigur() {
       if (!figur) return;
       var breit = svg.getBoundingClientRect().width || 380, f = breit / W;
       rahmen.scrollLeft = Math.max(0, (px(figur.x) + Z / 2) * f - rahmen.clientWidth / 2);
       rahmen.scrollTop = Math.max(0, (py(figur.y) + Z / 2) * f - rahmen.clientHeight / 2);
+      pfeile();
     }
     function zeigeWeg(p) {
       var g = svg.querySelector('.kkWeg');
@@ -896,6 +990,31 @@
       if (x) { var f = feldEl(x, y); if (f) f.classList.add('kkZi'); }
     }
     function feldText(x, y) { var h = hoehe(K, x, y); return feldName(D, x, y) + (h > 0 ? ' (' + m(h) + ' hoch)' : ''); }
+    // die Art eines Felds für die Infozeile (seit 1.4): „seichtes Wasser, schwierig“
+    function feldArt(x, y) {
+      var a = ARTEN[K.raster[y - 1][x - 1]] || ARTEN['?'];
+      if (a.unbekannt) return '';
+      return a.kurz + (a.kosten === 2 ? ', schwierig' : '') + (istStufe(K, x, y) && !a.stufe ? ', Rampe' : '');
+    }
+    // was die Figur über ein Wesen weiß (seit 1.4): Art, Feld und Höhe, Entfernung, Reichweite, Zustände, Wunde, Notiz
+    function wesenText(w, von) {
+      var t = ['<b>' + esc(w.name) + '</b>' + (w.kurz !== w.name ? ' (' + esc(w.kurz) + ')' : '') + ' · ' + ART_NAME[w.art] + (w.groesse > 1 ? ', ' + w.groesse + ' × ' + w.groesse + ' Felder' : '')];
+      t.push(feldText(w.x, w.y) + ' · ' + zielText(von) + ' von ' + (von === figur ? 'dir' : feldName(D, von.x, von.y)));
+      if (w._r && w._r > 1) t.push('Reichweite ' + m(w._r));
+      if (w._wunde) t.push({ angeschlagen: 'angeschlagen', schwer: 'schwer verletzt', tot: 'tot' }[w._wunde]);
+      if (w._tp) t.push('TP ' + w._tp[0] + '/' + w._tp[1]);
+      (w.zustaende || []).forEach(function (z) { t.push(z); });
+      // vom freien `zustand` nur, was Plaketten und Wundring nicht schon sagen
+      String(w.zustand || '').split(/[,;]\s*/).forEach(function (teil) {
+        var tl = teil.toLowerCase().trim();
+        if (!tl) return;
+        if (ZUSTAND_WORTE.some(function (p) { return p[0].test(tl); }) || /tot|verletzt|verwundet|blut|angeschlagen|sterbend/.test(tl)) return;
+        t.push(esc(teil.trim()));
+      });
+      if (w.notiz) t.push(esc(w.notiz));
+      if (w.art === 'gegner' && kampffaehig(w)) t.push('bedroht ' + Object.keys(zoneVon(w)).length + ' Felder (gestrichelt)');
+      return t.join(' · ');
+    }
     function wegText(p) {
       var ph = pfadHoehe(K, p), t = [];
       if (ph.klettern) t.push('klettert ' + m(ph.klettern));
@@ -907,6 +1026,8 @@
       return m(ab) + (dh ? ', ' + m(Math.abs(dh)) + (dh > 0 ? ' höher' : ' tiefer') : '');
     }
     function stand() { return zielFeld ? { x: zielFeld[0], y: zielFeld[1], groesse: figur.groesse } : figur; }
+    // von wo die Aktion ausgeht: vom Zielfeld, oder vom Stand, wenn „Aktion zuerst“ gewählt ist (seit 1.4)
+    function standAktion() { return zuerst ? figur : stand(); }
     // Gelegenheitsangriffe auf dem Weg, als Satz („verlässt Räuber 2 und Räuber 3: Gelegenheitsangriffe“)
     function oaText(p, html) {
       var o = gelegenheiten(K, p);
@@ -918,15 +1039,15 @@
     function angriffsZeile() {
       var wf = waffe();
       if (!wf || !zielWesen) return null;
-      var bewegt = !!zielFeld;
+      var bewegt = !!zielFeld && !zuerst;
       return { L: angriffsLage(K, bewegt ? stand() : figur, zielWesen, wf, liegtFigur && !bewegt), wf: wf };
     }
     function lage() {
       if (!figur) { sag('Die Figur steht nicht auf der Karte; die Spielleitung erzählt die Lage.'); angriff.hidden = true; return; }
       var t = [], p = zielFeld ? pfad(Wg, zielFeld[0], zielFeld[1]) : null, oa = p ? gelegenheiten(K, p) : [];
       if (zielFeld) {
-        var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]];
-        t.push('<b>' + esc(figur.name) + '</b> nach ' + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d));
+        var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]], fa = feldArt(zielFeld[0], zielFeld[1]);
+        t.push('<b>' + esc(figur.name) + '</b> nach ' + feldText(zielFeld[0], zielFeld[1]) + (fa ? ', ' + esc(fa) : '') + ' · ' + m(d));
         wegText(p).forEach(function (s) { t.push(/springt/.test(s) ? s + ' (1W6 Wucht je 3 m, am Boden)' : s); });
         if (d > budget) t.push('<b>Spurt</b>');
         var a = ARTEN[K.raster[zielFeld[1] - 1][zielFeld[0] - 1]];
@@ -934,50 +1055,53 @@
         if (a && a.deckung) t.push(a.deckung + ' Deckung');
         if (liegtFigur) t.push('steht auf (halbe Bewegung)');
         if (oa.length) t.push(oaText(p, true));
-      } else {
-        var hf = hoeheVon(K, figur);
-        t.push('<b>' + esc(figur.name) + '</b> steht auf ' + feldName(D, figur.x, figur.y) + (hf > 0 ? ', ' + m(hf) + ' hoch' : '') + (liegtFigur ? ' und liegt am Boden (aufstehen kostet die halbe Bewegung)' : '') + '. Tippe auf ein Feld, um zu ziehen (bis ' + m(budget) + ', mit Spurt ' + m(budget * 2) + '), oder auf ein Wesen; der Pfeil schickt den Zug, ohne Feld bleibt die Figur stehen.');
+      } else if (!zielWesen) {
+        var hf = hoeheVon(K, figur), fa0 = feldArt(figur.x, figur.y);
+        t.push('<b>' + esc(figur.name) + '</b> steht auf ' + feldName(D, figur.x, figur.y) + (fa0 ? ' (' + esc(fa0) + ')' : '') + (hf > 0 ? ', ' + m(hf) + ' hoch' : '') + (liegtFigur ? ' und liegt am Boden (aufstehen kostet die halbe Bewegung)' : '') + '. Tippe auf ein Feld, um zu ziehen (blauer Rahmen: bis ' + m(budget) + ', gestrichelt mit Spurt bis ' + m(budget * 2) + '), oder auf ein Wesen; der Pfeil schickt den Zug, ohne Feld bleibt die Figur stehen.');
       }
-      var A = angriffsZeile();
-      if (zielWesen && !A) {
-        var ab = abstand(stand(), zielWesen, K);
-        t.push('Ziel: <b>' + esc(zielWesen.name) + '</b> · ' + zielText(stand()) + (ab <= 1 ? ' (in Reichweite)' : '') + (zielWesen.zustand ? ' · ' + esc(zielWesen.zustand) : '') + (zielWesen.notiz ? ' · ' + esc(zielWesen.notiz) : ''));
-      }
-      sag(t.join(' · '));
+      if (zielFeld && zuerst) t.push('<b>Aktion zuerst</b>, dann der Weg');
+      var A = angriffsZeile(), zeilen = [];
+      // das angetippte Wesen (seit 1.4): was die Figur über es weiß, als eigene Zeile vor dem Weg
+      if (zielWesen) zeilen.push(wesenText(zielWesen, standAktion()));
+      if (t.length) zeilen.push(t.join(' · '));
+      sag(zeilen.join('<br>'));
       // die Lagezeile zum Angriff (seit 1.2): grün bei Vorteil, rot bei Nachteil, blass außer Reichweite
       if (A) {
         var L = A.L, warum = L.warum.slice();
         if (oa.length) warum.push('Gelegenheitsangriff: Wer die Reichweite eines Gegners verlässt, fängt dessen Reaktion, außer er nimmt die Aktion Rückzug (PHB).');
         angriff.hidden = false;
         angriff.className = 'kkA' + (L.status === 'aus' ? ' kkAus' : L.netto > 0 ? ' kkVor' : L.netto < 0 ? ' kkNach' : '');
-        angriff.innerHTML = lageText(L, A.wf, zielWesen) + (zielWesen.zustand && !liegt(zielWesen) && kampffaehig(zielWesen) ? ' · ' + esc(zielWesen.zustand) : '') +
-          (zielWesen.notiz ? ' · ' + esc(zielWesen.notiz) : '') +
+        angriff.innerHTML = lageText(L, A.wf, zielWesen) +
           ' <button type="button" data-k="warum" aria-expanded="' + (warumAn ? 'true' : 'false') + '">' + (warumAn ? 'Weniger' : 'Warum?') + '</button>' +
           (warumAn ? '<ul class="kkWarum">' + warum.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '');
       } else { angriff.hidden = true; angriff.innerHTML = ''; }
       zeigeReich();
     }
+    // Die Zugzeile: Weg, dann Aktion; mit „Aktion zuerst“ (seit 1.4) die Aktion vom Stand aus, „dann“ der Weg
     function zeile() {
-      var s = 'Kampf #' + (D.nr || '?') + ' · ' + figur.name, bewegt = !!zielFeld;
-      if (!bewegt) s += ' bleibt auf ' + feldName(D, figur.x, figur.y);
+      var bewegt = !!zielFeld, weg = '', aktion = '';
+      if (!bewegt) weg = ' bleibt auf ' + feldName(D, figur.x, figur.y);
       else {
         var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]], p = pfad(Wg, zielFeld[0], zielFeld[1]);
-        s += ' nach ' + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d);
-        wegText(p).forEach(function (w) { s += ' · ' + w; });
-        if (d > budget) s += ' · Spurt';
+        weg = ' nach ' + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d);
+        wegText(p).forEach(function (w) { weg += ' · ' + w; });
+        if (d > budget) weg += ' · Spurt';
         var oa = oaText(p, false);
-        if (oa) s += ' · ' + oa;
+        if (oa) weg += ' · ' + oa;
       }
       if (zielWesen) {
         var A = angriffsZeile();
-        if (A) s += ' · ' + lageKurz(A.L, A.wf, zielWesen);
-        else s += ' · Ziel: ' + zielWesen.name + ' (' + zielText(bewegt ? stand() : figur) + ')';
+        if (A) aktion = lageKurz(A.L, A.wf, zielWesen);
+        else aktion = 'Ziel: ' + zielWesen.name + ' (' + zielText(standAktion()) + ')';
       } else {
         // ohne angetipptes Ziel (seit 1.3.1): die gewählte Waffe oder der gewählte Zauber steht trotzdem in der Zeile,
         // damit „auf den Schützen“ im Freitext nicht ohne den Zauber ankommt
         var wf0 = waffe();
-        if (wf0) s += ' · ' + (wf0.zauber ? 'Zauber: ' : 'Waffe: ') + wf0.name;
+        if (wf0) aktion = (wf0.zauber ? 'Zauber: ' : 'Waffe: ') + wf0.name;
       }
+      var s = 'Kampf #' + (D.nr || '?') + ' · ' + figur.name;
+      if (zuerst && bewegt && aktion) s += ': ' + aktion + ', dann' + weg;
+      else s += weg + (aktion ? ' · ' + aktion : '');
       var a = (eingabe.value || '').trim();
       if (a) s += ' · ' + a;
       return s;
@@ -1033,6 +1157,8 @@
       else if (k === 'plus') { stufe = Math.min(STUFEN.length - 1, stufe + 1); stelle(); zurFigur(); }
       else if (k === 'minus') { stufe = Math.max(0, stufe - 1); stelle(); zurFigur(); }
       else if (k === 'figur') zurFigur();
+      else if (k === 'blatt') blaettern(b.getAttribute('data-r'));
+      else if (k === 'zuerst') { if (gesendet) return; zuerst = !zuerst; b.setAttribute('aria-pressed', String(zuerst)); lage(); }
       else if (k === 'gefahr') { gefahrAn = !gefahrAn; b.setAttribute('aria-pressed', String(gefahrAn)); zeigeGefahr(gefahrAn); }
       else if (k === 'waffe') {
         if (gesendet) return;

@@ -121,7 +121,7 @@ function klickWesen(pg, i) {
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.3.1');
+  assert.strictEqual(kampf.version, '1.4');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -141,6 +141,19 @@ function klickWesen(pg, i) {
   assert.ok(kampf.kachelBild('~').indexOf('<svg') === 0 && kampf.plaketteBild('ergibt sich').indexOf('kkPl') > 0, 'Bilder für die Legende');
   assert.strictEqual(kampf.zustaende.length, 20, 'zwanzig Zustände mit Plakette (Lagebild 1.2)');
   ok('1.3: Modi, Zauber mit Waffe, Zustände, Wunden');
+
+  // 1.4: Zauber mit Rettungswurf und Heilung, Trefferpunkte
+  var dw = kampf.wirksam(bf.zauber[2]), hw = kampf.wirksam(bf.zauber[3]);
+  assert.deepStrictEqual([dw.ohneWurf, dw.rettung, dw.sg, dw.r, hw.ohneWurf, hw.heilung], [true, 'WEI', 12, 12, true, '2W4+2'], 'ohne Angriffswurf');
+  var L3 = kampf.angriffsLage(B, bf, b2, dw, false);
+  assert.deepStrictEqual([L3.status, L3.vor, L3.nach, L3.netto], ['in', [], [], 0], 'Rettungswurf-Zauber: nur Reichweite und Sichtlinie');
+  assert.strictEqual(kampf.lageKurz(L3, dw, b2), 'Zauber: Dissonant Whispers auf Räuber 2 (3 m; Rettungswurf WEI SG 12)');
+  var hanL = kampf.angriffsLage(B, bf, hanno, hw, false);
+  assert.strictEqual(kampf.lageKurz(hanL, hw, hanno), 'Zauber: Healing Word auf Hanno (1,5 m)');
+  assert.deepStrictEqual([bf._tp, bf._wunde], [[8, 27], 'angeschlagen'], 'TP der Figur, Wundstufe daraus');
+  var tot0 = kampf.lies({ wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 1, tp: [0, 20] }] }).figur;
+  assert.ok(tot0.zustaende.indexOf('bewusstlos') >= 0, '0 TP heißt bewusstlos');
+  ok('1.4: Rettungswurf, Heilung, Trefferpunkte');
 })();
 
 (async function () {
@@ -156,10 +169,10 @@ function klickWesen(pg, i) {
     ok('Raster, Wesen, Markierung');
 
     await klickFeld(pg, 7, 3);
-    assert.ok(/nach 7\/C · 4,5 m/.test(await pg.innerText('#kampf .kkI')), 'Weg und Entfernung');
+    assert.ok(/nach 7\/C, Stein · 4,5 m/.test(await pg.innerText('#kampf .kkI')), 'Weg, Feldart und Entfernung: ' + await pg.innerText('#kampf .kkI'));
     assert.ok(await pg.locator('#kampf .kkWeg path').count() === 1, 'Weg gezeichnet');
     await klickWesen(pg, 3);
-    assert.ok(/Ziel: Räuber 1 · 10,5 m · verwundet/.test(await pg.innerText('#kampf .kkI')), 'Ziel mit Entfernung');
+    assert.ok(/Räuber 1 \(R1\) · Gegner · 14\/C · 10,5 m von 7\/C · angeschlagen · bedroht/.test(await pg.innerText('#kampf .kkI')), 'Wesen-Info mit Entfernung vom Zielfeld: ' + await pg.innerText('#kampf .kkI'));
     await pg.fill('#kampf input', 'Starry Wisp auf ihn');
     await pg.click('#kampf button[data-k="zug"]');
     var g = await pg.evaluate(function () { return GESENDET; });
@@ -189,11 +202,11 @@ function klickWesen(pg, i) {
     assert.ok((await pgH.locator('#kampf g.kkHs').count()) >= 2, 'Höhenschilder');
     assert.ok((await pgH.locator('#kampf .kkZl span').count()) === 12, 'Zeilenbuchstaben links, die stehen bleiben');
     await klickFeld(pgH, 12, 4);
-    assert.ok(/nach 12\/D \(3 m hoch\) · 15 m · klettert 3 m · Spurt/.test(await pgH.innerText('#kampf .kkI')), 'Weg mit Höhe und Klettern: ' + await pgH.innerText('#kampf .kkI'));
+    assert.ok(/nach 12\/D \(3 m hoch\), Stein · 15 m · klettert 3 m · Spurt/.test(await pgH.innerText('#kampf .kkI')), 'Weg mit Höhe und Klettern: ' + await pgH.innerText('#kampf .kkI'));
     await klickWesen(pgH, 2);
-    assert.ok(/Ziel: Räuber 1 · 4,5 m/.test(await pgH.innerText('#kampf .kkI')), 'Ziel auf gleicher Ebene ohne Höhenangabe');
+    assert.ok(/Räuber 1 \(R1\) · Gegner · 15\/E \(3 m hoch\) · 4,5 m von 12\/D/.test(await pgH.innerText('#kampf .kkI')), 'Ziel auf gleicher Ebene ohne Höhenangabe: ' + await pgH.innerText('#kampf .kkI'));
     await klickFeld(pgH, 12, 4);
-    assert.ok(/Ziel: Räuber 1 · 9 m, 3 m höher/.test(await pgH.innerText('#kampf .kkI')), 'Ziel von unten: Entfernung und Höhe: ' + await pgH.innerText('#kampf .kkI'));
+    assert.ok(/· 9 m, 3 m höher von dir/.test(await pgH.innerText('#kampf .kkI')), 'Ziel von unten: Entfernung und Höhe: ' + await pgH.innerText('#kampf .kkI'));
     await klickFeld(pgH, 27, 7);
     await pgH.click('#kampf button[data-k="zug"]');
     var gH = await pgH.evaluate(function () { return GESENDET; });
@@ -230,7 +243,7 @@ function klickWesen(pg, i) {
     assert.ok(/Angriff: Langschwert \+4 · 1W8\+2 Hieb · Räuber 1: außer Reichweite \(4,5 m, Langschwert reicht 1,5 m\)/.test(A1), 'Lagezeile außer Reichweite: ' + A1);
     assert.ok(/kkAus/.test(await pgA.getAttribute('#kampf .kkA', 'class')), 'blass');
     await klickFeld(pgA, 6, 5);
-    assert.ok(/nach 6\/E · 3 m/.test(await pgA.innerText('#kampf .kkI')), 'Weg');
+    assert.ok(/nach 6\/E, Stein · 3 m/.test(await pgA.innerText('#kampf .kkI')), 'Weg: ' + await pgA.innerText('#kampf .kkI'));
     var A2 = await pgA.innerText('#kampf .kkA');
     assert.ok(/Räuber 1: 1,5 m · in Reichweite · Vorteil: Ziel am Boden/.test(A2), 'Lagezeile mit Vorteil: ' + A2);
     assert.ok(/kkVor/.test(await pgA.getAttribute('#kampf .kkA', 'class')), 'grün');
@@ -262,7 +275,7 @@ function klickWesen(pg, i) {
     assert.ok((await pgD.locator('#kampf .kkKan rect.kkSch').count()) >= 12, 'Schatten an der Böschung');
     assert.strictEqual(await pgD.locator('#kampf g.kkHs').count(), 2, 'ein Schild je Fläche: Böschung +3 m und die Stufe +1,5 m');
     assert.strictEqual(await pgD.locator('#kampf button[data-k="waffe"]').count(), 2, 'zwei Waffen');
-    assert.strictEqual(await pgD.locator('#kampf button[data-k="zauber"]').count(), 2, 'zwei Zauber');
+    assert.strictEqual(await pgD.locator('#kampf button[data-k="zauber"]').count(), 4, 'vier Zauber');
     assert.strictEqual(await pgD.locator('#kampf button[data-k="bleib"]').count(), 0, 'kein „Bleiben“');
     assert.strictEqual(await pgD.locator('#kampf button.kkPfeil[data-k="zug"] svg').count(), 1, 'der Pfeil schickt den Zug');
     assert.strictEqual(await pgD.getAttribute('#kampf button[data-k="waffe"][data-i="0"] svg.kkMo', 'aria-label'), 'einhändig', 'Langschwert zeigt eine Faust');
@@ -319,6 +332,34 @@ function klickWesen(pg, i) {
     assert.deepStrictEqual(gF, ['Kampf #11 · Probefigur bleibt auf 9/C · Zauber: Zielsicherer Schlag mit Langschwert, einhändig · Auf S']);
     ok('1.3.1: Zauber ohne Ziel in der Zugzeile');
 
+    // 1.4 im Widget: blauer Rahmen, Pfeile, Wesen-Info, Rettungswurf-Zauber, Aktion zuerst, TP im Kopf
+    var pgG = await seite(b, DREI);
+    assert.ok((await pgG.getAttribute('#kampf .kkBew path.kkBw', 'd')).length > 40, 'blauer Rahmen der Bewegung');
+    assert.ok((await pgG.getAttribute('#kampf .kkBew path.kkBwS', 'd')).length > 40, 'gestrichelt mit Spurt');
+    assert.ok(/TP: 8\/27/.test(await pgG.innerText('#kampf .kkKopf2')), 'TP im Kopf');
+    assert.strictEqual(await pgG.locator('#kampf .kkTp.kkTpA').count(), 1, 'unter der Hälfte: gold');
+    assert.strictEqual(await pgG.locator('#kampf g.kkO.kkA-figur circle.kkWa').count(), 1, 'die Figur trägt den Wundring');
+    assert.strictEqual(await pgG.locator('#kampf .kkBl-e:not([hidden])').count(), 1, 'Pfeil nach rechts, die Karte geht weiter');
+    assert.strictEqual(await pgG.locator('#kampf .kkBl-n:not([hidden])').count(), 0, 'nach oben nicht');
+    var sl0 = await pgG.evaluate(function () { return document.querySelector('#kampf .kkR').scrollLeft; });
+    await pgG.click('#kampf .kkBl-e');
+    await pgG.waitForTimeout(600);
+    var sl1 = await pgG.evaluate(function () { return document.querySelector('#kampf .kkR').scrollLeft; });
+    assert.ok(sl1 > sl0 + 50, 'geblättert: ' + sl0 + ' -> ' + sl1);
+    await klickWesen(pgG, 2); // Räuber 2
+    var wiT = await pgG.innerText('#kampf .kkI');
+    assert.ok(/^Räuber 2 \(R2\) · Gegner · 11\/B · 3 m von dir · schwer verletzt · vergiftet · liegend · bedroht 8 Felder/.test(wiT), 'Wesen-Info: ' + wiT);
+    await pgG.click('#kampf button[data-k="zauber"][data-i="2"]'); // Dissonant Whispers
+    var AG = await pgG.innerText('#kampf .kkA');
+    assert.ok(/^Zauber: Dissonant Whispers · Rettungswurf WEI gegen SG 12 · 3W6 psychisch · halb bei Erfolg; muss mit seiner Reaktion fliehen · Räuber 2: 3 m · in Reichweite/.test(AG), 'Lagezeile ohne Angriffswurf: ' + AG);
+    await klickFeld(pgG, 13, 3);
+    await pgG.click('#kampf button[data-k="zuerst"]');
+    assert.ok(/Aktion zuerst/.test(await pgG.innerText('#kampf .kkI')), 'Aktion zuerst in der Infozeile');
+    await pgG.click('#kampf button[data-k="zug"]');
+    var gG = await pgG.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gG, ['Kampf #11 · Probefigur: Zauber: Dissonant Whispers auf Räuber 2 (3 m; Rettungswurf WEI SG 12), dann nach 13/C · 6 m · verlässt Räuber 2: Gelegenheitsangriff']);
+    ok('1.4: Rahmen, Pfeile, Wesen-Info, Rettungswurf, Aktion zuerst, TP');
+
     var OA = { nr: 3, titel: 'Gasse', figur: 'f', spalten: 8, zeilen: 4, boden: ['########', '........', '........', '........'],
       wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 2, y: 2, bewegung: 9, waffen: [{ name: 'Keule', reichweite: 1.5 }] }, { id: 'r', name: 'Räuber', art: 'gegner', x: 3, y: 3 }] };
     var pgO = await seite(b, OA);
@@ -330,7 +371,7 @@ function klickWesen(pg, i) {
     assert.deepStrictEqual(gO, ['Kampf #3 · Figur nach 6/B · 6 m · verlässt Räuber: Gelegenheitsangriff · Waffe: Keule']);
     ok('Gelegenheitsangriff');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgO.fehler), [], 'keine Fehler im Browser');
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgO.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }

@@ -2,6 +2,20 @@
 
 Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
 
+## Kampfkarte 1.4 (30. Oktober 2026)
+
+Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/welt (`tische_stand`) und Regelwerk 4.2 einträgt. Anlass: der Probekampf an der Furt am Mühlbach mit 1.3 und die Rückmeldung des Weltenhüters danach. Alles abwärtskompatibel.
+
+- **Blauer Rahmen der Bewegung**: Die Grenze der Felder, die die Figur in diesem Zug erreicht, als blaue Linie, die mit Spurt gestrichelt (die goldene Tönung war zu wenig sichtbar). Felder mit einem Wesen darauf, rundum erreichbar, liegen innerhalb.
+- **Blättern**: Vier Pfeile am Kartenrand, jeder nur zu sehen, wenn die Karte in seine Richtung weitergeht; ein Tipp blättert um vier Fünftel des Ausschnitts (Fingerscrollen geht weiter).
+- **Faust als Umriss**: Die Modus-Zeichen der Waffen sind jetzt Linien (drei Knöchel, der Daumen als Bogen), zwei Fäuste nebeneinander, Fadenkreuz wie bisher.
+- **Auskunft zum Wesen**: Ein Tipp auf ein Wesen nennt in der Infozeile, was die Figur weiß: Art, Feld und Höhe, Entfernung vom Stand oder vom Zielfeld, Reichweite, Wunde, Zustände, Notiz, bedrohte Felder; ein Tipp auf ein Feld nennt seine Art („seichtes Wasser, schwierig“).
+- **Zauber mit Rettungswurf, Heilung, Wirkung** (`zauber[].rettung`, `sg`, `heilung`, `wirkung`): Dissonant Whispers, Command, Healing Word stehen in der Zauberzeile; die Lagezeile nennt Rettungswurf und Wirkung und rechnet nur Reichweite und Sichtlinie; die Zugzeile „Zauber: Dissonant Whispers auf Räuber 2 (3 m; Rettungswurf WEI SG 12)“. Im Probekampf musste das in den Freitext.
+- **Aktion zuerst**: Ein Schalter neben dem Freitext; die Aktion geht vom Stand aus, die Zugzeile sagt „<Figur>: Zauber: … auf Räuber 2, dann nach 13/C · 6 m · verlässt Räuber 2: Gelegenheitsangriff“. So lässt sich die Reaktion eines Gegners verbrauchen, bevor man an ihm vorbeigeht.
+- **TP im Kopf** (`tp: [jetzt, max]` bei der Figur): Zahl und Balken (grün, unter der Hälfte gold, unter einem Viertel rot) und der Wundring am Stein; 0 TP heißt bewusstlos.
+- Tests: `test/kampf.test.js` prüft dazu Rahmen, Pfeile, Auskunft, Rettungswurf-Zauber, „Aktion zuerst“ und TP (18 Prüfungen).
+- Für die Spielleitung, aus demselben Probekampf (kein Code): Schaden und verbleibende Trefferpunkte eines Ziels gehören nicht in die Erzählung („neun, halbiert vier – und vier hat er nicht mehr“ war falsch); der Kasten zeigt den Wurf, die Erzählung die Wirkung. Vorschlag für Regelwerk 6.3.
+
 ## Kampfkarte 1.3.1 (30. Oktober 2026)
 
 Werkzeug. Aus dem Probekampf an der Furt am Mühlbach mit 1.3: Der Spieler hatte den Zielsicheren Schlag in der Zauberzeile gewählt und „Auf S“ in den Freitext geschrieben, ohne den Schützen auf der Karte anzutippen; die Zugzeile schickte den Zauber nicht mit, und die Spielleitung nahm zweimal das Langschwert an. Seit 1.3.1 trägt die Zugzeile die gewählte Waffe oder den gewählten Zauber auch ohne angetipptes Ziel („… bleibt auf 19/B · Zauber: Zielsicherer Schlag mit Langschwert, beidhändig · Auf S“). Prüfung dazu in `test/kampf.test.js` (16 Prüfungen).
