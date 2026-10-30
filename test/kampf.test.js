@@ -8,6 +8,7 @@ var chromium = require('playwright').chromium;
 var code = fs.readFileSync(path.join(__dirname, '..', 'kampf.js'), 'utf8');
 var KAMPF = require('./kampf-beispiel.js');
 var HOEHE = require('./kampf-hoehe-beispiel.js');
+var STUFEA = require('./kampf-stufe-a-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -73,6 +74,49 @@ function klickWesen(pg, i) {
   assert.deepStrictEqual(kampf.pfadHoehe(oben, kampf.pfad(WO, 12, 7)), { klettern: 0, sprung: 2 }, 'von der Terrasse über die Brustwehr hinab ist ein Sprung von zwei Ebenen');
   assert.strictEqual(WO.dist['12,7'], 3, 'hinab kostet nur das Gelände');
   ok('Höhe: Klettern, Treppe, Rampe, Sprung, Abstand');
+
+  // Stufe A (1.2): Waffen, Reichweite, Zonen, Gelegenheitsangriffe, Deckung, Lage
+  assert.deepStrictEqual([1.5, 3, 18, 96, 0.5].map(kampf.felder), [1, 2, 12, 64, 1], 'Meter in Felder');
+  var A = kampf.lies(STUFEA), fig = A.figur, r1 = A.wesen[2], r2 = A.wesen[3], s = A.wesen[5];
+  assert.strictEqual(fig.waffen.length, 3);
+  assert.deepStrictEqual([fig.waffen[0].r, fig.waffen[0].rl, fig.waffen[0].fern], [1, 0, false], 'Langschwert: Nahkampf, ein Feld');
+  assert.deepStrictEqual([fig.waffen[1].r, fig.waffen[1].rl, fig.waffen[1].fern], [4, 12, true], 'Dolch geworfen: 6/18 m');
+  assert.deepStrictEqual([fig.waffen[2].r, fig.waffen[2].rl, fig.waffen[2].fern, fig.waffen[2].zauber], [12, 0, true, true], 'Starry Wisp: 18 m, Zauber');
+  assert.strictEqual(r2._r, 2, 'Spieß: 3 m sind zwei Felder');
+  assert.strictEqual(kampf.bedroht(A, r2, 7, 5), true, 'zwei Felder schräg: bedroht');
+  assert.strictEqual(kampf.bedroht(A, r2, 6, 5), false, 'drei Felder: nicht');
+  assert.strictEqual(kampf.bedroht(A, r2, 9, 3), false, 'das eigene Feld nicht');
+  assert.strictEqual(Object.keys(kampf.zone(A, r1)).length, 8, 'Zone eines Räubers mit 1,5 m: acht Felder');
+  assert.strictEqual(Object.keys(kampf.zone(A, r2)).length, 19, 'Zone mit 3 m: 24 Felder, ohne die fünf in der Wand');
+  assert.strictEqual(kampf.gelegenheiten(A, [[6, 4], [5, 3]]).length, 1, 'aus der Reichweite heraus: Gelegenheitsangriff');
+  assert.strictEqual(kampf.gelegenheiten(A, [[6, 4], [7, 4], [8, 5]]).length, 0, 'in der Reichweite bleiben: keiner');
+  assert.strictEqual(kampf.gelegenheiten(A, [[6, 4], [5, 3], [6, 4], [5, 3]]).length, 1, 'je Gegner nur einmal');
+  var dk = kampf.deckung(A, fig, s);
+  assert.strictEqual(dk.stufe, 3, 'die Wand zwischen Keller und Vorraum: ganze Deckung');
+  dk = kampf.deckung(A, { x: 4, y: 5, groesse: 1 }, r2);
+  assert.deepStrictEqual([dk.stufe, dk.grund], [1, 'Gesine bei 5/D'], 'Gesine steht in der Linie (und dahinter das Fass): halbe Deckung');
+  dk = kampf.deckung(A, { x: 6, y: 6, groesse: 1 }, { x: 6, y: 2, groesse: 1 });
+  assert.deepStrictEqual([dk.stufe, dk.grund], [1, 'niedrige Deckung bei 6/D'], 'die Spalte hinauf liegt nur das Fass in der Linie');
+  dk = kampf.deckung(A, { x: 4, y: 3, groesse: 1 }, r2);
+  assert.strictEqual(dk.stufe, 0, 'die Zeile entlang ist frei');
+  var L = kampf.angriffsLage(A, { x: 6, y: 5, groesse: 1 }, r1, fig.waffen[0], false);
+  assert.deepStrictEqual([L.status, L.vor, L.nach, L.netto, L.deckung.stufe], ['in', ['Ziel am Boden'], [], 1, 0], 'Langschwert auf den Liegenden: Vorteil');
+  assert.strictEqual(kampf.lageKurz(L, fig.waffen[0], r1), 'Angriff: Langschwert auf Räuber 1 (1,5 m; Vorteil: Ziel am Boden)');
+  L = kampf.angriffsLage(A, { x: 6, y: 5, groesse: 1 }, r1, fig.waffen[1], false);
+  assert.deepStrictEqual([L.status, L.vor, L.nach, L.netto], ['in', ['Ziel am Boden'], ['Gegner neben dir'], 0], 'Wurf aus 1,5 m auf den Liegenden: hebt sich auf');
+  L = kampf.angriffsLage(A, fig, s, fig.waffen[2], false);
+  assert.strictEqual(L.status, 'aus'); assert.ok(/^keine Sichtlinie, eine Wand bei 12\/C/.test(L.grund), 'Zauber durch die Wand: ' + L.grund);
+  assert.strictEqual(kampf.lageKurz(L, fig.waffen[2], s), 'Ziel: Schütze (außer Reichweite: keine Sichtlinie, eine Wand bei 12/C)');
+  L = kampf.angriffsLage(A, fig, r2, fig.waffen[1], false);
+  assert.deepStrictEqual([L.status, L.nach, L.netto, L.deckung.stufe], ['lang', ['lange Reichweite'], -1, 1], 'Dolch auf 7,5 m: lange Reichweite, Fass dazwischen');
+  assert.strictEqual(kampf.lageKurz(L, fig.waffen[1], r2), 'Angriff: Dolch, geworfen auf Räuber 2 (7,5 m; lange Reichweite; halbe Deckung)');
+  L = kampf.angriffsLage(A, fig, r1, fig.waffen[0], false);
+  assert.deepStrictEqual([L.status, L.grund], ['aus', '4,5 m, Langschwert reicht 1,5 m'], 'zu weit für das Schwert');
+  var hochA = kampf.lies({ boden: ['....', '....', '....'], hoehe: ['0000', '0022', '0022'], wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 2, waffen: [{ name: 'Schwert', reichweite: 1.5 }] }, { id: 'g', name: 'Oben', art: 'gegner', x: 3, y: 2 }] });
+  L = kampf.angriffsLage(hochA, { x: 2, y: 2, groesse: 1 }, hochA.wesen[1], hochA.figur.waffen[0], false);
+  assert.deepStrictEqual([L.status, L.grund], ['aus', '3 m höher'], 'direkt unter der Kante: die Höhe ist der Grund');
+  assert.strictEqual(kampf.bedroht(hochA, hochA.wesen[1], 2, 2), false, 'von 3 m oben bedroht ein Schwert das Feld darunter nicht');
+  ok('Stufe A: Waffen, Zonen, Gelegenheitsangriffe, Deckung, Lage');
 })();
 
 (async function () {
@@ -133,7 +177,65 @@ function klickWesen(pg, i) {
     assert.strictEqual(await pg3.locator('#kampf rect.kkN').count(), 0, 'ohne boden ist alles Boden');
     ok('ohne Figur');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler), [], 'keine Fehler im Browser');
+    // Stufe A im Widget: Kopf, Reihenfolge, Waffen, Reichweite, Zonen, Lagezeile, Zugzeile
+    var pgA = await seite(b, STUFEA);
+    var kopf = await pgA.innerText('#kampf .kkKopf2');
+    assert.ok(/Ziel: Jost und das Zollfass/.test(kopf) && /Fackel: noch 2 Runden/.test(kopf) && /Wache: jetzt/.test(kopf) && /dämmrig/.test(kopf), 'Kopf mit Ziel, Uhren und Lage: ' + kopf);
+    assert.strictEqual(await pgA.locator('#kampf .kkIni .kkIt').count(), 7, 'Reihenfolge mit sieben Steinen');
+    assert.strictEqual(await pgA.locator('#kampf .kkIt.kkGeh').count(), 2, 'zwei haben vor der Figur gehandelt');
+    assert.strictEqual(await pgA.locator('#kampf .kkIt.kkJetzt').count(), 1, 'die Figur ist am Zug');
+    assert.strictEqual(await pgA.locator('#kampf button[data-k="waffe"]').count(), 3, 'drei Waffen');
+    assert.strictEqual(await pgA.getAttribute('#kampf button[data-k="waffe"][data-i="0"]', 'aria-pressed'), 'true', 'die erste Waffe ist gewählt');
+    assert.strictEqual(await pgA.locator('#kampf .kkReich rect').count(), 1, 'das Reichweitenquadrat des Schwerts');
+    assert.strictEqual(await pgA.locator('#kampf .kkO.kkFern').count(), 4, 'alle vier Gegner außer Schwertreichweite: blass');
+    await pgA.click('#kampf button[data-k="waffe"][data-i="1"]');
+    assert.strictEqual(await pgA.locator('#kampf .kkReich rect').count(), 2, 'Dolch: normale und lange Reichweite');
+    assert.strictEqual(await pgA.locator('#kampf .kkReich rect.kkRl').count(), 1, 'die lange gestrichelt');
+    await pgA.click('#kampf button[data-k="waffe"][data-i="2"]');
+    assert.strictEqual(await pgA.locator('#kampf .kkO.kkFern').count(), 0, 'Starry Wisp reicht zu allen');
+    await pgA.click('#kampf button[data-k="waffe"][data-i="0"]');
+    await klickWesen(pgA, 2);
+    assert.strictEqual(await pgA.locator('#kampf .kkF.kkGz').count(), 8, 'die Zone des angetippten Räubers');
+    var A1 = await pgA.innerText('#kampf .kkA');
+    assert.ok(/Angriff: Langschwert \+4 · 1W8\+2 Hieb · Räuber 1: außer Reichweite \(4,5 m, Langschwert reicht 1,5 m\)/.test(A1), 'Lagezeile außer Reichweite: ' + A1);
+    assert.ok(/kkAus/.test(await pgA.getAttribute('#kampf .kkA', 'class')), 'blass');
+    await klickFeld(pgA, 6, 5);
+    assert.ok(/nach 6\/E · 3 m/.test(await pgA.innerText('#kampf .kkI')), 'Weg');
+    var A2 = await pgA.innerText('#kampf .kkA');
+    assert.ok(/Räuber 1: 1,5 m · in Reichweite · Vorteil: Ziel am Boden/.test(A2), 'Lagezeile mit Vorteil: ' + A2);
+    assert.ok(/kkVor/.test(await pgA.getAttribute('#kampf .kkA', 'class')), 'grün');
+    await pgA.click('#kampf button[data-k="warum"]');
+    assert.ok((await pgA.locator('#kampf .kkWarum li').count()) >= 2, 'Warum: ein Satz je Posten');
+    await pgA.click('#kampf button[data-k="gefahr"]');
+    assert.ok((await pgA.locator('#kampf .kkF.kkGzA').count()) >= 30, 'Gefahr: alle Zonen');
+    await pgA.click('#kampf button[data-k="zug"]');
+    var gA = await pgA.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gA, ['Kampf #9 · Probefigur nach 6/E · 3 m · Angriff: Langschwert auf Räuber 1 (1,5 m; Vorteil: Ziel am Boden)']);
+    ok('Stufe A im Widget');
+
+    var pgA2 = await seite(b, STUFEA);
+    await pgA2.click('#kampf .kkIt[data-w="3"]');
+    assert.strictEqual(await pgA2.locator('#kampf .kkO[data-w="3"].kkSel').count(), 1, 'Tipp in der Leiste wählt den Gegner');
+    assert.strictEqual(await pgA2.locator('#kampf .kkF.kkGz').count(), 19, 'und zeigt seine Zone (Spieß, 3 m, ohne die Wand)');
+    await pgA2.click('#kampf .kkIt[data-w="3"]');
+    assert.strictEqual(await pgA2.locator('#kampf .kkF.kkGz').count(), 0, 'noch einmal: aufgehoben');
+    await pgA2.click('#kampf button[data-k="bleib"]');
+    var gA2 = await pgA2.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gA2, ['Kampf #9 · Probefigur bleibt auf 4/E']);
+    ok('Leiste und Bleiben');
+
+    var OA = { nr: 3, titel: 'Gasse', figur: 'f', spalten: 8, zeilen: 4, boden: ['########', '........', '........', '........'],
+      wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 2, y: 2, bewegung: 9, waffen: [{ name: 'Keule', reichweite: 1.5 }] }, { id: 'r', name: 'Räuber', art: 'gegner', x: 3, y: 3 }] };
+    var pgO = await seite(b, OA);
+    await klickFeld(pgO, 6, 2);
+    assert.ok(/verlässt Räuber: Gelegenheitsangriff/.test(await pgO.innerText('#kampf .kkI')), 'Warnung vor dem Gelegenheitsangriff: ' + await pgO.innerText('#kampf .kkI'));
+    assert.strictEqual(await pgO.locator('#kampf .kkWeg polygon.kkOa').count(), 1, 'das Dreieck am Weg');
+    await pgO.click('#kampf button[data-k="zug"]');
+    var gO = await pgO.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gO, ['Kampf #3 · Figur nach 6/B · 6 m · verlässt Räuber: Gelegenheitsangriff']);
+    ok('Gelegenheitsangriff');
+
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgO.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }
