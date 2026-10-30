@@ -28,13 +28,19 @@
  * Kartenrand blättern, wo die Karte weitergeht; ein Tipp auf ein Wesen nennt, was die Figur über es weiß; Zauber mit
  * Rettungswurf (`rettung`, `sg`), Heilung (`heilung`) und Wirkung (`wirkung`) stehen in der Zauberzeile; „Aktion
  * zuerst“ dreht die Zugzeile um („Zauber: … auf Räuber 2, dann nach 13/C“); `tp: [jetzt, max]` der Figur im Kopf.
+ * Seit 1.5 (Stufe B): Bonusaktionen der Figur (`bonus[]`: Healing Word, Bardische Inspiration, die Zweitwaffe) als eigener
+ * Knopfblock, ein zweiter Tipp auf einen Stein wählt ihr Ziel, die Zugzeile hängt „· Bonusaktion: Healing Word auf Rolf (3 m)“
+ * an; liegt die Figur, steht ein Schalter „Aufstehen“ in der Zugzeile (halbe Bewegung, hebt „du liegst“ auf, „steht auf ·“
+ * vorn in der Zeile; ohne ihn kriecht sie); Gefolge und Unbeteiligte als Ziel bekommen einen Hinweis in der Lagezeile;
+ * der Knopf „Warum?“ ist weg (die Sätze stehen als Tipp an der Lagezeile); der Kartenrahmen ist in der Höhe begrenzt,
+ * damit die Pfeile auch nach oben und unten blättern.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.4';
+  var VERSION = '1.5';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -205,6 +211,8 @@
       k._r = felder(w.reichweite == null ? METER : w.reichweite);
       k.waffen = (Array.isArray(w.waffen) ? w.waffen : []).map(waffeInfo).filter(function (x) { return !!x; });
       k.zauber = (Array.isArray(w.zauber) ? w.zauber : []).map(function (z) { var zi = waffeInfo(z); if (zi) { zi.zauber = true; zi.mit = z && z.mit === 'waffe'; } return zi; }).filter(function (x) { return !!x; });
+      // seit 1.5: die Bonusaktionen der Figur (`bonus[]`), die Zweitwaffe findet ihre Waffe in `waffen`
+      k.bonus = (Array.isArray(w.bonus) ? w.bonus : []).map(function (b) { return bonusInfo(b, k.waffen); }).filter(function (x) { return !!x; });
       var zt = String(w.zustand || '').toLowerCase();
       k.zustaende = (Array.isArray(w.zustaende) ? w.zustaende : []).map(function (z) { return String(z).toLowerCase().trim(); }).filter(function (z, i, a) { return STATUS[z] && a.indexOf(z) === i; });
       ZUSTAND_WORTE.forEach(function (p) { if (p[0].test(zt) && k.zustaende.indexOf(p[1]) < 0) k.zustaende.push(p[1]); });
@@ -383,6 +391,62 @@
     if (wf.heilung) return ' · ' + wf.heilung + ' Heilung' + (wf.wirkung ? ' · ' + wf.wirkung : '');
     return (wf.bonus != null ? ' ' + bonusText(wf.bonus) : '') + (wf.schaden ? ' · ' + wf.schaden : '') + (wf.typ ? ' ' + wf.typ : '') + (wf.wirkung ? ' · ' + wf.wirkung : '');
   }
+  /* ---------- Bonusaktionen (seit 1.5, Stufe B) ---------- */
+  // Eine Bonusaktion der Figur: `name`, `art` (`heilung`, `inspiration`, `waffe`, `frei`), `ziel` (ein Wort oder eine Liste aus
+  // `gefolge`, `figur`, `gegner`, `npc`, `tier`, `jedes`, `keins`), `reichweite` in Metern (Standard 18, bei der Zweitwaffe die
+  // der Waffe), bei `waffe` der Name der Zweitwaffe aus `waffen`, dazu `heilung` („2W4+2“) und `wirkung` als freier Text.
+  var BONUS_ARTEN = { heilung: 1, inspiration: 1, waffe: 1, frei: 1 };
+  var ZIEL_ARTEN = ['gefolge', 'figur', 'gegner', 'npc', 'tier', 'jedes', 'keins'];
+  var ZIEL_NAME = { gefolge: 'Gefolge', figur: 'du selbst', gegner: 'Gegner', npc: 'Unbeteiligte', tier: 'Tiere', jedes: 'jedes Wesen, auch du selbst' };
+  function bonusInfo(b, waffen) {
+    if (!b || !b.name) return null;
+    var art = BONUS_ARTEN[String(b.art)] ? String(b.art) : 'frei';
+    var roh = Array.isArray(b.ziel) ? b.ziel : [b.ziel == null ? (art === 'waffe' ? 'gegner' : art === 'frei' ? 'keins' : 'jedes') : b.ziel];
+    var ziele = roh.map(function (z) { return String(z).toLowerCase().trim(); }).filter(function (z, i, a) { return ZIEL_ARTEN.indexOf(z) >= 0 && a.indexOf(z) === i; });
+    if (!ziele.length) ziele = ['keins'];
+    var k = { name: String(b.name), art: art, ziele: ziele, heilung: b.heilung ? String(b.heilung) : '', wirkung: b.wirkung ? String(b.wirkung) : '',
+      waffe: null, reichweite: b.reichweite, bonus: zahl(b.bonus), schaden: b.schaden ? String(b.schaden) : '', typ: b.typ ? String(b.typ) : '' };
+    if (art === 'waffe') {
+      var wn = String(b.waffe || b.name).toLowerCase();
+      (waffen || []).forEach(function (w) { if (!k.waffe && w.name.toLowerCase() === wn) k.waffe = w; });
+      if (k.waffe) {
+        // der Nahkampf-Modus der Waffe, sonst die Waffe selbst; der Schaden der Zweitwaffe ohne Modifikator (PHB)
+        var nah = k.waffe.modi.filter(function (mo) { return mo.reichweite == null || !Array.isArray(mo.reichweite); })[0] || null;
+        if (k.bonus == null) k.bonus = nah && nah.bonus != null ? nah.bonus : k.waffe.bonus;
+        if (!k.schaden) k.schaden = String((nah && nah.schaden) || k.waffe.schaden || '').replace(/\s*[+−-]\s*\d+\s*$/, '');
+        if (!k.typ) k.typ = (nah && nah.typ) || k.waffe.typ;
+        if (k.reichweite == null) k.reichweite = nah && nah.reichweite != null ? nah.reichweite : (Array.isArray(k.waffe.reichweite) ? k.waffe.reichweite[0] : k.waffe.reichweite);
+        if (!k.wirkung) k.wirkung = 'Zweitwaffe: leichte Waffe in der anderen Hand, Schaden ohne Modifikator (PHB)';
+      }
+    }
+    var rw = reichweiteLesen(k.reichweite, art === 'waffe' ? METER : 12 * METER); k.r = rw.r; k.rl = rw.rl;
+    k.ohneZiel = ziele.indexOf('keins') >= 0;
+    k.nurSelbst = !k.ohneZiel && ziele.length === 1 && ziele[0] === 'figur';
+    return k;
+  }
+  // Darf das Wesen Ziel dieser Bonusaktion sein?
+  function bonusErlaubt(bo, w, figur) {
+    if (!bo || bo.ohneZiel || !w) return false;
+    if (w === figur) return bo.ziele.indexOf('figur') >= 0 || bo.ziele.indexOf('jedes') >= 0;
+    return bo.ziele.indexOf('jedes') >= 0 || bo.ziele.indexOf(w.art) >= 0;
+  }
+  function bonusZieleText(bo) { return bo.ziele.map(function (z) { return ZIEL_NAME[z] || z; }).join(', '); }
+  function bonusWerte(bo) {
+    if (bo.art === 'waffe') return (bo.bonus != null ? ' ' + bonusText(bo.bonus) : '') + (bo.schaden ? ' · ' + bo.schaden : '') + (bo.typ ? ' ' + bo.typ : '');
+    return bo.heilung ? ' · ' + bo.heilung + ' Heilung' : '';
+  }
+  // Die Bonusaktion für die Zugzeile: „Bonusaktion: Healing Word auf Rolf (3 m)“, mit Ziel und Entfernung vom Standort
+  function bonusZeile(K, bo, ziel, stand, figur) {
+    var s = 'Bonusaktion: ' + bo.name + (bo.art === 'waffe' ? ' (Zweitwaffe)' : '');
+    if (bo.ohneZiel) return s;
+    if (!ziel) return s + ' (ohne Ziel)';
+    if (ziel === figur) return s + ' auf dich selbst';
+    var ab = abstand(stand, ziel, K), dh = hoeheVon(K, ziel) - hoeheVon(K, stand), weit = bo.rl || bo.r;
+    s += ' auf ' + ziel.name;
+    if (ab > weit) return s + ' (außer Reichweite: ' + m(ab) + ', ' + bo.name + ' reicht ' + m(weit) + ')';
+    return s + ' (' + m(ab) + (dh ? ', ' + hochTief(dh) : '') + (bo.rl && ab > bo.r ? '; lange Reichweite' : '') + ')';
+  }
+
   function hatZustand(w, liste) { var z = w && w.zustaende || []; return liste.some(function (s) { return z.indexOf(s) >= 0; }); }
   // Wer wehrlos ist (bewusstlos, gelähmt, betäubt, kampfunfähig, versteinert, tot), wird mit Vorteil getroffen;
   // wer sich ergibt oder flieht, bedroht dazu kein Feld mehr
@@ -458,8 +522,11 @@
   // nicht vor. `liegtSelbst`: die Figur greift vom Boden aus an.
   function angriffsLage(K, stand, ziel, wf, liegtSelbst) {
     var ab = abstand(stand, ziel, K), flach = abstand(stand, ziel), dh = hoeheVon(K, ziel) - hoeheVon(K, stand);
-    var L = { abstand: ab, dh: dh, status: 'aus', grund: '', vor: [], nach: [], warum: [], deckung: { stufe: 0, stern: '', name: 'keine' }, netto: 0 };
+    var L = { abstand: ab, dh: dh, status: 'aus', grund: '', vor: [], nach: [], warum: [], deckung: { stufe: 0, stern: '', name: 'keine' }, netto: 0, hinweis: '' };
     var weit = wf.rl || wf.r;
+    // seit 1.5: Gefolge und Unbeteiligte als Ziel eines Angriffs bekommen einen Hinweis, kein Verbot (Regelwerk 16.2, 13)
+    if (!wf.heilung && ziel.art === 'gefolge') { L.hinweis = 'dein eigener Mann'; L.warum.push('Hinweis: ' + ziel.name + ' gehört zu dir; die Karte verbietet es nicht, die Spielleitung erzählt die Folgen (Regelwerk 16.2).'); }
+    else if (!wf.heilung && ziel.art === 'npc') { L.hinweis = 'ein Unbeteiligter'; L.warum.push('Hinweis: ' + ziel.name + ' ist unbeteiligt; wer blankzieht, eskaliert (Regelwerk 13).'); }
     if (ab <= wf.r) L.status = 'in'; else if (wf.rl && ab <= wf.rl) L.status = 'lang';
     var reichText = 'Reichweite: ' + wf.name + ' reicht ' + m(wf.r) + (wf.rl ? ', mit Nachteil bis ' + m(wf.rl) : '') + '; ' + ziel.name + ' ist ' + m(ab) + ' entfernt' + (dh ? ' (' + hochTief(dh) + ')' : '') + '.';
     L.warum.push(reichText);
@@ -499,8 +566,9 @@
   // Die Lagezeile zum Angriff (HTML) und ihre Kurzform für die Zugzeile
   function lageText(L, wf, ziel) {
     var t = [(wf.zauber ? 'Zauber: ' : 'Angriff: ') + '<b>' + esc(wf.name) + '</b>' + esc(waffeText(wf))];
-    if (L.status === 'aus') { t.push('<b>' + esc(ziel.name) + '</b>: außer Reichweite (' + esc(L.grund) + ')'); return t.join(' · '); }
-    t.push('<b>' + esc(ziel.name) + '</b>: ' + m(L.abstand) + (L.dh ? ', ' + hochTief(L.dh) : '') + (L.status === 'lang' ? ' · lange Reichweite: Nachteil' : ' · in Reichweite'));
+    var hw = L.hinweis ? ' <span class="kkHw">(' + esc(L.hinweis) + ')</span>' : '';
+    if (L.status === 'aus') { t.push('<b>' + esc(ziel.name) + '</b>' + hw + ': außer Reichweite (' + esc(L.grund) + ')'); return t.join(' · '); }
+    t.push('<b>' + esc(ziel.name) + '</b>' + hw + ': ' + m(L.abstand) + (L.dh ? ', ' + hochTief(L.dh) : '') + (L.status === 'lang' ? ' · lange Reichweite: Nachteil' : ' · in Reichweite'));
     if (wf.ohneWurf) { L.nach.forEach(function (v) { t.push(esc(v)); }); return t.join(' · '); }
     if (L.deckung.stufe) t.push(esc(L.deckung.name) + ' Deckung ' + L.deckung.stern);
     L.vor.forEach(function (v) { t.push('Vorteil: ' + esc(v)); });
@@ -729,7 +797,7 @@
     '.kk{display:flex;flex-direction:column;gap:10px}' +
     '.kk .kkKopf{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:"IM Fell English","EB Garamond",Georgia,serif;font-size:15px;color:var(--text-primary)}' +
     '.kk .kkKopf small{font-family:inherit;font-size:13px;color:var(--text-secondary)}' +
-    '.kk .kkR{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;border-radius:6px}' +
+    '.kk .kkR{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;border-radius:6px;max-height:520px}' +
     '.kk .kkR svg{display:block;height:auto}' +
     '.kk .kkZl{position:sticky;left:0;height:0;width:0;overflow:visible;z-index:1;pointer-events:none}' +
     '.kk .kkZl span{position:absolute;left:0;width:22px;text-align:center;font-family:"IM Fell English","EB Garamond",Georgia,serif;font-size:13px;line-height:18px;color:#3b3028;background:rgba(239,226,195,.92);border-radius:0 4px 4px 0;transform:translateY(-50%)}' +
@@ -765,8 +833,9 @@
     '.kk button[aria-pressed="true"]{outline:2px solid #b08d3a;outline-offset:-2px}' +
     '.kk .kkA{margin:0;font-size:14px;line-height:1.55;padding:6px 10px;border-radius:6px;border:1px solid var(--border-300,#c8bda4);color:var(--text-primary)}' +
     '.kk .kkA.kkVor{border-color:#4d5b33;background:rgba(77,91,51,.09)}.kk .kkA.kkNach{border-color:#8e3b22;background:rgba(142,59,34,.09)}.kk .kkA.kkAus{color:var(--text-secondary)}' +
-    '.kk .kkA b{font-weight:500}.kk .kkA button{font-size:12px;margin-left:6px}' +
-    '.kk .kkWarum{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.5;color:var(--text-secondary)}' +
+    '.kk .kkA b{font-weight:500}.kk .kkA .kkHw{color:#8e3b22;font-weight:500}' +
+    // seit 1.5: Bonusaktionen (eigener Block), „Aufstehen“ in der Zugzeile
+    '.kk .kkB.kkBo button.kkBoZ{outline:2px dashed #b08d3a;outline-offset:-2px}.kk .kkB.kkZug button[data-k="auf"]{flex:0 0 auto;font-size:13px}' +
     '.kk .kkOaT{color:#8e3b22;font-weight:500}' +
     '.kk .kkLeB{border-radius:2px;border:2px solid #2f4f70;background:rgba(176,141,58,.25);box-sizing:border-box}.kk .kkLeR{border-radius:2px;border:2px solid #8e3b22;background:rgba(142,59,34,.1);box-sizing:border-box}' +
     '.kk .kkLeZ{border-radius:2px;border:2px dashed #8e3b22;box-sizing:border-box}.kk .kkLeO{width:0;height:0;border-radius:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:11px solid #8e3b22}';
@@ -787,8 +856,13 @@
     var e = zeichne(D), K = e.karte, W = e.breite, H = e.hoehe, figur = K.figur;
     var liegtFigur = !!(figur && liegt(figur));
     var budget = figur ? Math.max(0, Math.floor((+figur.bewegung || 9) / METER)) : 0;
-    if (liegtFigur) budget = Math.floor(budget / 2); // aufstehen kostet die halbe Bewegung (PHB)
+    // liegt die Figur, kostet das Aufstehen die halbe Bewegung (PHB); bleibt sie liegen, kriecht sie, und jedes Feld zählt
+    // doppelt: in beiden Fällen die halbe Bewegung. Der Schalter „Aufstehen“ (seit 1.5) ist vorgewählt.
+    if (liegtFigur) budget = Math.floor(budget / 2);
+    var aufstehen = liegtFigur;
     var Wg = figur ? wege(K, figur) : null;
+    // Bonusaktionen (seit 1.5): ein Knopf je Bonusaktion; die gewählte wartet auf einen zweiten Tipp, der ihr Ziel wählt
+    var bonus = figur ? figur.bonus : [], bonusIdx = -1, bonusZiel = null, bonusWartet = false;
     // Waffen und Zauber (seit 1.3): ein Knopf je Waffe, der Modus (einhändig/beidhändig, Nahkampf/geworfen) wechselt mit
     // einem weiteren Tipp auf die gewählte Waffe; Zauber in eigener Zeile, einer „mit Waffe“ nutzt die gewählte Waffe
     var waffen = figur ? figur.waffen : [], zauber = figur ? figur.zauber : [];
@@ -835,20 +909,27 @@
         var tipp = e.name + waffeText(e) + reichText(e) + (z.mit ? ' · mit der gewählten Waffe' : '');
         return '<button type="button" data-k="zauber" data-i="' + i + '" aria-pressed="' + (an ? 'true' : 'false') + '" title="' + esc(tipp) + '">' + esc(z.name) + '</button>';
       }).join('') : '';
-      return [w1, w2];
+      var w3 = bonus.length ? '<span class="kkWl">Bonusaktion</span>' + bonus.map(function (bo, i) {
+        var an = i === bonusIdx;
+        var tipp = bo.name + bonusWerte(bo) + ' · Reichweite ' + m(bo.r) + (bo.rl ? ' (' + m(bo.rl) + ')' : '') + (bo.ohneZiel ? '' : ' · Ziel: ' + bonusZieleText(bo)) + (bo.wirkung ? ' · ' + bo.wirkung : '') + (an ? ' · noch einmal tippen: abwählen' : '');
+        return '<button type="button" data-k="bonus" data-i="' + i + '" aria-pressed="' + (an ? 'true' : 'false') + '"' + (an && bonusWartet ? ' class="kkBoZ"' : '') + ' title="' + esc(tipp) + '">' + esc(bo.name) + '</button>';
+      }).join('') : '';
+      return [w1, w2, w3];
     }
+    function bonusAkt() { return bonusIdx >= 0 && bonusIdx < bonus.length ? bonus[bonusIdx] : null; }
     el.classList.add('kk');
     el.innerHTML = '<style>' + UI_CSS + '</style>' +
       '<div class="kkKopf"><span>' + esc(D.titel || 'Kampfkarte') + '</span><small>' + (D.runde ? 'Runde ' + esc(D.runde) + ' · ' : '') +
-      (figur ? esc(figur.name) + ' · Bewegung ' + m(budget) : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
+      (figur ? esc(figur.name) + ' · Bewegung ' + m(budget) + (liegtFigur ? ' (liegt)' : '') : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
       (kopf2.length ? '<div class="kkKopf2">' + kopf2.join('') + '</div>' : '') + ini +
       // der Rahmen der Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht
       '<div class="kkRW"><div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
       ['w', 'e', 'n', 's'].map(function (r) { return '<button type="button" class="kkBl kkBl-' + r + '" data-k="blatt" data-r="' + r + '" aria-label="' + ({ w: 'Karte nach links', e: 'Karte nach rechts', n: 'Karte nach oben', s: 'Karte nach unten' })[r] + '" hidden>' + PFEIL + '</button>'; }).join('') + '</div>' +
       '<p class="kkI" aria-live="polite"></p>' +
       '<p class="kkA" hidden></p>' +
-      '<div class="kkB kkW"' + (waffen.length ? '' : ' hidden') + '></div><div class="kkB kkZb"' + (zauber.length ? '' : ' hidden') + '></div>' +
-      '<div class="kkB kkZug"><button type="button" data-k="zuerst" aria-pressed="false" title="Erst Angriff oder Zauber vom Stand aus, dann der Weg (etwa um die Reaktion eines Gegners zu verbrauchen)">Aktion zuerst</button>' +
+      '<div class="kkB kkW"' + (waffen.length ? '' : ' hidden') + '></div><div class="kkB kkZb"' + (zauber.length ? '' : ' hidden') + '></div><div class="kkB kkBo"' + (bonus.length ? '' : ' hidden') + '></div>' +
+      '<div class="kkB kkZug">' + (liegtFigur ? '<button type="button" data-k="auf" aria-pressed="true" title="Aufstehen kostet die halbe Bewegung und hebt den Nachteil vom Boden auf (PHB); abgewählt bleibt die Figur liegen und kriecht">Aufstehen</button>' : '') +
+      '<button type="button" data-k="zuerst" aria-pressed="false" title="Erst Angriff oder Zauber vom Stand aus, dann der Weg (etwa um die Reaktion eines Gegners zu verbrauchen)">Aktion zuerst</button>' +
       '<input type="text" maxlength="120" placeholder="und dann … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
       '<button type="button" class="kkPfeil" data-k="zug" aria-label="Zug abschicken" title="Zug abschicken · ohne Zielfeld bleibt die Figur stehen">' + PFEIL + '</button></div>' +
       '<div class="kkB"><button type="button" data-k="minus" aria-label="Kleiner">−</button><button type="button" data-k="plus" aria-label="Größer">+</button>' +
@@ -856,7 +937,7 @@
       '<div class="kkL" hidden>' + e.legende + '</div>';
     var rahmen = el.querySelector('.kkR'), svg = rahmen.querySelector('svg'), info = el.querySelector('.kkI'), eingabe = el.querySelector('input');
     var leg = el.querySelector('.kkL'), bLeg = el.querySelector('[data-k="leg"]'), angriff = el.querySelector('.kkA');
-    var zielFeld = null, zielWesen = null, gesendet = false, stufe = 0, gefahrAn = false, warumAn = false, zuerst = false;
+    var zielFeld = null, zielWesen = null, gesendet = false, stufe = 0, gefahrAn = false, zuerst = false;
     var STUFEN = [1, 1.8, 2.8, 4];
 
     function $(q) { return el.querySelector(q); }
@@ -864,7 +945,7 @@
     function sag(t) { info.innerHTML = t; }
     // die wirksame Waffe: die gewählte Waffe in ihrem Modus, oder der gewählte Zauber (mit der Waffe, wenn er sie nutzt)
     function waffe() { return angriffArt === 'zauber' ? zauberAkt() : waffeAkt(); }
-    function zeigeWaffen() { var h = waffenHtml(); $('.kkW').innerHTML = h[0]; $('.kkZb').innerHTML = h[1]; }
+    function zeigeWaffen() { var h = waffenHtml(); $('.kkW').innerHTML = h[0]; $('.kkZb').innerHTML = h[1]; $('.kkBo').innerHTML = h[2]; }
     zeigeWaffen();
 
     // bedrohte Felder: die Zone des gewählten Gegners (kkGz) und auf „Gefahr“ alle (kkGzA)
@@ -1040,7 +1121,7 @@
       var wf = waffe();
       if (!wf || !zielWesen) return null;
       var bewegt = !!zielFeld && !zuerst;
-      return { L: angriffsLage(K, bewegt ? stand() : figur, zielWesen, wf, liegtFigur && !bewegt), wf: wf };
+      return { L: angriffsLage(K, bewegt ? stand() : figur, zielWesen, wf, liegtFigur && !aufstehen), wf: wf };
     }
     function lage() {
       if (!figur) { sag('Die Figur steht nicht auf der Karte; die Spielleitung erzählt die Lage.'); angriff.hidden = true; return; }
@@ -1053,17 +1134,23 @@
         var a = ARTEN[K.raster[zielFeld[1] - 1][zielFeld[0] - 1]];
         if (a && a.unbekannt) t.push('ins Ungewisse');
         if (a && a.deckung) t.push(a.deckung + ' Deckung');
-        if (liegtFigur) t.push('steht auf (halbe Bewegung)');
+        if (liegtFigur) t.push(aufstehen ? 'steht auf (halbe Bewegung)' : 'kriecht (liegt weiter: Nachteil)');
         if (oa.length) t.push(oaText(p, true));
       } else if (!zielWesen) {
         var hf = hoeheVon(K, figur), fa0 = feldArt(figur.x, figur.y);
-        t.push('<b>' + esc(figur.name) + '</b> steht auf ' + feldName(D, figur.x, figur.y) + (fa0 ? ' (' + esc(fa0) + ')' : '') + (hf > 0 ? ', ' + m(hf) + ' hoch' : '') + (liegtFigur ? ' und liegt am Boden (aufstehen kostet die halbe Bewegung)' : '') + '. Tippe auf ein Feld, um zu ziehen (blauer Rahmen: bis ' + m(budget) + ', gestrichelt mit Spurt bis ' + m(budget * 2) + '), oder auf ein Wesen; der Pfeil schickt den Zug, ohne Feld bleibt die Figur stehen.');
+        t.push('<b>' + esc(figur.name) + '</b> ' + (liegtFigur ? 'liegt auf ' : 'steht auf ') + feldName(D, figur.x, figur.y) + (fa0 ? ' (' + esc(fa0) + ')' : '') + (hf > 0 ? ', ' + m(hf) + ' hoch' : '') + (liegtFigur ? (aufstehen ? ' und steht auf (halbe Bewegung; „Aufstehen“ abwählen, um liegen zu bleiben)' : ' und bleibt liegen (kriecht, Angriffe mit Nachteil)') : '') + '. Tippe auf ein Feld, um zu ziehen (blauer Rahmen: bis ' + m(budget) + ', gestrichelt mit Spurt bis ' + m(budget * 2) + '), oder auf ein Wesen; der Pfeil schickt den Zug, ohne Feld bleibt die Figur stehen.');
       }
       if (zielFeld && zuerst) t.push('<b>Aktion zuerst</b>, dann der Weg');
       var A = angriffsZeile(), zeilen = [];
       // das angetippte Wesen (seit 1.4): was die Figur über es weiß, als eigene Zeile vor dem Weg
       if (zielWesen) zeilen.push(wesenText(zielWesen, standAktion()));
       if (t.length) zeilen.push(t.join(' · '));
+      // die Bonusaktion (seit 1.5): wartet auf ihr Ziel, oder steht mit Ziel und Entfernung da
+      var bo = bonusAkt();
+      if (bo) {
+        if (bonusWartet) zeilen.push('<b>Bonusaktion: ' + esc(bo.name) + '</b> · tippe auf einen Stein als Ziel (' + esc(bonusZieleText(bo)) + ')');
+        else zeilen.push('<b>' + esc(bonusZeile(K, bo, bonusZiel, standAktion(), figur)).replace(/^Bonusaktion: /, 'Bonusaktion:</b> ') + (bonusZiel && bonusZiel.art === 'gefolge' && bo.art === 'waffe' ? ' <span class="kkHw">(dein eigener Mann)</span>' : ''));
+      }
       sag(zeilen.join('<br>'));
       // die Lagezeile zum Angriff (seit 1.2): grün bei Vorteil, rot bei Nachteil, blass außer Reichweite
       if (A) {
@@ -1071,19 +1158,18 @@
         if (oa.length) warum.push('Gelegenheitsangriff: Wer die Reichweite eines Gegners verlässt, fängt dessen Reaktion, außer er nimmt die Aktion Rückzug (PHB).');
         angriff.hidden = false;
         angriff.className = 'kkA' + (L.status === 'aus' ? ' kkAus' : L.netto > 0 ? ' kkVor' : L.netto < 0 ? ' kkNach' : '');
-        angriff.innerHTML = lageText(L, A.wf, zielWesen) +
-          ' <button type="button" data-k="warum" aria-expanded="' + (warumAn ? 'true' : 'false') + '">' + (warumAn ? 'Weniger' : 'Warum?') + '</button>' +
-          (warumAn ? '<ul class="kkWarum">' + warum.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>' : '');
-      } else { angriff.hidden = true; angriff.innerHTML = ''; }
+        angriff.innerHTML = lageText(L, A.wf, zielWesen);
+        angriff.title = warum.join('\n'); // seit 1.5 statt „Warum?“: die Sätze als Tipp an der Zeile
+      } else { angriff.hidden = true; angriff.innerHTML = ''; angriff.title = ''; }
       zeigeReich();
     }
     // Die Zugzeile: Weg, dann Aktion; mit „Aktion zuerst“ (seit 1.4) die Aktion vom Stand aus, „dann“ der Weg
     function zeile() {
-      var bewegt = !!zielFeld, weg = '', aktion = '';
-      if (!bewegt) weg = ' bleibt auf ' + feldName(D, figur.x, figur.y);
+      var bewegt = !!zielFeld, weg = '', aktion = '', kriecht = liegtFigur && !aufstehen;
+      if (!bewegt) weg = (kriecht ? 'bleibt liegen auf ' : 'bleibt auf ') + feldName(D, figur.x, figur.y);
       else {
         var d = Wg.dist[zielFeld[0] + ',' + zielFeld[1]], p = pfad(Wg, zielFeld[0], zielFeld[1]);
-        weg = ' nach ' + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d);
+        weg = (kriecht ? 'kriecht nach ' : 'nach ') + feldText(zielFeld[0], zielFeld[1]) + ' · ' + m(d);
         wegText(p).forEach(function (w) { weg += ' · ' + w; });
         if (d > budget) weg += ' · Spurt';
         var oa = oaText(p, false);
@@ -1099,9 +1185,13 @@
         var wf0 = waffe();
         if (wf0) aktion = (wf0.zauber ? 'Zauber: ' : 'Waffe: ') + wf0.name;
       }
+      // Aufstehen (seit 1.5) steht vorn in der Zeile; die Bonusaktion hängt hinten an, vor dem Freitext
+      var vorn = liegtFigur && aufstehen ? 'steht auf · ' : '';
       var s = 'Kampf #' + (D.nr || '?') + ' · ' + figur.name;
-      if (zuerst && bewegt && aktion) s += ': ' + aktion + ', dann' + weg;
-      else s += weg + (aktion ? ' · ' + aktion : '');
+      if (zuerst && bewegt && aktion) s += ': ' + vorn + aktion + ', dann ' + weg;
+      else s += (vorn ? ': ' + vorn : ' ') + weg + (aktion ? ' · ' + aktion : '');
+      var bo = bonusAkt();
+      if (bo) s += ' · ' + bonusZeile(K, bo, bonusZiel, standAktion(), figur);
       var a = (eingabe.value || '').trim();
       if (a) s += ' · ' + a;
       return s;
@@ -1127,12 +1217,23 @@
       zeigeZone(zielWesen);
       lage();
     }
+    // ein Tipp auf einen Stein (seit 1.5): wartet eine Bonusaktion auf ihr Ziel, nimmt sie ihn; sonst wählt er das Ziel der Aktion
+    function tippWesen(w) {
+      var bo = bonusAkt();
+      if (bo && bonusWartet) {
+        if (bonusErlaubt(bo, w, figur)) { bonusZiel = w; bonusWartet = false; zeigeWaffen(); lage(); }
+        else sag('<b>' + esc(w === figur ? 'Du selbst' : w.name) + '</b> taugt nicht als Ziel für ' + esc(bo.name) + ' (' + esc(bonusZieleText(bo)) + '); tippe auf ein anderes Wesen, oder wähle die Bonusaktion ab.');
+        return true;
+      }
+      return false;
+    }
     svg.addEventListener('click', function (ev) {
       if (gesendet) return;
       var t = ev.target;
       var o = t && t.closest ? t.closest('.kkO') : null;
       if (o) {
         var w = K.wesen[+o.getAttribute('data-w')];
+        if (w && tippWesen(w)) return;
         if (w && w !== figur) { waehle(w); return; }
         if (w === figur) { zielFeld = null; zeigeWeg(null); zeigeZiel(0); lage(); return; }
       }
@@ -1149,7 +1250,7 @@
     });
     el.addEventListener('click', function (ev) {
       var it = ev.target && ev.target.closest ? ev.target.closest('.kkIt[data-w]') : null;
-      if (it && !gesendet) { var wi = K.wesen[+it.getAttribute('data-w')]; if (wi && wi !== figur) waehle(wi); return; }
+      if (it && !gesendet) { var wi = K.wesen[+it.getAttribute('data-w')]; if (wi && !tippWesen(wi) && wi !== figur) waehle(wi); return; }
       var b = ev.target && ev.target.closest ? ev.target.closest('button[data-k]') : null;
       if (!b) return;
       var k = b.getAttribute('data-k');
@@ -1172,7 +1273,14 @@
         zauberIdx = +b.getAttribute('data-i') || 0; angriffArt = 'zauber';
         zeigeWaffen(); lage();
       }
-      else if (k === 'warum') { warumAn = !warumAn; lage(); }
+      else if (k === 'bonus') {
+        if (gesendet) return;
+        var bi = +b.getAttribute('data-i') || 0, bo2 = bonus[bi];
+        if (bi === bonusIdx) { bonusIdx = -1; bonusZiel = null; bonusWartet = false; }
+        else { bonusIdx = bi; bonusZiel = bo2 && bo2.nurSelbst ? figur : null; bonusWartet = !!(bo2 && !bo2.ohneZiel && !bo2.nurSelbst); }
+        zeigeWaffen(); lage();
+      }
+      else if (k === 'auf') { if (gesendet) return; aufstehen = !aufstehen; b.setAttribute('aria-pressed', String(aufstehen)); lage(); }
       else if (k === 'zug') {
         if (!figur) { sag('Ohne Figur auf der Karte gibt es keinen Zug; schreib in den Chat, was sie tut.'); return; }
         if (gesendet) return;
@@ -1199,7 +1307,8 @@
 
   if (typeof module !== 'undefined' && module.exports) module.exports = { zeichne: zeichne, lies: lies, wege: wege, pfad: pfad, pfadHoehe: pfadHoehe, abstand: abstand, hoehe: hoehe, feldName: feldName,
     felder: felder, waffeInfo: waffeInfo, bedroht: bedroht, zone: zone, gelegenheiten: gelegenheiten, linie: linie, deckung: deckung, angriffsLage: angriffsLage, lageKurz: lageKurz,
-    wirksam: wirksam, kampffaehig: kampffaehig, wehrlos: wehrlos, kachelBild: kachelBild, plaketteBild: plaketteBild, zustaende: Object.keys(STATUS), arten: ARTEN, version: VERSION };
+    wirksam: wirksam, kampffaehig: kampffaehig, wehrlos: wehrlos, kachelBild: kachelBild, plaketteBild: plaketteBild, zustaende: Object.keys(STATUS), arten: ARTEN, version: VERSION,
+    bonusInfo: bonusInfo, bonusErlaubt: bonusErlaubt, bonusZeile: bonusZeile };
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

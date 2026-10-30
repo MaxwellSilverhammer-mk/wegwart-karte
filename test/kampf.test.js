@@ -1,6 +1,6 @@
 // Lädt die Kampfkarte (kampf.js) mit dem Aufruf aus Regelwerk 4.2 in Chromium und prüft Raster, Erreichbarkeit,
-// Weg, Ziel, Höhe und Nachricht. Erfundene Welt (test/kampf-beispiel.js, test/kampf-hoehe-beispiel.js), keine Daten
-// einer echten Figur.
+// Weg, Ziel, Höhe und Nachricht. Erfundene Welt (test/kampf-beispiel.js, test/kampf-hoehe-beispiel.js, …,
+// test/kampf-zollbruecke-beispiel.js), keine Daten einer echten Figur.
 // Braucht Playwright mit Chromium: node test/kampf.test.js
 'use strict';
 var assert = require('assert'), fs = require('fs'), path = require('path');
@@ -10,6 +10,7 @@ var KAMPF = require('./kampf-beispiel.js');
 var HOEHE = require('./kampf-hoehe-beispiel.js');
 var STUFEA = require('./kampf-stufe-a-beispiel.js');
 var DREI = require('./kampf-1-3-beispiel.js');
+var ZOLL = require('./kampf-zollbruecke-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -121,7 +122,7 @@ function klickWesen(pg, i) {
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.4');
+  assert.strictEqual(kampf.version, '1.5');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -154,6 +155,28 @@ function klickWesen(pg, i) {
   var tot0 = kampf.lies({ wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 1, tp: [0, 20] }] }).figur;
   assert.ok(tot0.zustaende.indexOf('bewusstlos') >= 0, '0 TP heißt bewusstlos');
   ok('1.4: Rettungswurf, Heilung, Trefferpunkte');
+
+  // 1.5 (Stufe B): Bonusaktionen, Hinweis bei Gefolge und Unbeteiligten
+  var Zk = kampf.lies(ZOLL), zf = Zk.figur, hanno2 = Zk.wesen[1], zoe = Zk.wesen[2], faehr = Zk.wesen[6];
+  assert.deepStrictEqual(zf.bonus.map(function (b) { return [b.name, b.art, b.ziele.join('/'), b.r, b.ohneZiel, b.nurSelbst]; }),
+    [['Healing Word', 'heilung', 'jedes', 12, false, false], ['Bardische Inspiration', 'inspiration', 'gefolge/gegner/npc/tier', 12, false, false], ['Dolch', 'waffe', 'gegner', 1, false, false]], 'drei Bonusaktionen');
+  assert.deepStrictEqual([zf.bonus[2].bonus, zf.bonus[2].schaden, zf.bonus[2].typ], [4, '1W4', 'Stich'], 'die Zweitwaffe nimmt Bonus und Art des Dolchs, der Schaden ohne Modifikator');
+  assert.deepStrictEqual([kampf.bonusErlaubt(zf.bonus[0], zf, zf), kampf.bonusErlaubt(zf.bonus[1], zf, zf), kampf.bonusErlaubt(zf.bonus[1], hanno2, zf), kampf.bonusErlaubt(zf.bonus[2], hanno2, zf), kampf.bonusErlaubt(zf.bonus[2], zoe, zf)],
+    [true, false, true, false, true], 'wer Ziel sein darf: Heilung auch du selbst, Inspiration nicht, die Zweitwaffe nur Gegner');
+  assert.strictEqual(kampf.bonusZeile(Zk, zf.bonus[0], hanno2, zf, zf), 'Bonusaktion: Healing Word auf Hanno (3 m)');
+  assert.strictEqual(kampf.bonusZeile(Zk, zf.bonus[0], zf, zf, zf), 'Bonusaktion: Healing Word auf dich selbst');
+  assert.strictEqual(kampf.bonusZeile(Zk, zf.bonus[2], zoe, zf, zf), 'Bonusaktion: Dolch (Zweitwaffe) auf Zöllner (außer Reichweite: 6 m, Dolch reicht 1,5 m)');
+  assert.strictEqual(kampf.bonusZeile(Zk, zf.bonus[2], zoe, { x: 19, y: 8, groesse: 1 }, zf), 'Bonusaktion: Dolch (Zweitwaffe) auf Zöllner (1,5 m)');
+  var frei = kampf.bonusInfo({ name: 'Rückzug' }, []);
+  assert.deepStrictEqual([frei.art, frei.ohneZiel, kampf.bonusZeile(Zk, frei, null, zf, zf)], ['frei', true, 'Bonusaktion: Rückzug'], 'ohne art und ziel: frei und ohne Ziel');
+  var ls = kampf.wirksam(zf.waffen[0], 0, null);
+  var Lh = kampf.angriffsLage(Zk, { x: 15, y: 9, groesse: 1 }, hanno2, ls, false);
+  assert.deepStrictEqual([Lh.status, Lh.hinweis, Lh.vor, Lh.nach], ['in', 'dein eigener Mann', [], []], 'Gefolge als Ziel: Hinweis, kein Nachteil');
+  assert.strictEqual(kampf.angriffsLage(Zk, { x: 12, y: 10, groesse: 1 }, faehr, ls, false).hinweis, 'ein Unbeteiligter');
+  assert.strictEqual(kampf.angriffsLage(Zk, { x: 19, y: 8, groesse: 1 }, zoe, ls, false).hinweis, '', 'beim Gegner kein Hinweis');
+  assert.strictEqual(kampf.angriffsLage(Zk, { x: 19, y: 8, groesse: 1 }, zoe, ls, true).nach[0], 'du liegst', 'liegen bleiben: Nachteil');
+  assert.strictEqual(kampf.wege(Zk, zf).dist['28,4'], 17, 'aufs Dach nur über die Leiter: 16 Felder bis zur Leiter, eins hinauf');
+  ok('1.5: Bonusaktionen, Hinweise');
 })();
 
 (async function () {
@@ -247,8 +270,8 @@ function klickWesen(pg, i) {
     var A2 = await pgA.innerText('#kampf .kkA');
     assert.ok(/Räuber 1: 1,5 m · in Reichweite · Vorteil: Ziel am Boden/.test(A2), 'Lagezeile mit Vorteil: ' + A2);
     assert.ok(/kkVor/.test(await pgA.getAttribute('#kampf .kkA', 'class')), 'grün');
-    await pgA.click('#kampf button[data-k="warum"]');
-    assert.ok((await pgA.locator('#kampf .kkWarum li').count()) >= 2, 'Warum: ein Satz je Posten');
+    assert.strictEqual(await pgA.locator('#kampf button[data-k="warum"]').count(), 0, 'kein „Warum?“ mehr (1.5)');
+    assert.ok((await pgA.getAttribute('#kampf .kkA', 'title')).split('\n').length >= 2, 'die Sätze stehen als Tipp an der Lagezeile');
     await pgA.click('#kampf button[data-k="gefahr"]');
     assert.ok((await pgA.locator('#kampf .kkF.kkGzA').count()) >= 30, 'Gefahr: alle Zonen');
     await pgA.click('#kampf button[data-k="zug"]');
@@ -360,6 +383,55 @@ function klickWesen(pg, i) {
     assert.deepStrictEqual(gG, ['Kampf #11 · Probefigur: Zauber: Dissonant Whispers auf Räuber 2 (3 m; Rettungswurf WEI SG 12), dann nach 13/C · 6 m · verlässt Räuber 2: Gelegenheitsangriff']);
     ok('1.4: Rahmen, Pfeile, Wesen-Info, Rettungswurf, Aktion zuerst, TP');
 
+    // 1.5 im Widget (Zollbrücke): Bonusaktion mit Ziel, Aufstehen, Hinweis, vier Pfeile, Ausschnitt mit ursprung
+    var pgZ = await seite(b, ZOLL);
+    assert.strictEqual(await pgZ.locator('#kampf button[data-k="bonus"]').count(), 3, 'drei Bonusaktionen als Knöpfe');
+    assert.strictEqual(await pgZ.locator('#kampf button[data-k="auf"][aria-pressed="true"]').count(), 1, '„Aufstehen“ vorgewählt, weil die Figur liegt');
+    assert.ok(/Bewegung 4,5 m \(liegt\)/.test(await pgZ.innerText('#kampf .kkKopf')), 'halbe Bewegung im Kopf: ' + await pgZ.innerText('#kampf .kkKopf'));
+    for (var r of ['w', 'e', 'n', 's']) assert.strictEqual(await pgZ.locator('#kampf .kkBl-' + r + ':not([hidden])').count(), 1, 'Pfeil ' + r + ' sichtbar: die Karte geht in alle vier Richtungen weiter');
+    var st0 = await pgZ.evaluate(function () { return document.querySelector('#kampf .kkR').scrollTop; });
+    await pgZ.click('#kampf .kkBl-n'); await pgZ.waitForTimeout(600);
+    var st1 = await pgZ.evaluate(function () { return document.querySelector('#kampf .kkR').scrollTop; });
+    assert.ok(st0 > 20 && st1 < st0 - 20, 'nach oben geblättert: ' + st0 + ' -> ' + st1);
+    await pgZ.click('#kampf .kkBl-s'); await pgZ.waitForTimeout(600);
+    assert.ok((await pgZ.evaluate(function () { return document.querySelector('#kampf .kkR').scrollTop; })) > st1 + 20, 'und wieder nach unten');
+    assert.ok(/^Beispiel 1\.5.*Probefigur liegt auf 25\/J \(Planken\) und steht auf/.test(await pgZ.innerText('#kampf .kkI')), 'ursprung [10, C]: 16/H heißt 25/J; liegt und steht auf: ' + await pgZ.innerText('#kampf .kkI'));
+    await pgZ.click('#kampf button[data-k="bonus"][data-i="0"]'); // Healing Word wartet auf ihr Ziel
+    assert.strictEqual(await pgZ.locator('#kampf button[data-k="bonus"][data-i="0"].kkBoZ').count(), 1, 'die gewählte Bonusaktion wartet (gestrichelt)');
+    assert.ok(/Bonusaktion: Healing Word · tippe auf einen Stein als Ziel \(jedes Wesen, auch du selbst\)/.test(await pgZ.innerText('#kampf .kkI')), 'wartet: ' + await pgZ.innerText('#kampf .kkI'));
+    await klickWesen(pgZ, 1); // Hanno: der zweite Tipp wählt das Ziel der Bonusaktion, nicht das der Aktion
+    assert.strictEqual(await pgZ.locator('#kampf .kkO.kkSel').count(), 0, 'Hanno ist Ziel der Bonusaktion, nicht der Aktion');
+    assert.ok(/Bonusaktion: Healing Word auf Hanno \(3 m\)/.test(await pgZ.innerText('#kampf .kkI')), 'Bonusaktion mit Ziel: ' + await pgZ.innerText('#kampf .kkI'));
+    await klickWesen(pgZ, 2); // der Zöllner: jetzt wieder das Ziel der Aktion
+    assert.strictEqual(await pgZ.locator('#kampf .kkO[data-w="2"].kkSel').count(), 1, 'der nächste Tipp wählt wieder das Ziel der Aktion');
+    assert.ok(!/du liegst/.test(await pgZ.innerText('#kampf .kkA')), 'mit „Aufstehen“ kein Nachteil vom Boden: ' + await pgZ.innerText('#kampf .kkA'));
+    await klickFeld(pgZ, 19, 8); // neben den Zöllner, 3 Felder, genau die halbe Bewegung
+    await pgZ.fill('#kampf input', 'Für Hanno!');
+    await pgZ.click('#kampf button[data-k="zug"]');
+    var gZ = await pgZ.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gZ, ['Kampf #14 · Probefigur: steht auf · nach 28/J · 4,5 m · Angriff: Langschwert, einhändig auf Zöllner (1,5 m) · Bonusaktion: Healing Word auf Hanno (7,5 m) · Für Hanno!'], 'Zugzeile mit Aufstehen vorn und Bonusaktion hinten');
+    ok('1.5: Bonusaktion, Aufstehen, Pfeile, Ausschnitt');
+
+    var pgZ2 = await seite(b, ZOLL);
+    await pgZ2.click('#kampf button[data-k="auf"]'); // liegen bleiben
+    await klickWesen(pgZ2, 1); // Hanno als Ziel der Aktion: Hinweis
+    assert.ok(/Hanno \(dein eigener Mann\): außer Reichweite/.test(await pgZ2.innerText('#kampf .kkA')), 'Hinweis beim Gefolge: ' + await pgZ2.innerText('#kampf .kkA'));
+    await klickFeld(pgZ2, 15, 9);
+    assert.ok(/Hanno \(dein eigener Mann\): 1,5 m · in Reichweite · Nachteil: du liegst/.test(await pgZ2.innerText('#kampf .kkA')), 'liegen bleiben: Nachteil bleibt: ' + await pgZ2.innerText('#kampf .kkA'));
+    assert.ok(/kriecht \(liegt weiter: Nachteil\)/.test(await pgZ2.innerText('#kampf .kkI')), 'kriecht: ' + await pgZ2.innerText('#kampf .kkI'));
+    await pgZ2.click('#kampf button[data-k="bonus"][data-i="1"]'); // Inspiration
+    await klickWesen(pgZ2, 0); // auf sich selbst: nicht erlaubt
+    assert.ok(/Du selbst.*taugt nicht als Ziel für Bardische Inspiration/.test(await pgZ2.innerText('#kampf .kkI')), 'Inspiration nicht auf sich selbst: ' + await pgZ2.innerText('#kampf .kkI'));
+    await pgZ2.click('#kampf .kkIt[data-w="5"]'); // der Hund, in der Leiste
+    assert.ok(/Bonusaktion: Bardische Inspiration auf Hund \(9 m\)/.test(await pgZ2.innerText('#kampf .kkI')), 'Leiste wählt das Ziel der Bonusaktion: ' + await pgZ2.innerText('#kampf .kkI'));
+    await pgZ2.click('#kampf button[data-k="bonus"][data-i="1"]'); // abwählen
+    assert.ok(!/Bonusaktion/.test(await pgZ2.innerText('#kampf .kkI')), 'abgewählt');
+    await pgZ2.click('#kampf button[data-k="bonus"][data-i="2"]'); // die Zweitwaffe, Ziel fehlt noch
+    await pgZ2.click('#kampf button[data-k="zug"]');
+    var gZ2 = await pgZ2.evaluate(function () { return GESENDET; });
+    assert.deepStrictEqual(gZ2, ['Kampf #14 · Probefigur kriecht nach 24/K · 1,5 m · Angriff: Langschwert, einhändig auf Hanno (1,5 m; Nachteil: du liegst) · Bonusaktion: Dolch (Zweitwaffe) (ohne Ziel)'], 'kriecht, Nachteil, Bonusaktion ohne Ziel');
+    ok('1.5: liegen bleiben, Hinweis, Inspiration, Zweitwaffe');
+
     var OA = { nr: 3, titel: 'Gasse', figur: 'f', spalten: 8, zeilen: 4, boden: ['########', '........', '........', '........'],
       wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 2, y: 2, bewegung: 9, waffen: [{ name: 'Keule', reichweite: 1.5 }] }, { id: 'r', name: 'Räuber', art: 'gegner', x: 3, y: 3 }] };
     var pgO = await seite(b, OA);
@@ -371,7 +443,7 @@ function klickWesen(pg, i) {
     assert.deepStrictEqual(gO, ['Kampf #3 · Figur nach 6/B · 6 m · verlässt Räuber: Gelegenheitsangriff · Waffe: Keule']);
     ok('Gelegenheitsangriff');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgO.fehler), [], 'keine Fehler im Browser');
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgZ.fehler, pgZ2.fehler, pgO.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }
