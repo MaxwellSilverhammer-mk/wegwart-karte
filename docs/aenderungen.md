@@ -1,6 +1,13 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.21 (31. Oktober 2026)
+
+Gegenüber 3.20 (31. Oktober 2026). Anlass: Kampfkarte 1.9 (unten), die der Weltenhüter am Entwurf abgenommen hat. Die Werkstatt bleibt 3.16. Neuer Stand der Tische: `tische_stand` = `e634f9eae083db86982fea6e27ba567d17e28dd4` (Kampfkarte 1.9; die übrigen Tische sind seit 1.1 unverändert); der Würfelkasten bleibt.
+
+- **Kampfbilanz** (12.1, 3, 12.6): Jeder Kampf endet mit der Tafel über der Karte (`runde: 'vorbei'`, `bilanz`), auch wenn die Figur entkommt; sie ist zugleich die Liste für 21.2. Ohne Karte dieselben Posten in Worten. Der ältere Vorschlag einer Tafel mit zwei Seiten im Text ist damit abgelöst.
+- **4.2**: der neue Stand.
 
 ## Kampfkarte 1.9 (31. Oktober 2026)
 
@@ -8,7 +15,7 @@ Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/
 
 - **Kampfbilanz** (`bilanz`, README „Kampf“): Mit `runde: 'vorbei'` und `bilanz` steht über der Karte eine Tafel auf Pergament: Ausgang und ein Satz der Spielleitung; die Gegner mit ihrem Stein in ihrer Form (gefallen grau mit Kreuz, ergibt sich mit weißer Fahne, geflohen gestrichelt, dazu die Plakette ihres Stands) und ihren EP, die Summe zählt hoch (wie in Fire Emblem), mit den Anteilen; Beute, Gefangene, Verbrauch und Zeit als Plättchen mit Zeichen (`weg: true` rot für Verbrauchtes); Wunden als Balken je Figur und Gefolge (aus `wunden[]` oder aus `tp` in `wesen`); Knöpfe, die ihren Satz in den Chat schicken („Durchsuchen“, „Weiter“) und danach verbraucht sind. Weder Aktion noch Bonusaktion noch Zug; Steine geben weiter Auskunft. Neue Zeichen: `beute`, `gefangene`, `zeit`, `suchen`, `muenzen`. Alles aus Daten der Spielleitung, die Karte rechnet nur die Summe (6.3: keine Schadenszahlen; 11.2: EP; 10.2: Beute erst, wenn genommen).
 - Beispiel `test/kampf-bilanz-beispiel.js` (die Dammbrücke am Rohrgraben nach dem Kampf); `test/kampf.test.js` prüft Lesen (Stände, Steine, Summe, Standards, Wunden aus `wesen`), Zeichnung und im Widget die Tafel über der Karte, den Zähler, den Balken, dass kein Zug mehr geht und dass die Knöpfe schicken (30 Prüfungen). Handybild 390 px geprüft.
-- Vorschlag an den Weltenhüter (Regelwerk 3.21): 12.1 „Kampfbilanz“ als Tisch nach jedem Kampf statt des Textblocks; `tische_stand` auf 1.9.
+- Mit Regelwerk 3.21 (oben) am selben Tag zur Regel geworden.
 
 ## Regelwerk 3.20 (31. Oktober 2026)
 
