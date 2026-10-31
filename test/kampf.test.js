@@ -13,6 +13,7 @@ var DREI = require('./kampf-1-3-beispiel.js');
 var ZOLL = require('./kampf-zollbruecke-beispiel.js');
 var TOR = require('./kampf-schleusentor-beispiel.js');
 var AUF = require('./kampf-aufstellung-beispiel.js');
+var BIL = require('./kampf-bilanz-beispiel.js');
 var kampf = require('../kampf.js');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
@@ -127,7 +128,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.8');
+  assert.strictEqual(kampf.version, '1.9');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -267,7 +268,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.8 (Stufe C), ohne Browser: Aufstellung, Formen, Fortschritt, Höhenschilder in ihrer Fläche, grau in der Legende
   var U = kampf.lies(AUF);
-  assert.strictEqual(kampf.version, '1.8');
+  assert.strictEqual(kampf.version, '1.9');
   assert.deepStrictEqual([U.aufstellung.length, U.aufSet['12,5'], U.aufSet['12,6'], U.aufstellen.map(function (w) { return w.name; })], [12, 1, undefined, ['Probefigur', 'Tamsin', 'Brock']], 'Aufstellungsfelder gelesen; die Figur zuerst, dann die Ihren mit aufstellen');
   var U2 = kampf.lies({ aufstellung: [[2, 2], { x: 3, y: 2 }, { x: 99, y: 2 }, [2, 2]], wesen: [{ id: 'g', name: 'G', art: 'gegner', x: 5, y: 5, aufstellen: true }, { id: 'f', name: 'F', art: 'figur', x: 1, y: 1 }] });
   assert.deepStrictEqual([U2.aufstellung.length, U2.aufstellen.map(function (w) { return w.name; })], [2, ['F']], 'auch [x, y]; doppelte und Felder außerhalb fallen weg; Gegner stellen sich nie auf');
@@ -298,6 +299,19 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
   });
   assert.ok(/<text[^>]*style="font-size:[\d.]+px">\+1,5<\/text>/.test(kampf.zeichne(TOR).svg) && />\+3 m<\/text>/.test(kampf.zeichne(TOR).svg), 'auf der ein Feld breiten Böschung wird die Schrift kleiner und das „m“ fällt; auf der Krone bleibt „+3 m“');
   ok('1.8: Aufstellung, Formen, Fortschritt, Höhenschilder');
+
+  // 1.9, ohne Browser: die Kampfbilanz lesen und zeichnen
+  var KB = kampf.lies(BIL), Bz = kampf.bilanzLesen(BIL, KB);
+  assert.deepStrictEqual([Bz.ausgang, Bz.ep, Bz.anteile, Bz.gegner.map(function (g) { return [g.name, g.stand, g.plakette, g.grau, g.blass, g.ep]; })],
+    ['Der Weg ist frei', 75, 'Probefigur 38 · Tamsin 37', [['Köter', 'gefallen', 'tot', true, false, 25], ['Vorläufer', 'ergibt sich', 'ergibt sich', false, false, 25], ['Treiber', 'geflohen', 'flieht', false, true, 25]]], 'Gegner mit Stand, Stein und EP; der Treiber nur mit Namen');
+  assert.deepStrictEqual([Bz.beute.length, Bz.beute[0].zeichen, Bz.gefangene[0].text, Bz.verbrauch[0].weg, Bz.zeit, Bz.knoepfe.map(function (k) { return k.text; })], [3, 'stich', 'Vorläufer, im Graben', true, '3 Runden, kaum zwanzig Herzschläge', ['Durchsuchen', 'Weiter']]);
+  assert.deepStrictEqual(Bz.wunden.map(function (w) { return [w.name, w.tp, w.text]; }), [['Probefigur', [22, 27], ''], ['Tamsin', [4, 11], 'ein Bolzen im Arm']], 'Wunden aus der Bilanz');
+  var Bz2 = kampf.bilanzLesen({ bilanz: { gegner: [{ name: 'A', ep: 10 }, { name: 'B', stand: 'entkommen' }] }, wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 1, tp: [5, 20] }, { id: 'g', name: 'G', art: 'gefolge', x: 2, y: 1 }] }, kampf.lies({ wesen: [{ id: 'f', name: 'F', art: 'figur', x: 1, y: 1, tp: [5, 20] }, { id: 'g', name: 'G', art: 'gefolge', x: 2, y: 1 }] }));
+  assert.deepStrictEqual([Bz2.ausgang, Bz2.ep, Bz2.wunden.map(function (w) { return [w.name, w.tp]; }), Bz2.knoepfe.map(function (k) { return [k.text, k.prompt, k.haupt]; }), Bz2.gegner[1].blass], ['Der Kampf ist vorbei', 10, [['F', [5, 20]]], [['Weiter', 'Weiter', true]], true], 'Standards: Überschrift, Summe aus den Gegnern, Wunden aus wesen mit tp, Knopf „Weiter“');
+  assert.strictEqual(kampf.bilanzLesen({}, KB), null, 'ohne bilanz keine Tafel');
+  var hB = kampf.bilanzHtml(Bz);
+  assert.ok(/class="kkBil"/.test(hB) && (hB.match(/class="kkBiZ"/g) || []).length === 3 && /data-ep="75"/.test(hB) && /kkBiBar kkBiGold/.test(hB) && (hB.match(/data-k="bilanz"/g) || []).length === 2, 'die Tafel: drei Gegner, EP, Balken, zwei Knöpfe');
+  ok('1.9: Kampfbilanz lesen und zeichnen');
 })();
 
 (async function () {
@@ -767,7 +781,27 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
     assert.strictEqual(await pgX.evaluate(function () { return getComputedStyle(document.querySelector('#kampf .kkWeg path.kkWegH')).stroke; }), 'rgb(239, 226, 195)', 'in Pergamentfarbe');
     ok('1.8: Reihenfolge mit Formen, Hilfezeile, Saum der Spur');
 
-    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgZ.fehler, pgZ2.fehler, pgT.fehler, pgO.fehler, pgO2.fehler, pgU.fehler, pgV.fehler, pgW.fehler, pgX.fehler), [], 'keine Fehler im Browser');
+    // 1.9 im Widget: die Kampfbilanz über der Karte, kein Zug, die Knöpfe schicken in den Chat
+    var pgB = await seite(b, BIL);
+    assert.strictEqual(await pgB.locator('#kampf .kkBil').count(), 1, 'die Tafel steht');
+    assert.deepStrictEqual(await pgB.evaluate(function () { return Array.prototype.map.call(document.querySelector('#kampf').children, function (c) { return c.className; }).slice(1, 6); }), ['kkKopf', 'kkKopf2', 'kkBil', 'kkRW', 'kkWz'], 'über der Karte, unter dem Kopf: ' );
+    assert.strictEqual(await pgB.locator('#kampf .kkAk[hidden], #kampf .kkBo[hidden], #kampf .kkZk[hidden]').count(), 3, 'weder Aktion noch Bonusaktion noch Zug');
+    assert.strictEqual(await pgB.locator('#kampf .kkBiZ').count(), 3, 'drei Gegner');
+    assert.strictEqual(await pgB.locator('#kampf .kkBiZ polygon').count(), 3, 'als Rauten');
+    await pgB.waitForTimeout(1200);
+    assert.strictEqual(await pgB.innerText('#kampf .kkBiEp'), '75', 'die EP sind hochgezählt');
+    assert.ok(/Der Weg ist frei/.test(await pgB.innerText('#kampf .kkBiK')) && /Probefigur 38 · Tamsin 37/.test(await pgB.innerText('#kampf .kkBiS2')));
+    assert.strictEqual(await pgB.locator('#kampf .kkBiBar.kkBiGold').count(), 1, 'Tamsin unter der Hälfte: gold');
+    await klickFeld(pgB, 20, 6);
+    assert.strictEqual(await pgB.locator('#kampf .kkWeg path').count(), 0, 'ein Tipp auf ein Feld zieht nicht mehr');
+    await klickWesen(pgB, 2);
+    assert.ok(/Vorläufer \(V\) · Gegner/.test(await pgB.innerText('#kampf .kkI')), 'Steine geben noch Auskunft: ' + await pgB.innerText('#kampf .kkI'));
+    await pgB.click('#kampf button[data-k="bilanz"][data-i="0"]');
+    assert.deepStrictEqual(await gesendet(pgB), ['Probefigur durchsucht den Köter und den Vorläufer, eine Minute je Körper'], 'der Knopf schickt seinen Satz');
+    assert.strictEqual(await pgB.locator('#kampf button[data-k="bilanz"][disabled]').count(), 2, 'danach sind beide verbraucht');
+    ok('1.9: Kampfbilanz im Widget');
+
+    assert.deepStrictEqual(pg.fehler.concat(pg2.fehler, pgH.fehler, pg3.fehler, pgA.fehler, pgA2.fehler, pgD.fehler, pgE.fehler, pgF.fehler, pgG.fehler, pgZ.fehler, pgZ2.fehler, pgT.fehler, pgO.fehler, pgO2.fehler, pgU.fehler, pgV.fehler, pgW.fehler, pgX.fehler, pgB.fehler), [], 'keine Fehler im Browser');
     ok('keine Fehler');
     console.log('\n' + n + ' Prüfungen bestanden.');
   } finally { await b.close(); }

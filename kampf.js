@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.8
+ * Version 1.9
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -54,13 +54,17 @@
  * Knopfs, etwa 400 ms, auch mit der Maus; kein stehender Erklärtext); Höhenschilder bleiben in ihrer Fläche; die drei Blässen sind
  * unterscheidbar (außer Reichweite blass, aus dem Kampf grau, außer Sicht gestrichelt); die Spur der Wegstücke trägt einen hellen
  * Saum, damit sie auch über Wasser und Planken zu sehen ist.
+ * Seit 1.9: die Kampfbilanz (`bilanz: {…}`, meist mit `runde: 'vorbei'`): eine Tafel über der Karte wie der Abschluss eines Kampfes im
+ * Taktikspiel: Ausgang und Satz der Spielleitung, die Gegner mit ihrem Stein (gefallen grau mit Kreuz, ergibt sich mit weißer Fahne,
+ * geflohen gestrichelt) und ihren EP, die Summe zählt hoch, dazu Beute, Gefangene, Wunden als Balken, Verbrauch und Zeit als Plättchen,
+ * Knöpfe, die das Nächste in den Chat schicken; weder Aktion noch Bonusaktion noch Zug.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.8';
+  var VERSION = '1.9';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -244,7 +248,13 @@
     'spurt': ['M11.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0', 'M4 17l5 1l.75 -1.5', 'M15 21v-4l-4 -3l1 -6', 'M7 12v-3l5 -1l3 3l3 1'],
     'rueckzug': ['M9 14l-4 -4l4 -4', 'M5 10h11a4 4 0 1 1 0 8h-1'],
     'aktion': ['M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5', 'M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5', 'M14 5.5a1.5 1.5 0 0 1 3 0v6.5', 'M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47'],
-    'schaden': ['M21 3v5l-11 9l-4 4l-3 -3l4 -4l9 -11l5 0', 'M5 13l6 6', 'M14.32 17.32l3.68 3.68l3 -3l-3.365 -3.365', 'M10 5.5l-2 -2.5h-5v5l3 2.5']
+    'schaden': ['M21 3v5l-11 9l-4 4l-3 -3l4 -4l9 -11l5 0', 'M5 13l6 6', 'M14.32 17.32l3.68 3.68l3 -3l-3.365 -3.365', 'M10 5.5l-2 -2.5h-5v5l3 2.5'],
+    // seit 1.9, für die Kampfbilanz (Tabler package, lock, hourglass, search, coins)
+    'beute': ['M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5', 'M12 12l8 -4.5', 'M12 12l0 9', 'M12 12l-8 -4.5', 'M16 5.25l-8 4.5'],
+    'gefangene': ['M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6', 'M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0', 'M8 11v-4a4 4 0 1 1 8 0v4'],
+    'zeit': ['M6.5 7h11', 'M6.5 17h11', 'M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1', 'M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1'],
+    'suchen': ['M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0', 'M21 21l-6 -6'],
+    'muenzen': ['M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3', 'M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4', 'M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598', 'M3 6v10c0 .888 .772 1.45 2 2', 'M3 11c0 .888 .772 1.45 2 2']
   };
   var SCHADENSARTEN = ['feuer', 'kälte', 'blitz', 'schall', 'säure', 'gift', 'nekrotisch', 'gleißend', 'psychisch', 'energie', 'hieb', 'stich', 'wucht'];
   // Das Zeichen zu einer Schadensart („Hieb“, „gleißend“), oder eines der übrigen (`rettung`, `heilung`, …); unbekannte Arten: gekreuzte Klingen
@@ -1067,7 +1077,16 @@
     // die Hilfezeile, darum kein Kontextmenü und keine Textauswahl auf den Knöpfen
     '.kk button{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}' +
     '.kk .kkAu button.kkCh-au{cursor:pointer;border-color:#2f4f70}.kk .kkAu button.kkCh-au[aria-pressed="true"]{background:rgba(47,79,112,.14);box-shadow:inset 0 0 0 1px #2f4f70}' +
-    '.kk .kkAu button.kkCh-au.kkCh-fehlt{border-style:dotted;color:var(--text-secondary)}.kk .kkAu button.kkSenden.kkBlass{opacity:.5}';
+    '.kk .kkAu button.kkCh-au.kkCh-fehlt{border-style:dotted;color:var(--text-secondary)}.kk .kkAu button.kkSenden.kkBlass{opacity:.5}' +
+    // seit 1.9: die Kampfbilanz als Tafel auf Pergament über der Karte
+    '.kk .kkBil{font-family:"EB Garamond",Georgia,serif;color:#3b3028;background:#efe2c3;border:1px solid #c8b58f;border-radius:10px;padding:14px 14px 12px;box-sizing:border-box}' +
+    '.kk .kkBiK{text-align:center;margin:0 0 6px}.kk .kkBiK b{display:block;font-family:"IM Fell English","EB Garamond",Georgia,serif;font-weight:400;font-size:32px;line-height:1.1;color:#b08d3a}.kk .kkBiK span{display:block;font-size:14px;color:#6b573f;margin-top:3px}' +
+    '.kk .kkBiL{border-top:1px solid #c8b58f;margin-top:10px;padding-top:8px}.kk .kkBiL h3{font-family:"IM Fell English","EB Garamond",Georgia,serif;font-weight:400;font-size:15px;letter-spacing:.05em;margin:0 0 6px;display:flex;align-items:center;gap:6px;color:#3b3028}.kk .kkBiL h3 .kkZc{color:#8e3b22;margin:0}' +
+    '.kk .kkBiZ{display:flex;align-items:center;gap:9px;font-size:15px;line-height:1.35;padding:3px 0}.kk .kkBiZ .kkBiT{flex:1 1 auto}.kk .kkBiZ .kkBiE{flex:0 0 auto;font-weight:600;color:#4d5b33;min-width:46px;text-align:right}.kk .kkBiS{flex:0 0 auto}' +
+    '.kk .kkBiS2{display:flex;align-items:baseline;justify-content:space-between;border-top:2px solid #3b3028;margin-top:6px;padding-top:6px;font-size:15px}.kk .kkBiS2 b{font-family:"IM Fell English","EB Garamond",Georgia,serif;font-weight:400;font-size:30px;color:#4d5b33;line-height:1}.kk .kkBiS2 small{color:#6b573f;font-size:13px}' +
+    '.kk .kkBiB{display:flex;align-items:center;gap:8px;font-size:14px;padding:3px 0}.kk .kkBiN{flex:0 0 96px}.kk .kkBiBar{flex:1 1 auto;height:9px;border:1px solid #6b573f;border-radius:5px;background:rgba(59,48,40,.08);overflow:hidden}.kk .kkBiBar i{display:block;height:100%;background:#4d5b33}.kk .kkBiBar.kkBiGold i{background:#c48a2a}.kk .kkBiBar.kkBiRot i{background:#a3261c}.kk .kkBiV{flex:0 0 56px;text-align:right;font-size:13px;color:#6b573f}.kk .kkBiX{font-size:13px;color:#8e3b22;padding-left:104px}' +
+    '.kk .kkBiP{display:flex;flex-wrap:wrap;gap:6px 8px;font-size:14px}.kk .kkBiP span{display:inline-flex;align-items:center;gap:5px;border:1px solid #c8b58f;border-radius:14px;padding:2px 9px;background:rgba(249,242,222,.8)}.kk .kkBiP span .kkZc{margin:0;color:#6b573f}.kk .kkBiP span.kkBiW{border-color:#8e3b22;color:#8e3b22}.kk .kkBiP span.kkBiW .kkZc{color:#8e3b22}' +
+    '.kk .kkBiA{display:flex;gap:8px;margin-top:12px}.kk .kkBiA button{flex:1 1 auto;font-family:"EB Garamond",Georgia,serif;font-size:15px;padding:9px 10px;border:1px solid #6b573f;border-radius:8px;background:#f9f2de;color:#3b3028;min-height:44px}.kk .kkBiA button.kkBiG{background:#3b3028;color:#f6efdd;border-color:#3b3028}.kk .kkBiA button[disabled]{opacity:.55}';
 
   /* ---------- Der Zug als Folge (seit 1.6) ---------- */
   // Der Spieler baut den Zug als Folge von Schritten, in der Reihenfolge, in der er sie tut (PHB: die Bewegung darf beliebig
@@ -1186,6 +1205,71 @@
     return Zg;
   }
 
+  /* ---------- Die Kampfbilanz (seit 1.9) ---------- */
+  // `bilanz` der Karte, meist mit `runde: 'vorbei'`: `ausgang` (Überschrift, etwa „Der Weg ist frei“), `satz` (ein Satz der Spielleitung),
+  // `gegner[]` je `{id | name, stand, ep, text}` (stand: gefallen, ergibt sich, geflohen, entkommen, gefangen, überlistet, verschont;
+  // `text` ersetzt den Stand in Worten), `ep` (Summe; fehlt sie, die Summe der Gegner-EP), `anteile[]` je `{name, ep}` oder ein Text,
+  // `beute[]`, `gefangene[]`, `verbrauch[]` je Text oder `{text, zeichen, weg}` (weg: etwas ist verbraucht, rot), `wunden[]` je
+  // `{name | id, tp: [jetzt, max], text}` (fehlen sie, die Figur und ihr Gefolge mit `tp` aus `wesen`), `zeit` (Text), `knoepfe[]` je
+  // `{text, prompt, haupt}` (Standard: „Weiter“). Alles kommt von der Spielleitung; die Karte rechnet nur die Summe.
+  var STAND_BILANZ = { 'gefallen': ['tot', 'gefallen'], 'ergibt sich': ['ergibt sich', 'ergibt sich'], 'geflohen': ['flieht', 'geflohen'], 'entkommen': ['flieht', 'entkommen'],
+    'gefangen': ['gepackt', 'gefangen'], 'überlistet': ['bezaubert', 'überlistet'], 'verschont': ['', 'verschont'], 'bewusstlos': ['bewusstlos', 'bewusstlos'] };
+  function bilanzLesen(D, K) {
+    var B = D.bilanz; if (!B || typeof B !== 'object') return null;
+    var byId = {}, byName = {}; K.wesen.forEach(function (w) { if (w.id != null) byId[String(w.id)] = w; byName[String(w.name).toLowerCase()] = w; });
+    function wesenVon(x) { return x == null ? null : byId[String(x.id != null ? x.id : x)] || byName[String(x.name || x).toLowerCase()] || null; }
+    function liste(v) { return (Array.isArray(v) ? v : v ? [v] : []).map(function (e) { return typeof e === 'string' ? { text: e } : e && e.text ? { text: String(e.text), zeichen: ZEICHEN[String(e.zeichen || '').toLowerCase()] ? String(e.zeichen).toLowerCase() : '', weg: e.weg === true } : null; }).filter(Boolean); }
+    var out = { ausgang: B.ausgang ? String(B.ausgang) : 'Der Kampf ist vorbei', satz: B.satz ? String(B.satz) : '', zeit: B.zeit ? String(B.zeit) : '' };
+    out.gegner = (Array.isArray(B.gegner) ? B.gegner : []).map(function (g) {
+      if (!g) return null;
+      var w = wesenVon(g), stand = String(g.stand || '').toLowerCase(), st = STAND_BILANZ[stand] || ['', stand];
+      var name = g.name ? String(g.name) : w ? w.name : '';
+      if (!name) return null;
+      return { name: name, art: w ? w.art : 'gegner', kurz: w ? w.kurz : name.slice(0, 2).toUpperCase(), stand: st[1], plakette: st[0], grau: stand === 'gefallen' || stand === 'bewusstlos', blass: stand === 'geflohen' || stand === 'entkommen', ep: zahl(g.ep), text: g.text ? String(g.text) : '' };
+    }).filter(Boolean);
+    var summe = 0; out.gegner.forEach(function (g) { if (g.ep != null) summe += g.ep; });
+    out.ep = zahl(B.ep) != null ? zahl(B.ep) : summe;
+    out.anteile = Array.isArray(B.anteile) ? B.anteile.filter(function (a) { return a && a.name; }).map(function (a) { return String(a.name) + ' ' + (zahl(a.ep) != null ? zahl(a.ep) : '?'); }).join(' · ') : B.anteile ? String(B.anteile) : '';
+    out.beute = liste(B.beute); out.gefangene = liste(B.gefangene); out.verbrauch = liste(B.verbrauch);
+    out.wunden = (Array.isArray(B.wunden) ? B.wunden : K.wesen.filter(function (w) { return (w.art === 'figur' || w.art === 'gefolge') && w._tp; })).map(function (x) {
+      var w = x._i != null ? x : wesenVon(x), tp = Array.isArray(x.tp) ? [+x.tp[0], +x.tp[1]] : w && w._tp ? w._tp : null;
+      var name = x.name ? String(x.name) : w ? w.name : '';
+      if (!name) return null;
+      return { name: name, tp: tp && isFinite(tp[0]) && tp[1] > 0 ? [Math.max(0, tp[0]), tp[1]] : null, text: x.text ? String(x.text) : (x._i == null && x.zustaende ? '' : '') };
+    }).filter(Boolean);
+    out.knoepfe = (Array.isArray(B.knoepfe) ? B.knoepfe : [{ text: 'Weiter', prompt: 'Weiter', haupt: true }]).filter(function (k) { return k && k.text; })
+      .map(function (k) { return { text: String(k.text), prompt: String(k.prompt || k.text), haupt: k.haupt === true }; });
+    return out;
+  }
+  // Der Stein eines Gegners in der Bilanz: seine Form, grau mit Kreuz für Gefallene, gestrichelt für Geflohene, die Plakette seines Stands
+  function bilanzStein(g) {
+    var farbe = g.grau ? '#9a9086' : ART_WESEN[g.art] || ART_WESEN.gegner;
+    return '<svg class="kkBiS" width="30" height="30" viewBox="-17 -17 34 34" aria-hidden="true">' +
+      formSvg(g.art, 0, 0, 12, ' fill="' + farbe + '"' + (g.grau ? ' stroke="#625a50"' : g.blass ? ' fill-opacity=".45" stroke="' + farbe + '" stroke-dasharray="3 2"' : ' stroke="#efe2c3"') + ' stroke-width="1.4"') +
+      (g.grau && g.stand === 'gefallen' ? '<path d="M-5 -5L5 5M5 -5L-5 5" stroke="#f6efdd" stroke-width="2.2"/>' : '') +
+      (g.plakette && STATUS[g.plakette] ? plakette(g.plakette, 8, 8, 6.5) : '') + '</svg>';
+  }
+  function bilanzHtml(Bz) {
+    var out = ['<div class="kkBil"><p class="kkBiK"><b>' + esc(Bz.ausgang) + '</b>' + (Bz.satz ? '<span>' + esc(Bz.satz) + '</span>' : '') + '</p>'];
+    function teil(titel, zeichen, inhalt) { return '<div class="kkBiL"><h3>' + zeichenBild(zeichen, titel) + esc(titel) + '</h3>' + inhalt + '</div>'; }
+    function plaettchen(liste) { return '<div class="kkBiP">' + liste.map(function (e) { return '<span' + (e.weg ? ' class="kkBiW"' : '') + '>' + (e.zeichen ? zeichenBild(e.zeichen, e.zeichen) : '') + esc(e.text) + '</span>'; }).join('') + '</div>'; }
+    if (Bz.gegner.length || Bz.ep) {
+      var zeilen = Bz.gegner.map(function (g) { return '<div class="kkBiZ">' + bilanzStein(g) + '<span class="kkBiT">' + esc(g.name) + (g.text || g.stand ? ' · ' + esc(g.text || g.stand) : '') + '</span>' + (g.ep != null ? '<span class="kkBiE">+' + g.ep + '</span>' : '') + '</div>'; }).join('');
+      zeilen += '<div class="kkBiS2"><span><b class="kkBiEp" data-ep="' + Bz.ep + '">0</b> <small>EP</small></span>' + (Bz.anteile ? '<small>' + esc(Bz.anteile) + '</small>' : '') + '</div>';
+      out.push(teil('Gegner', 'schaden', zeilen));
+    }
+    if (Bz.beute.length) out.push(teil('Beute', 'beute', plaettchen(Bz.beute)));
+    if (Bz.gefangene.length) out.push(teil('Gefangene', 'gefangene', plaettchen(Bz.gefangene)));
+    if (Bz.wunden.length) out.push(teil('Wunden', 'heilung', Bz.wunden.map(function (w) {
+      var q = w.tp ? Math.max(0, Math.min(100, Math.round(w.tp[0] / w.tp[1] * 100))) : 100;
+      return '<div class="kkBiB"><span class="kkBiN">' + esc(w.name) + '</span><span class="kkBiBar' + (q <= 25 ? ' kkBiRot' : q <= 50 ? ' kkBiGold' : '') + '"><i style="width:' + q + '%"></i></span><span class="kkBiV">' + (w.tp ? w.tp[0] + ' / ' + w.tp[1] : esc(w.text)) + '</span></div>' + (w.tp && w.text ? '<div class="kkBiX">' + esc(w.text) + '</div>' : '');
+    }).join('')));
+    if (Bz.verbrauch.length || Bz.zeit) out.push(teil('Verbrauch', 'gift', plaettchen(Bz.verbrauch.concat(Bz.zeit ? [{ text: Bz.zeit, zeichen: 'zeit' }] : []))));
+    if (Bz.knoepfe.length) out.push('<div class="kkBiA">' + Bz.knoepfe.map(function (k, i) { return '<button type="button" data-k="bilanz" data-i="' + i + '"' + (k.haupt ? ' class="kkBiG"' : '') + '>' + esc(k.text) + ' ↗</button>'; }).join('') + '</div>');
+    out.push('</div>');
+    return out.join('');
+  }
+
   /* ---------- Einbau ins Widget ---------- */
   function schriftLaden() {
     try {
@@ -1212,6 +1296,9 @@
     // Aktion noch Bonusaktion noch den Kasten „Zug“, sondern nur die blauen Felder, die Steine, die sich setzen lassen (die Figur und
     // alle mit `aufstellen: true`), und einen breiten Knopf, der „Aufstellung: Fürchtegott auf 12/D, Ksshar auf 13/D“ schickt
     var aufst = figur && K.aufstellen.length ? { stuecke: K.aufstellen, aktiv: 0 } : null;
+    // seit 1.9: die Kampfbilanz nach dem Kampf; solange sie steht, gibt es weder Zug noch Aufstellung, die Karte darunter zeigt die Lage
+    var Bz = bilanzLesen(D, K), vorbei = !!Bz;
+    if (vorbei) aufst = null;
     // Kopf: Ziel, Uhren und Lage (seit 1.2), Trefferpunkte der Figur (seit 1.4)
     var kopf2 = [];
     if (figur && figur._tp) {
@@ -1244,6 +1331,7 @@
       '<div class="kkKopf"><span>' + esc(D.titel || 'Kampfkarte') + '</span><small>' + (D.runde ? 'Runde ' + esc(D.runde) + ' · ' : '') +
       (figur ? esc(figur.name) + ' · Bewegung ' + m(Zg.basis) + (Zg.liegt ? ' (liegt)' : '') : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
       (kopf2.length ? '<div class="kkKopf2">' + kopf2.join('') + '</div>' : '') + ini +
+      (vorbei ? bilanzHtml(Bz) : '') +
       // 1. die Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht; darunter die Werkzeuge in einer schmalen Zeile
       '<div class="kkRW"><div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
       ['w', 'e', 'n', 's'].map(function (r) { return '<button type="button" class="kkBl kkBl-' + r + '" data-k="blatt" data-r="' + r + '" aria-label="' + ({ w: 'Karte nach links', e: 'Karte nach rechts', n: 'Karte nach oben', s: 'Karte nach unten' })[r] + '" hidden>' + PFEIL + '</button>'; }).join('') + '</div>' +
@@ -1253,8 +1341,8 @@
       '<p class="kkI" aria-live="polite"></p>' +
       '<p class="kkA" hidden></p>' +
       // 4. Aktion, 5. Bonusaktion, 6. der Kasten „Zug“; vor dem Initiativewurf (seit 1.8) stattdessen der Kasten „Aufstellung“
-      '<div class="kkB kkAk"' + (figur && !aufst ? '' : ' hidden') + '></div><div class="kkB kkBo"' + (bonus.length && !aufst ? '' : ' hidden') + '></div>' +
-      '<div class="kkZk"' + (figur && !aufst ? '' : ' hidden') + '><div class="kkZkT"><b>Zug</b><span class="kkZkW"></span></div><div class="kkFo"></div>' +
+      '<div class="kkB kkAk"' + (figur && !aufst && !vorbei ? '' : ' hidden') + '></div><div class="kkB kkBo"' + (bonus.length && !aufst && !vorbei ? '' : ' hidden') + '></div>' +
+      '<div class="kkZk"' + (figur && !aufst && !vorbei ? '' : ' hidden') + '><div class="kkZkT"><b>Zug</b><span class="kkZkW"></span></div><div class="kkFo"></div>' +
       '<input type="text" maxlength="120" placeholder="und sonst … (Rufen, Trick, Gegenstand)" aria-label="Was die Figur sonst tut">' +
       '<button type="button" class="kkSenden" data-k="zug">Zug abschicken</button><p class="kkZkS" hidden></p></div>' +
       (aufst ? '<div class="kkZk kkAu"><div class="kkZkT"><b>Aufstellung</b><span class="kkAuW"></span></div><div class="kkFo kkAuF"></div>' +
@@ -1462,6 +1550,7 @@
     }
     function zeigeAlles() {
       if (!figur) return;
+      if (vorbei) { zeigeRinge(); return; }
       if (aufst) { zeigeAufstellung(); zeigeRinge(); return; }
       zeigeKnoepfe(); zeigeKasten(); zeigeBewegung(); zeigeWeg(); zeigeReich(); zeigeRinge(); zeigeLage();
     }
@@ -1561,6 +1650,7 @@
       if (k === 'auf') return 'Aufstehen kostet die halbe Bewegung und hebt den Nachteil vom Boden auf; abgewählt bleibt die Figur liegen und kriecht.';
       if (k === 'aufst') return 'Schickt die Aufstellung an die Spielleitung; danach würfelt sie die Initiative.';
       if (k === 'austk' && aufst && aufst.stuecke[i]) return '<b>' + esc(aufst.stuecke[i].name) + '</b> wird gesetzt: ein Tipp hier, dann auf ein blaues Feld.';
+      if (k === 'bilanz' && Bz && Bz.knoepfe[i]) return 'Schickt „' + esc(Bz.knoepfe[i].prompt) + '“ in den Chat; der Kampf ist vorbei, die Karte zeigt nur noch die Lage.';
       if (k === 'gefahr') return 'Zeigt alle Felder, die ein Gegner bedroht; ein Tipp auf einen Gegner zeigt nur seine.';
       if (k === 'leg') return 'Klappt die Legende ganz unten auf und zu.';
       if (k === 'figur') return 'Rückt die Karte so, dass die Figur in der Mitte steht.';
@@ -1649,6 +1739,7 @@
     function tippWesen(w) {
       if (gesendet || !figur) return;
       // seit 1.8: in der Aufstellung wählt ein Tipp auf einen der eigenen Steine, wer gesetzt wird; alles andere ist Auskunft
+      if (vorbei) { betrachtet = betrachtet === w ? null : w; sag(betrachtet ? wesenText(w, figur) : ''); zeigeZone(betrachtet); zeigeAlles(); return; }
       if (aufst) {
         var ai = aufst.stuecke.indexOf(w);
         if (ai >= 0) { aufst.aktiv = ai; betrachtet = null; sag(''); zeigeZone(null); zeigeAlles(); return; }
@@ -1676,6 +1767,7 @@
     }
     function tippFeld(x, y) {
       if (gesendet || !figur) return;
+      if (vorbei) return;
       if (aufst) { aufstellen(x, y); zeigeAlles(); return; }
       var r = Zg.wegHinzu(x, y);
       if (r.ok) { sag(wegHinweis(r.schritt)); zeigeAlles(); return; }
@@ -1708,6 +1800,13 @@
       if (k === 'figur') { zurFigur(); return; }
       if (k === 'blatt') { blaettern(b.getAttribute('data-r')); return; }
       if (k === 'gefahr') { gefahrAn = !gefahrAn; b.setAttribute('aria-pressed', String(gefahrAn)); zeigeGefahr(gefahrAn); return; }
+      // seit 1.9: die Knöpfe der Kampfbilanz schicken ihren Satz in den Chat, dann sind sie verbraucht
+      if (k === 'bilanz') {
+        var kn = Bz && Bz.knoepfe[i]; if (!kn || b.disabled) return;
+        Array.prototype.forEach.call(el.querySelectorAll('button[data-k="bilanz"]'), function (x) { x.disabled = true; });
+        if (typeof sendPrompt === 'function') sendPrompt(kn.prompt); else sag('Schreib das in den Chat: <b>' + esc(kn.prompt) + '</b>');
+        return;
+      }
       if (gesendet || !figur) { if (k === 'zug' && !figur) sag('Ohne Figur auf der Karte gibt es keinen Zug; schreib in den Chat, was sie tut.'); return; }
       // seit 1.8: die Aufstellung (ein Chip wählt den Stein, der breite Knopf schickt sie); solange sie läuft, gibt es keinen Zug
       if (aufst) {
@@ -1791,6 +1890,9 @@
     stelle(); zurFigur();
     if (!figur) sag('Die Figur steht nicht auf der Karte; die Spielleitung erzählt die Lage.');
     else zeigeAlles();
+    // seit 1.9: die EP der Bilanz zählen hoch
+    var epEl = el.querySelector('.kkBiEp');
+    if (epEl) (function () { var z = +epEl.getAttribute('data-ep') || 0, t0 = null; function s(t) { if (!t0) t0 = t; var p = Math.min(1, (t - t0) / 900); epEl.textContent = Math.round(z * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(s); } if (window.requestAnimationFrame) requestAnimationFrame(s); else epEl.textContent = z; })();
     if (D.hinweis) sag(esc(D.hinweis) + (info.innerHTML ? ' · ' + info.innerHTML : ''));
   }
 
@@ -1807,7 +1909,9 @@
     // seit 1.6: der Zug als Folge, die Zeichen der Schadensarten, Aktionen ohne Ziel
     zugModell: zugModell, zeichenBild: zeichenBild, zeichenVon: zeichenVon, waffenZeichen: waffenZeichen, schadensarten: SCHADENSARTEN, aktionInfo: aktionInfo,
     // seit 1.8: die Formen der Arten, der Fortschritt einer Aufgabe
-    formSvg: formSvg, formRand: formRand, formBild: formBild, formen: FORM, fortschrittLesen: fortschrittLesen };
+    formSvg: formSvg, formRand: formRand, formBild: formBild, formen: FORM, fortschrittLesen: fortschrittLesen,
+    // seit 1.9: die Kampfbilanz
+    bilanzLesen: bilanzLesen, bilanzHtml: bilanzHtml };
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
