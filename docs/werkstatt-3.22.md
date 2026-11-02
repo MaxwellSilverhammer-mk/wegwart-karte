@@ -1,6 +1,6 @@
 # Hold der Seeprinzen – Werkstatt der Spielleitung
 
-**Zum Regelwerk 3.22 · 2. November 2026 · Weltenhüter: Max**
+**Zum Regelwerk 3.22 · 3. November 2026 · Weltenhüter: Max**
 
 Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, das Spielerbuch oder die Chronik beschreibt, Tische baut oder prüft, ein Treffen leitet, eine neue Figur anlegt oder einem Revier einen neuen Auftrag oder eine neue Bedrohung gibt, wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
 

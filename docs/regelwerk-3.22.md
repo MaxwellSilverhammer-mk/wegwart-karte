@@ -1,6 +1,6 @@
 # Hold der Seeprinzen – Regelwerk der geteilten Welt
 
-**Version 3.22 · 2. November 2026 · Weltenhüter: Max**
+**Version 3.22 · 3. November 2026 · Weltenhüter: Max**
 
 Dieses Regelwerk gilt für jede Spielleitung (Claude) in jedem Projekt, das in der Welt „Hold der Seeprinzen“ spielt. Spieler dürfen es lesen. Geändert wird es nur über den Weltenhüter; jede Änderung bekommt eine neue Versionsnummer, die auch in der Weltchronik steht. Was nur eine Figur betrifft, steht in ihrem Spielstand und ihrem Spielerbuch; was nur ein Revier betrifft, steht in dessen Spoilerdatei. Was sich gegenüber früheren Fassungen geändert hat, steht im Repository der Tische unter docs/aenderungen.md. Die Arbeitsschritte zum Speichern, Bauen und Einrichten und die Tafel der Wahlregeln stehen in der **Werkstatt** (00_werkstatt.md im Projekt, im Repository docs/werkstatt-3.22.md). Sie gehört zu diesem Regelwerk und gilt wie dieses, lädt aber nicht jede Sitzung mit: Die Spielleitung liest sie, wenn ein Verweis mit W (etwa W 21.3, W 23) dorthin zeigt.
 

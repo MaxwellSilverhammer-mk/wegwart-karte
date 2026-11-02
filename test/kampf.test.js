@@ -349,6 +349,13 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
   var Lp = kampf.angriffsLage(Kp, { x: 1, y: 2, groesse: 1 }, Kp.wesen[1], Kp.figur.waffen[0], false);
   assert.deepStrictEqual([Lp.status, Lp.grund, Lp.deckung.stufe], ['in', '', 0], 'in Reichweite');
   assert.strictEqual(kampf.lageKurz(Lp, Kp.figur.waffen[0], Kp.wesen[1]), 'Angriff: Langschwert auf Hofknecht (1,5 m)');
+  // Hinter der Tür verstecken und zuschlagen (der Weltenhüter, 3.11.2026): Von draußen ist die Figur nicht zu sehen, in der Tür und drinnen schon
+  [['...+.', '...#.'], ['...#.', '...+.']].forEach(function (b) {
+    var tuer = b[0][3] === '+' ? 1 : 2, neben = tuer === 1 ? 2 : 1;
+    assert.strictEqual(ecke(b, [3, neben], [5, tuer]).stufe, 3, 'von draußen durch die Wand neben der Tür: ungesehen');
+    assert.strictEqual(ecke(b, [3, neben], [4, tuer]).stufe, 0, 'in der Tür: frei');
+    assert.strictEqual(ecke(b, [3, neben], [3, tuer]).stufe, 0, 'drinnen neben ihr: frei');
+  });
   ok('1.10: Sichtlinie auf allen vier Diagonalen, Ecken und Fugen');
 })();
 
