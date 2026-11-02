@@ -312,6 +312,44 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
   var hB = kampf.bilanzHtml(Bz);
   assert.ok(/class="kkBil"/.test(hB) && (hB.match(/class="kkBiZ"/g) || []).length === 3 && /data-ep="75"/.test(hB) && /kkBiBar kkBiGold/.test(hB) && (hB.match(/data-k="bilanz"/g) || []).length === 2, 'die Tafel: drei Gegner, EP, Balken, zwei Knöpfe');
   ok('1.9: Kampfbilanz lesen und zeichnen');
+
+  // 1.10: Die Sichtlinie ist auf allen vier Diagonalen gleich. Vorher nahm das Runden auf zweien ein Feld neben der Linie mit:
+  // Wer diagonal neben einem Gegner an einer Türkante stand, hatte „keine Sichtlinie, eine Wand bei …“.
+  assert.deepStrictEqual(Array.from(kampf.linie(8, 5, 9, 4)), [], 'nach rechts oben liegt nichts dazwischen');
+  assert.deepStrictEqual(Array.from(kampf.linie(8, 5, 7, 6)), [], 'nach links unten auch nicht');
+  assert.deepStrictEqual(kampf.linie(8, 5, 9, 4).ecken, [[[8, 4], [9, 5]]], 'nur die Ecke, mit den beiden Feldern daneben');
+  assert.deepStrictEqual(kampf.linie(8, 5, 9, 6).ecken, [[[9, 5], [8, 6]]], 'die andere Diagonale ebenso');
+  assert.deepStrictEqual(Array.from(kampf.linie(1, 4, 4, 1)), [[2, 3], [3, 2]], 'die lange Gegendiagonale nur auf der Linie');
+  assert.deepStrictEqual(Array.from(kampf.linie(4, 1, 1, 4)), [[3, 2], [2, 3]], 'und zurück');
+  assert.deepStrictEqual(Array.from(kampf.linie(1, 1, 4, 4)), [[2, 2], [3, 3]], 'die lange Hauptdiagonale wie bisher');
+  assert.deepStrictEqual(Array.from(kampf.linie(1, 3, 6, 3)), [[2, 3], [3, 3], [4, 3], [5, 3]], 'eine Zeile wie bisher');
+  function ecke(boden, von, ziel, stark) {
+    var Ke = kampf.lies({ spalten: boden[0].length, zeilen: boden.length, boden: boden, figur: 'f', wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: von[0], y: von[1] }, { id: 'z', name: 'Ziel', art: 'gegner', x: ziel[0], y: ziel[1] }].concat(stark || []) });
+    return kampf.deckung(Ke, { x: von[0], y: von[1], groesse: 1 }, Ke.wesen[1]);
+  }
+  // Die Türkante der Probe: Figur auf 2/C, das Ziel in der Tür auf 3/B, darunter die Wand auf 3/C
+  var kante = ['.....', '..+..', '..#..', '.....'];
+  assert.strictEqual(ecke(kante, [2, 3], [3, 2]).stufe, 0, 'an der Türkante vorbei: frei');
+  assert.strictEqual(ecke(kante, [3, 2], [2, 3]).stufe, 0, 'und umgekehrt');
+  assert.strictEqual(ecke(['.....', '..#..', '..+..', '.....'], [2, 2], [3, 3]).stufe, 0, 'gespiegelt: frei');
+  // Die Fuge zwischen zwei Wandstücken versperrt auf beiden Diagonalen
+  var fuge = ['.....', '..#..', '.#...', '.....'];
+  assert.deepStrictEqual([ecke(fuge, [2, 2], [3, 3]).stufe, ecke(fuge, [2, 2], [3, 3]).grund], [3, 'eine Wand bei 3/B'], 'durch die Fuge: ganze Deckung');
+  var fuge2 = ['.....', '.#...', '..#..', '.....'];
+  assert.strictEqual(ecke(fuge2, [2, 3], [3, 2]).stufe, 3, 'die andere Fuge ebenso');
+  // Durch die Ecke zählt der Schwächere: Wand und Kiste geben halbe Deckung, ein Wesen neben der Linie allein keine
+  assert.strictEqual(ecke(['.....', '..#..', '.o...', '.....'], [2, 2], [3, 3]).stufe, 1, 'Wand und Kiste: halbe Deckung');
+  assert.strictEqual(ecke(['.....', '.....', '.....', '.....'], [2, 3], [3, 2], [{ id: 'n', name: 'Nachbar', art: 'gegner', x: 3, y: 3 }]).stufe, 0, 'ein Wesen neben der Linie deckt nicht');
+  // Wer wirklich in der Linie steht, deckt weiter, und die Wand auf der Linie versperrt weiter
+  assert.strictEqual(ecke(['.....', '.....', '.....', '.....'], [1, 4], [3, 2], [{ id: 'n', name: 'Nachbar', art: 'gegner', x: 2, y: 3 }]).stufe, 1, 'ein Wesen auf der Diagonalen: halbe Deckung');
+  assert.strictEqual(ecke(['.....', '.....', '.#...', '.....'], [1, 4], [3, 2]).stufe, 3, 'eine Wand auf der Diagonalen: ganze Deckung');
+  assert.strictEqual(ecke(['.....', '..#..', '.....'], [2, 2], [4, 2]).stufe, 3, 'eine Wand in der Zeile: ganze Deckung');
+  // Die Lage der Probe: Langschwert auf den Hofknecht in der Tür, diagonal neben der Figur
+  var Kp = kampf.lies({ spalten: 3, zeilen: 2, boden: ['=+g', '=#g'], figur: 'f', wesen: [{ id: 'f', name: 'Figur', art: 'figur', x: 1, y: 2, waffen: [{ name: 'Langschwert', bonus: 4, schaden: '1W8+2', typ: 'Hieb', reichweite: 1.5 }] }, { id: 'h', name: 'Hofknecht', art: 'gegner', x: 2, y: 1 }] });
+  var Lp = kampf.angriffsLage(Kp, { x: 1, y: 2, groesse: 1 }, Kp.wesen[1], Kp.figur.waffen[0], false);
+  assert.deepStrictEqual([Lp.status, Lp.grund, Lp.deckung.stufe], ['in', '', 0], 'in Reichweite');
+  assert.strictEqual(kampf.lageKurz(Lp, Kp.figur.waffen[0], Kp.wesen[1]), 'Angriff: Langschwert auf Hofknecht (1,5 m)');
+  ok('1.10: Sichtlinie auf allen vier Diagonalen, Ecken und Fugen');
 })();
 
 (async function () {

@@ -660,11 +660,21 @@
     });
     return out;
   }
-  // Felder, durch die die gerade Linie von Feldmitte zu Feldmitte läuft, ohne Anfang und Ende
+  // Felder, durch die die gerade Linie von Feldmitte zu Feldmitte läuft, ohne Anfang und Ende. Läuft sie genau durch die Ecke zwischen vier
+  // Feldern, berührt sie die beiden daneben nur in einem Punkt: Sie stehen als Paar in `ecken` und sind nicht Teil der Linie (seit 1.10;
+  // vorher nahm das Runden auf den Diagonalen nach rechts oben und links unten eines von ihnen mit, auf den beiden anderen keines).
   function linie(ax, ay, bx, by) {
-    var out = [], seen = {}, n = Math.max(Math.abs(bx - ax), Math.abs(by - ay)) * 8;
+    var out = [], seen = {}, n = Math.max(Math.abs(bx - ax), Math.abs(by - ay)) * 8, fallend = (bx - ax) * (by - ay) > 0;
+    function halb(v) { return Math.abs(v - Math.floor(v) - 0.5) < 1e-9; }
+    out.ecken = [];
     for (var i = 1; i < n; i++) {
-      var t = i / n, x = Math.round(ax + (bx - ax) * t), y = Math.round(ay + (by - ay) * t), key = x + ',' + y;
+      var t = i / n, gx = ax + (bx - ax) * t, gy = ay + (by - ay) * t;
+      if (halb(gx) && halb(gy)) {
+        var fx = Math.floor(gx), fy = Math.floor(gy);
+        out.ecken.push(fallend ? [[fx + 1, fy], [fx, fy + 1]] : [[fx, fy], [fx + 1, fy + 1]]);
+        continue;
+      }
+      var x = Math.round(gx), y = Math.round(gy), key = x + ',' + y;
       if ((x === ax && y === ay) || (x === bx && y === by) || seen[key]) continue;
       seen[key] = 1; out.push([x, y]);
     }
@@ -680,21 +690,25 @@
     return best;
   }
   // Deckung des Ziels aus der Geometrie: Wand und Hindernis ganz (3), hohe Deckung Dreiviertel (2), niedrige Deckung und
-  // Wesen dazwischen halb (1). Ein Vorschlag; die Spielleitung entscheidet nach PHB (Regelwerk 12.6).
+  // Wesen dazwischen halb (1). Durch eine Ecke zählt nur, was auf beiden Seiten der Linie steht: Eine einzelne Wandkante versperrt nichts, die Fuge
+  // zwischen zwei Wandstücken schon (seit 1.10). Ein Vorschlag; die Spielleitung entscheidet nach PHB (Regelwerk 12.6).
   var DECKUNG_NAME = ['keine', 'halbe', 'Dreiviertel-', 'ganze'], DECKUNG_STERN = ['', '★', '★★', '★★★'], DECKUNG_RK = ['', '+2', '+5', ''];
   function deckung(K, von, ziel) {
-    var zf = naechstesFeld(von, ziel), b = belegt(K), stufe = 0, grund = '';
-    linie(von.x, von.y, zf[0], zf[1]).forEach(function (f) {
+    var zf = naechstesFeld(von, ziel), b = belegt(K), stufe = 0, grund = '', strecke = linie(von.x, von.y, zf[0], zf[1]);
+    function imWeg(f) {
       var x = f[0], y = f[1];
-      if (x < 1 || y < 1 || x > K.sp || y > K.ze) return;
+      if (x < 1 || y < 1 || x > K.sp || y > K.ze) return { s: 0, g: '' };
       var c = K.raster[y - 1][x - 1], s = 0, g = '';
       if (c === '#' || c === 'x') { s = 3; g = c === '#' ? 'eine Wand' : 'ein Hindernis'; }
       else if (c === 'O') { s = 2; g = 'hohe Deckung'; }
       else if (c === 'o') { s = 1; g = 'niedrige Deckung'; }
       var w = b[x + ',' + y];
       if (w && w !== ziel && w.art !== 'figur' && s < 1) { s = 1; g = w.name; }
-      if (s > stufe) { stufe = s; grund = g + ' bei ' + feldNameK(K, x, y); }
-    });
+      return { s: s, g: g ? g + ' bei ' + feldNameK(K, x, y) : '' };
+    }
+    function zaehlt(o) { if (o.s > stufe) { stufe = o.s; grund = o.g; } }
+    strecke.forEach(function (f) { zaehlt(imWeg(f)); });
+    strecke.ecken.forEach(function (p) { var a = imWeg(p[0]), c = imWeg(p[1]); zaehlt(a.s <= c.s ? a : c); });
     return { stufe: stufe, grund: grund, name: DECKUNG_NAME[stufe], stern: DECKUNG_STERN[stufe], rk: DECKUNG_RK[stufe] };
   }
   // Die Lage eines Angriffs vom Standort `stand` auf `ziel` mit der Waffe `wf`: Reichweite, Deckung, Vorteil und Nachteil
