@@ -128,7 +128,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.3: Modi, Zauber mit Waffe, Zustände, Wunden, wer bedroht
   var B = kampf.lies(DREI), bf = B.figur, b1 = B.wesen[1], b2 = B.wesen[2], b4 = B.wesen[4], hanno = B.wesen[5];
-  assert.strictEqual(kampf.version, '1.9');
+  assert.strictEqual(kampf.version, '1.10');
   assert.deepStrictEqual(bf.waffen[0].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'faeuste'], 'Langschwert: Faust, zwei Fäuste');
   assert.deepStrictEqual(bf.waffen[1].modi.map(function (mo) { return mo.zeichen; }), ['faust', 'kreuz'], 'Dolch: Faust, Fadenkreuz');
   var e1 = kampf.wirksam(bf.waffen[0], 1, null);
@@ -268,7 +268,7 @@ function gesendet(pg) { return pg.evaluate(function () { return GESENDET; }); }
 
   // 1.8 (Stufe C), ohne Browser: Aufstellung, Formen, Fortschritt, Höhenschilder in ihrer Fläche, grau in der Legende
   var U = kampf.lies(AUF);
-  assert.strictEqual(kampf.version, '1.9');
+  assert.strictEqual(kampf.version, '1.10');
   assert.deepStrictEqual([U.aufstellung.length, U.aufSet['12,5'], U.aufSet['12,6'], U.aufstellen.map(function (w) { return w.name; })], [12, 1, undefined, ['Probefigur', 'Tamsin', 'Brock']], 'Aufstellungsfelder gelesen; die Figur zuerst, dann die Ihren mit aufstellen');
   var U2 = kampf.lies({ aufstellung: [[2, 2], { x: 3, y: 2 }, { x: 99, y: 2 }, [2, 2]], wesen: [{ id: 'g', name: 'G', art: 'gegner', x: 5, y: 5, aufstellen: true }, { id: 'f', name: 'F', art: 'figur', x: 1, y: 1 }] });
   assert.deepStrictEqual([U2.aufstellung.length, U2.aufstellen.map(function (w) { return w.name; })], [2, ['F']], 'auch [x, y]; doppelte und Felder außerhalb fallen weg; Gegner stellen sich nie auf');

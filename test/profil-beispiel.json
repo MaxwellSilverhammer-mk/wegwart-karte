@@ -1,0 +1,28 @@
+{
+  "art": "profil",
+  "id": "pf",
+  "name": "Probefigur",
+  "kurz": "PF",
+  "bewegung": 9,
+  "tpMax": 27,
+  "waffen": [
+    { "name": "Langschwert", "bonus": 4, "typ": "Hieb", "reichweite": 1.5, "modi": [{ "name": "einhändig", "schaden": "1W8+2" }, { "name": "beidhändig", "schaden": "1W10+2" }] },
+    { "name": "Dolch", "bonus": 4, "schaden": "1W4+2", "typ": "Stich", "leicht": true, "modi": [{ "name": "Nahkampf", "reichweite": 1.5 }, { "name": "geworfen", "reichweite": [6, 18] }] }
+  ],
+  "zauber": [
+    { "name": "Starry Wisp", "bonus": 4, "schaden": "1W8", "typ": "gleißend", "reichweite": 18 },
+    { "name": "Dissonant Whispers", "rettung": "WEI", "sg": 12, "schaden": "3W6", "typ": "psychisch", "reichweite": 18, "wirkung": "halb bei Erfolg; muss mit seiner Reaktion fliehen" }
+  ],
+  "bonus": [
+    { "name": "Healing Word", "art": "heilung", "ziel": "jedes", "reichweite": 18, "heilung": "2W4+2", "wirkung": "Grad 1" },
+    { "name": "Dolch", "art": "waffe", "ziel": "gegner", "waffe": "Dolch" }
+  ],
+  "aktionen": [
+    { "name": "Hilfe", "wirkung": "Vorteil für den Nächsten, der das Ziel angreift" },
+    { "name": "Verstecken", "wirkung": "Heimlichkeit gegen die passive Wahrnehmung derer, die dich suchen" }
+  ],
+  "gefolge": [
+    { "id": "ta", "name": "Tamsin", "kurz": "TA", "art": "gefolge", "reichweite": 1.5, "notiz": "Kurzbogen" },
+    { "id": "br", "name": "Brock", "kurz": "BR", "art": "tier", "zahm": true }
+  ]
+}

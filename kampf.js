@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.9
+ * Version 1.10
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -58,13 +58,20 @@
  * Taktikspiel: Ausgang und Satz der Spielleitung, die Gegner mit ihrem Stein (gefallen grau mit Kreuz, ergibt sich mit weißer Fahne,
  * geflohen gestrichelt) und ihren EP, die Summe zählt hoch, dazu Beute, Gefangene, Wunden als Balken, Verbrauch und Zeit als Plättchen,
  * Knöpfe, die das Nächste in den Chat schicken; weder Aktion noch Bonusaktion noch Zug.
+ * Seit 1.10: die Karte im Browser (`kampf: 'fs-s19-1'`): Jede Karte eines Kampfes wird im Browser abgelegt, gezeigt wird, was sich aus
+ * allen Karten des Kampfes bis zu ihrer Nummer ergibt. Nur die erste Karte braucht Boden und Figur; jede weitere nennt, was sich geändert
+ * hat (`wesen` nach `id`, `weg: true` nimmt ein Wesen vom Feld, `null` löscht eine Angabe, `aendern` ändert Boden und Höhe). Wer sich bewegt
+ * hat, bekommt seine Spur von selbst, wer dazukommt, seine Marke „neu“. Felder dürfen mit ihrem Namen stehen (`feld: '19/H'`), wie in der
+ * Zugzeile, auch in einem Ausschnitt. Fehlt die Karte im Browser (ein anderes Gerät, gelöschte Daten), schickt ein Knopf „(Karte ganz: …)“;
+ * die Antwort ist die ganze Karte mit `ganz: true`, die neu anfängt.
+ * Eine Karte mit `kampf` meldet Schreibfehler (Zeilenlänge, unbekannte Zeichen, Wesen ohne Namen oder Feld). Ohne `kampf` alles wie bisher.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.9';
+  var VERSION = '1.10';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -279,6 +286,15 @@
   }
   function m(felder) { var v = felder * METER; return (Math.round(v * 2) / 2).toString().replace('.', ',') + ' m'; }
   function feldName(D, x, y) { return (D._ux + x - 1) + '/' + (ZEILEN[(D._uy + y - 2) % 26] || '?'); }
+  // seit 1.10: ein Feld mit seinem Namen: „19/H“ heißt Spalte 19, Zeile 8 des Ganzen, gleich wo der Ausschnitt beginnt
+  function feldAusName(f) {
+    var t = /^\s*(\d+)\s*\/\s*([A-Za-z])\s*$/.exec(String(f == null ? '' : f));
+    return t ? [+t[1], ZEILEN.indexOf(t[2].toUpperCase()) + 1] : null;
+  }
+  function ursprungVon(D) {
+    var u = Array.isArray(D.ursprung) ? D.ursprung : [1, 'A'];
+    return [Math.max(1, +u[0] || 1), Math.max(1, ZEILEN.indexOf(String(u[1] || 'A').toUpperCase()) + 1 || 1)];
+  }
 
   function lies(D) {
     var sp = Math.max(1, Math.min(60, +D.spalten || 36)), ze = Math.max(1, Math.min(26, +D.zeilen || 12));
@@ -299,10 +315,25 @@
       }
       raster.push(r); hoehen.push(h); rampen.push(rz);
     }
-    var u = Array.isArray(D.ursprung) ? D.ursprung : [1, 'A'];
-    D._ux = Math.max(1, +u[0] || 1);
-    D._uy = Math.max(1, ZEILEN.indexOf(String(u[1] || 'A').toUpperCase()) + 1 || 1);
-    var wesen = (D.wesen || []).filter(function (w) { return w && w.name && isFinite(w.x) && isFinite(w.y); }).map(function (w, i) {
+    var u = ursprungVon(D);
+    D._ux = u[0];
+    D._uy = u[1];
+    // seit 1.10: Felder mit ihrem Namen (`feld: '19/H'`) auf das Raster dieser Karte umgerechnet; was außerhalb des Ausschnitts liegt, steht nicht auf ihr
+    function aufRaster(f) { var a = feldAusName(f); return a ? [a[0] - D._ux + 1, a[1] - D._uy + 1] : null; }
+    function imRaster(p) { return !!p && p[0] >= 1 && p[1] >= 1 && p[0] <= sp && p[1] <= ze; }
+    function mitFeld(o, p) { var k = {}; Object.keys(o).forEach(function (s) { k[s] = o[s]; }); k.x = p[0]; k.y = p[1]; return k; }
+    if (Array.isArray(D.licht) && D.licht.some(function (l) { return l && l.feld != null; })) {
+      D.licht = D.licht.map(function (l) { var p = l && l.feld != null ? aufRaster(l.feld) : null; return p ? mitFeld(l, p) : l; });
+    }
+    var aussen = [];
+    var roh = (D.wesen || []).map(function (w) {
+      if (!w || w.feld == null) return w;
+      var p = aufRaster(w.feld);
+      if (imRaster(p)) return mitFeld(w, p);
+      if (p && w.name) aussen.push(mitFeld(w, p));
+      return null;
+    });
+    var wesenLesen = function (w, i) {
       var k = {}; Object.keys(w).forEach(function (s) { k[s] = w[s]; });
       k.x = +w.x; k.y = +w.y; k.groesse = Math.max(1, Math.min(4, +w.groesse || 1)); k._i = i;
       k.art = ART_WESEN[k.art] ? k.art : 'npc';
@@ -318,7 +349,7 @@
       // seit 1.6: weitere Aktionen ohne Ziel (`aktionen[]`: Hilfe, Ausweichen, …); Spurt und Rückzug kennt die Karte selbst
       k.aktionen = (Array.isArray(w.aktionen) ? w.aktionen : []).map(aktionInfo).filter(function (x) { return !!x; });
       // seit 1.7: die Spur seit der letzten Karte (`vorher: [x, y]` oder `{x, y}`, nur, wenn die Figur den Zug gesehen hat), `neu` und `gesehen: false`
-      var vo = Array.isArray(w.vorher) ? [+w.vorher[0], +w.vorher[1]] : w.vorher && typeof w.vorher === 'object' ? [+w.vorher.x, +w.vorher.y] : null;
+      var vo = typeof w.vorher === 'string' ? aufRaster(w.vorher) : Array.isArray(w.vorher) ? [+w.vorher[0], +w.vorher[1]] : w.vorher && typeof w.vorher === 'object' ? [+w.vorher.x, +w.vorher.y] : null;
       k._vorher = vo && isFinite(vo[0]) && isFinite(vo[1]) && (vo[0] !== k.x || vo[1] !== k.y) ? vo : null;
       k.neu = w.neu === true; k.gesehen = w.gesehen !== false;
       // seit 1.8: wer sich vor dem Initiativewurf aufstellen lässt (`aufstellen: true`; die Figur immer, Gegner nie)
@@ -335,20 +366,29 @@
         if (k._tp[0] <= 0 && k.zustaende.indexOf('bewusstlos') < 0 && k._wunde !== 'tot') k.zustaende.push('bewusstlos');
       }
       return k;
-    });
+    };
+    var wesen = roh.filter(function (w) { return w && w.name && isFinite(w.x) && isFinite(w.y); }).map(wesenLesen);
+    // Wer außerhalb des Ausschnitts steht, ist nicht auf der Karte; die Bilanz kennt ihn trotzdem
+    var ausserhalb = aussen.map(wesenLesen);
     var figur = null;
     wesen.forEach(function (w) { if (!figur && (w.id === D.figur || (!D.figur && w.art === 'figur'))) figur = w; });
     if (figur) { figur.art = 'figur'; figur.aufstellen = true; }
     // seit 1.8: die Aufstellung vor dem Initiativewurf (`aufstellung: [{x, y}]`, auch `[x, y]`) und die Notizen mit Fortschritt
     var aufSet = {}, aufstellung = [];
     (Array.isArray(D.aufstellung) ? D.aufstellung : []).forEach(function (f) {
-      var x = Array.isArray(f) ? +f[0] : f && +f.x, y = Array.isArray(f) ? +f[1] : f && +f.y;
+      if (typeof f === 'string') f = aufRaster(f);
+      if (!f) return;
+      var x = Array.isArray(f) ? +f[0] : +f.x, y = Array.isArray(f) ? +f[1] : +f.y;
       if (!isFinite(x) || !isFinite(y) || x < 1 || y < 1 || x > sp || y > ze || aufSet[x + ',' + y]) return;
       aufSet[x + ',' + y] = 1; aufstellung.push([x, y]);
     });
-    var notizen = (Array.isArray(D.notizen) ? D.notizen : []).filter(function (n) { return n && isFinite(n.x) && isFinite(n.y) && n.text; })
+    var notizen = (Array.isArray(D.notizen) ? D.notizen : []).map(function (n) {
+      if (!n || n.feld == null) return n;
+      var p = aufRaster(n.feld);
+      return imRaster(p) ? mitFeld(n, p) : null;
+    }).filter(function (n) { return n && isFinite(n.x) && isFinite(n.y) && n.text; })
       .map(function (n) { return { x: +n.x, y: +n.y, text: String(n.text), fortschritt: fortschrittLesen(n.fortschritt) }; });
-    return { sp: sp, ze: ze, raster: raster, hoehen: hoehen, rampen: rampen, wesen: wesen, figur: figur, ux: D._ux, uy: D._uy,
+    return { sp: sp, ze: ze, raster: raster, hoehen: hoehen, rampen: rampen, wesen: wesen, ausserhalb: ausserhalb, figur: figur, ux: D._ux, uy: D._uy,
       aufstellung: aufstellung, aufSet: aufSet, notizen: notizen,
       // wer sich aufstellen lässt: die Figur zuerst, dann die Ihren mit `aufstellen: true`; ohne Aufstellungsfelder niemand
       aufstellen: aufstellung.length && figur ? [figur].concat(wesen.filter(function (w) { return w !== figur && w.aufstellen; })) : [] };
@@ -1014,6 +1054,7 @@
     '.kk .kkZl{position:sticky;left:0;height:0;width:0;overflow:visible;z-index:1;pointer-events:none}' +
     '.kk .kkZl span{position:absolute;left:0;width:22px;text-align:center;font-family:"IM Fell English","EB Garamond",Georgia,serif;font-size:13px;line-height:18px;color:#3b3028;background:rgba(239,226,195,.92);border-radius:0 4px 4px 0;transform:translateY(-50%)}' +
     '.kk .kkI{margin:0;font-size:14px;line-height:1.55;color:var(--text-secondary)}.kk .kkI:empty{display:none}' +
+    '.kk .kkWarn{margin:0;padding:6px 8px;border:1px solid #8e3b22;border-radius:6px;font-size:13px;line-height:1.5;color:#8e3b22}.kk .kkWarn button{margin-left:6px}' +
     '.kk .kkI b{font-weight:500;color:var(--text-primary)}' +
     '.kk .kkB{display:flex;flex-wrap:wrap;gap:8px;align-items:center}' +
     '.kk input{flex:1 1 180px;min-width:120px;font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--border-300,#c8bda4);border-radius:6px;background:transparent;color:var(--text-primary)}' +
@@ -1216,7 +1257,8 @@
     'gefangen': ['gepackt', 'gefangen'], 'überlistet': ['bezaubert', 'überlistet'], 'verschont': ['', 'verschont'], 'bewusstlos': ['bewusstlos', 'bewusstlos'] };
   function bilanzLesen(D, K) {
     var B = D.bilanz; if (!B || typeof B !== 'object') return null;
-    var byId = {}, byName = {}; K.wesen.forEach(function (w) { if (w.id != null) byId[String(w.id)] = w; byName[String(w.name).toLowerCase()] = w; });
+    var alle = K.wesen.concat(K.ausserhalb || []);
+    var byId = {}, byName = {}; alle.forEach(function (w) { if (w.id != null) byId[String(w.id)] = w; byName[String(w.name).toLowerCase()] = w; });
     function wesenVon(x) { return x == null ? null : byId[String(x.id != null ? x.id : x)] || byName[String(x.name || x).toLowerCase()] || null; }
     function liste(v) { return (Array.isArray(v) ? v : v ? [v] : []).map(function (e) { return typeof e === 'string' ? { text: e } : e && e.text ? { text: String(e.text), zeichen: ZEICHEN[String(e.zeichen || '').toLowerCase()] ? String(e.zeichen).toLowerCase() : '', weg: e.weg === true } : null; }).filter(Boolean); }
     var out = { ausgang: B.ausgang ? String(B.ausgang) : 'Der Kampf ist vorbei', satz: B.satz ? String(B.satz) : '', zeit: B.zeit ? String(B.zeit) : '' };
@@ -1231,7 +1273,7 @@
     out.ep = zahl(B.ep) != null ? zahl(B.ep) : summe;
     out.anteile = Array.isArray(B.anteile) ? B.anteile.filter(function (a) { return a && a.name; }).map(function (a) { return String(a.name) + ' ' + (zahl(a.ep) != null ? zahl(a.ep) : '?'); }).join(' · ') : B.anteile ? String(B.anteile) : '';
     out.beute = liste(B.beute); out.gefangene = liste(B.gefangene); out.verbrauch = liste(B.verbrauch);
-    out.wunden = (Array.isArray(B.wunden) ? B.wunden : K.wesen.filter(function (w) { return (w.art === 'figur' || w.art === 'gefolge') && w._tp; })).map(function (x) {
+    out.wunden = (Array.isArray(B.wunden) ? B.wunden : alle.filter(function (w) { return (w.art === 'figur' || w.art === 'gefolge') && w._tp; })).map(function (x) {
       var w = x._i != null ? x : wesenVon(x), tp = Array.isArray(x.tp) ? [+x.tp[0], +x.tp[1]] : w && w._tp ? w._tp : null;
       var name = x.name ? String(x.name) : w ? w.name : '';
       if (!name) return null;
@@ -1270,6 +1312,146 @@
     return out.join('');
   }
 
+  /* ---------- Die Karte im Browser (seit 1.10) ---------- */
+  // Ein Widget weiß nichts vom vorigen, aber alle Widgets eines Chats teilen sich den Speicher des Browsers (am 2.11.2026 auf dem Handy geprüft).
+  // Abgelegt werden die Karten eines Kampfes, nicht ihr Stand: Scrollt der Spieler zurück oder öffnet er den Chat neu, laufen alte Widgets noch
+  // einmal. Sie zeigen dann, was bis zu ihrer Nummer galt, und keines dreht den Stand zurück.
+  var SPEICHER_VOR = 'wegwartKampf:', SPEICHER_LISTE = 'wegwartKampfListe', SPEICHER_HOECHSTENS = 6;
+  // Was nur auf der Karte gilt, die es nennt
+  var NUR_DIESE_KARTE = { hinweis: 1, bilanz: 1, aufstellung: 1 };
+  function kopieVon(o) { var k = {}; Object.keys(o).forEach(function (s) { k[s] = o[s]; }); return k; }
+  function schreibFeld(u, x, y) { return (u[0] + x - 1) + '/' + (ZEILEN[(u[1] + y - 2) % 26] || '?'); }
+  // Notizen und Licht merken sich ihr Feld mit Namen, damit sie einen neuen Ausschnitt überstehen
+  function mitName(o, u) {
+    if (!o || o.feld != null || !isFinite(o.x) || !isFinite(o.y)) return o;
+    var k = kopieVon(o); k.feld = schreibFeld(u, +o.x, +o.y); delete k.x; delete k.y; return k;
+  }
+  // `aendern: [['18/F', 'O'], ['12/C', ['====', '=oo='], ['1111', '1111']]]`: ab diesem Feld nach rechts und unten; `_` lässt ein Feld, wie es ist
+  function aendernAnwenden(S, liste) {
+    if (!liste.length || !Array.isArray(S.boden)) return;
+    var u = ursprungVon(S), sp = Math.max(1, Math.min(60, +S.spalten || 36)), ze = Math.max(1, Math.min(26, +S.zeilen || 12));
+    function setze(zeilen, y, x, c, fuell) {
+      var z = String(zeilen[y] == null ? '' : zeilen[y]);
+      while (z.length < x) z += fuell;
+      zeilen[y] = z.slice(0, x) + c + z.slice(x + 1);
+    }
+    var boden = S.boden.slice(), hoehe = Array.isArray(S.hoehe) ? S.hoehe.slice() : null;
+    function auftragen(start, teil, ziel, fuell) {
+      (Array.isArray(teil) ? teil : [teil]).forEach(function (z, dy) {
+        String(z == null ? '' : z).split('').forEach(function (c, dx) {
+          var x = start[0] - u[0] + dx, y = start[1] - u[1] + dy;
+          if (c === '_' || x < 0 || y < 0 || x >= sp || y >= ze) return;
+          setze(ziel, y, x, c, fuell);
+        });
+      });
+    }
+    liste.forEach(function (a) {
+      var f = Array.isArray(a) ? feldAusName(a[0]) : null;
+      if (!f) return;
+      auftragen(f, a[1], boden, '?');
+      if (a[2] != null) { if (!hoehe) hoehe = []; auftragen(f, a[2], hoehe, '0'); }
+    });
+    S.boden = boden;
+    if (hoehe) { for (var i = 0; i < hoehe.length; i++) if (hoehe[i] == null) hoehe[i] = ''; S.hoehe = hoehe; }
+  }
+  // Aus allen Karten bis zur gezeigten den Stand der gezeigten; die letzte der Liste ist die gezeigte
+  function falten(karten) {
+    var S = {}, wesen = [], nach = {}, aendern = [], erste = 0;
+    karten.forEach(function (C, i) {
+      var letzte = i === karten.length - 1;
+      // `ganz: true`: Alles, was gilt, steht auf dieser Karte. Was davor kam, auch ein Schreibfehler, zählt nicht mehr.
+      if (C.ganz) { S = {}; wesen = []; nach = {}; aendern = []; erste = i; }
+      wesen.forEach(function (w) { delete w.vorher; delete w.neu; });
+      Object.keys(C).forEach(function (s) {
+        if (s === 'ganz' || s === 'wesen' || s === 'aendern' || (NUR_DIESE_KARTE[s] && !letzte)) return;
+        if (C[s] === null) delete S[s]; else S[s] = C[s];
+      });
+      // Ein neuer Boden ohne Höhe ist flach; die alte Höhe gehört zum alten Boden
+      if (C.boden && C.hoehe === undefined) delete S.hoehe;
+      var u = ursprungVon(S);
+      if (Array.isArray(C.notizen)) S.notizen = C.notizen.map(function (n) { return mitName(n, u); });
+      if (Array.isArray(C.licht)) S.licht = C.licht.map(function (l) { return mitName(l, u); });
+      if (Array.isArray(C.aendern)) aendern = aendern.concat(C.aendern);
+      (Array.isArray(C.wesen) ? C.wesen : []).forEach(function (w) {
+        if (!w) return;
+        var sl = String(w.id != null ? w.id : w.name), alt = nach[sl];
+        if (w.weg) { if (alt) { wesen.splice(wesen.indexOf(alt), 1); delete nach[sl]; } return; }
+        var neu = alt ? kopieVon(alt) : {};
+        Object.keys(w).forEach(function (s) { if (w[s] === null) delete neu[s]; else neu[s] = w[s]; });
+        if (w.feld == null && isFinite(w.x) && isFinite(w.y) && w.x != null && w.y != null) neu.feld = schreibFeld(u, +w.x, +w.y);
+        delete neu.x; delete neu.y;
+        if (Array.isArray(neu.vorher)) neu.vorher = schreibFeld(u, +neu.vorher[0], +neu.vorher[1]);
+        else if (neu.vorher && typeof neu.vorher === 'object') neu.vorher = schreibFeld(u, +neu.vorher.x, +neu.vorher.y);
+        // Spur und Marke von selbst: Beide Felder standen schon auf einer Karte, die Spur verrät also nichts Neues. Die eigene Figur hat keine Spur.
+        var istFigur = S.figur != null ? sl === String(S.figur) : neu.art === 'figur';
+        if (alt && w.vorher === undefined && !istFigur && alt.feld && neu.feld && alt.feld !== neu.feld && alt.gesehen !== false && neu.gesehen !== false) neu.vorher = alt.feld;
+        if (!alt && i > erste && w.neu === undefined) neu.neu = true;
+        if (alt) wesen[wesen.indexOf(alt)] = neu; else wesen.push(neu);
+        nach[sl] = neu;
+      });
+    });
+    S.wesen = wesen;
+    aendernAnwenden(S, aendern);
+    return S;
+  }
+  function speicherLesen(speicher, id) {
+    if (!speicher) return [];
+    try { var o = JSON.parse(speicher.getItem(SPEICHER_VOR + id) || 'null'); return o && Array.isArray(o.karten) ? o.karten : []; } catch (e) { return []; }
+  }
+  function speicherSchreiben(speicher, id, karten) {
+    if (!speicher) return false;
+    function versuche() { speicher.setItem(SPEICHER_VOR + id, JSON.stringify({ karten: karten })); }
+    var liste = [];
+    try { liste = JSON.parse(speicher.getItem(SPEICHER_LISTE) || '[]'); } catch (e) { liste = []; }
+    if (!Array.isArray(liste)) liste = [];
+    liste = liste.filter(function (x) { return x !== id; }); liste.push(id);
+    function raeume(rest) { while (liste.length > rest) { try { speicher.removeItem(SPEICHER_VOR + liste.shift()); } catch (e) { return; } } }
+    raeume(SPEICHER_HOECHSTENS);
+    try { versuche(); } catch (e) { raeume(1); try { versuche(); } catch (e2) { return false; } }
+    try { speicher.setItem(SPEICHER_LISTE, JSON.stringify(liste)); } catch (e) { return true; }
+    return true;
+  }
+  // Der Stand, den eine Karte zeigt. Ohne `kampf` ist es die Karte selbst, unverändert. `fehlt`: Im Browser liegt kein Boden zu dieser Karte.
+  function ausDemBrowser(D, speicher) {
+    if (!D || !D.kampf) return { daten: D };
+    var id = String(D.kampf), C = JSON.parse(JSON.stringify(D)), alle = speicherLesen(speicher, id), nr = C.nr == null ? null : +C.nr;
+    var davor = alle.filter(function (k) { return nr == null || k.nr == null || +k.nr < nr; });
+    var S = falten(davor.concat([C]));
+    if (!S.boden) return { fehlt: true };
+    // Eine Karte ohne Nummer hat keinen Platz im Kampf: Sie wird gezeigt, aber nicht abgelegt
+    if (nr != null) speicherSchreiben(speicher, id, alle.filter(function (k) { return +k.nr !== nr; }).concat([C]).sort(function (a, b) { return +a.nr - +b.nr; }));
+    return { daten: S };
+  }
+  function speicherHolen() { try { return window.localStorage; } catch (e) { return null; } }
+  // Schreibfehler einer Karte mit `kampf`; die Spielleitung sieht das Widget nicht, darum sagt die Karte es dem Spieler
+  function kartenFehler(D) {
+    if (!D || !D.kampf) return [];
+    var aus = [], u = ursprungVon(D), sp = Math.max(1, Math.min(60, +D.spalten || 36)), ze = Math.max(1, Math.min(26, +D.zeilen || 12)), b = Array.isArray(D.boden) ? D.boden : [];
+    if (b.length !== ze) aus.push(b.length + ' statt ' + ze + ' Zeilen');
+    b.forEach(function (z, i) {
+      var t = String(z == null ? '' : z), name = ZEILEN[(u[1] + i - 1) % 26] || '?';
+      if (t.length !== sp) aus.push('Zeile ' + name + ' hat ' + t.length + ' statt ' + sp + ' Zeichen');
+      t.split('').forEach(function (c, x) { if (!ARTEN[c]) aus.push('unbekanntes Zeichen „' + c + '“ bei ' + (u[0] + x) + '/' + name); });
+    });
+    (D.wesen || []).forEach(function (w) {
+      if (!w) return;
+      var wer = String(w.name || w.id || '?');
+      if (!w.name) aus.push('zu „' + wer + '“ steht kein Name im Browser');
+      else if (w.feld == null && !(isFinite(w.x) && isFinite(w.y))) aus.push('„' + wer + '“ hat kein Feld');
+    });
+    return aus;
+  }
+  function karteFehlt(el, D) {
+    var satz = '(Karte ganz: ' + D.kampf + ')';
+    el.innerHTML = '<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:var(--text-secondary)">Diese Karte liegt nicht in diesem Browser, etwa auf einem anderen Gerät oder nach gelöschten Daten.</p><button type="button">Karte noch einmal ganz schicken ↗</button>';
+    var b = el.querySelector('button');
+    b.addEventListener('click', function () {
+      b.disabled = true;
+      if (typeof sendPrompt === 'function') sendPrompt(satz);
+      else b.insertAdjacentHTML('afterend', '<p style="margin:10px 0 0;font-size:14px">Schreib das in den Chat: <b>' + esc(satz) + '</b></p>');
+    });
+  }
+
   /* ---------- Einbau ins Widget ---------- */
   function schriftLaden() {
     try {
@@ -1283,6 +1465,7 @@
 
   function einbauen(el, D) {
     schriftLaden();
+    var fehler = kartenFehler(D);
     var e = zeichne(D), K = e.karte, W = e.breite, H = e.hoehe, figur = K.figur;
     var Zg = figur ? zugModell(K, figur) : null;
     var waffen = figur ? figur.waffen : [], zauber = figur ? figur.zauber : [], bonus = figur ? figur.bonus : [], aktionen = figur ? figur.aktionen : [];
@@ -1331,6 +1514,7 @@
       '<div class="kkKopf"><span>' + esc(D.titel || 'Kampfkarte') + '</span><small>' + (D.runde ? 'Runde ' + esc(D.runde) + ' · ' : '') +
       (figur ? esc(figur.name) + ' · Bewegung ' + m(Zg.basis) + (Zg.liegt ? ' (liegt)' : '') : '') + (D.stand ? ' · ' + esc(D.stand) : '') + '</small></div>' +
       (kopf2.length ? '<div class="kkKopf2">' + kopf2.join('') + '</div>' : '') + ini +
+      (fehler.length ? '<p class="kkWarn"><span>Schreibfehler in der Karte: ' + fehler.slice(0, 3).map(esc).join(' · ') + (fehler.length > 3 ? ' · und ' + (fehler.length - 3) + ' mehr' : '') + '</span> <button type="button" data-k="ganz">Karte ganz schicken ↗</button></p>' : '') +
       (vorbei ? bilanzHtml(Bz) : '') +
       // 1. die Karte mit vier Pfeilen zum Blättern (seit 1.4), sichtbar nur, wo die Karte weitergeht; darunter die Werkzeuge in einer schmalen Zeile
       '<div class="kkRW"><div class="kkR"><div class="kkZl" aria-hidden="true"></div>' + e.svg + '</div>' +
@@ -1651,6 +1835,7 @@
       if (k === 'aufst') return 'Schickt die Aufstellung an die Spielleitung; danach würfelt sie die Initiative.';
       if (k === 'austk' && aufst && aufst.stuecke[i]) return '<b>' + esc(aufst.stuecke[i].name) + '</b> wird gesetzt: ein Tipp hier, dann auf ein blaues Feld.';
       if (k === 'bilanz' && Bz && Bz.knoepfe[i]) return 'Schickt „' + esc(Bz.knoepfe[i].prompt) + '“ in den Chat; der Kampf ist vorbei, die Karte zeigt nur noch die Lage.';
+      if (k === 'ganz') return 'Bittet die Spielleitung, diese Karte noch einmal ganz zu schicken.';
       if (k === 'gefahr') return 'Zeigt alle Felder, die ein Gegner bedroht; ein Tipp auf einen Gegner zeigt nur seine.';
       if (k === 'leg') return 'Klappt die Legende ganz unten auf und zu.';
       if (k === 'figur') return 'Rückt die Karte so, dass die Figur in der Mitte steht.';
@@ -1807,6 +1992,14 @@
         if (typeof sendPrompt === 'function') sendPrompt(kn.prompt); else sag('Schreib das in den Chat: <b>' + esc(kn.prompt) + '</b>');
         return;
       }
+      // seit 1.10: Schreibfehler in der Karte: Der Spieler kann sie noch einmal ganz anfordern
+      if (k === 'ganz') {
+        if (b.disabled) return;
+        b.disabled = true;
+        var ganzSatz = '(Karte ganz: ' + D.kampf + ')';
+        if (typeof sendPrompt === 'function') sendPrompt(ganzSatz); else sag('Schreib das in den Chat: <b>' + esc(ganzSatz) + '</b>');
+        return;
+      }
       if (gesendet || !figur) { if (k === 'zug' && !figur) sag('Ohne Figur auf der Karte gibt es keinen Zug; schreib in den Chat, was sie tut.'); return; }
       // seit 1.8: die Aufstellung (ein Chip wählt den Stein, der breite Knopf schickt sie); solange sie läuft, gibt es keinen Zug
       if (aufst) {
@@ -1899,7 +2092,10 @@
   function start() {
     var el = document.getElementById('kampf'), D = window.KAMPF;
     if (!el || !D) return;
-    try { einbauen(el, D); } catch (err) { el.textContent = 'Die Kampfkarte ließ sich nicht zeichnen: ' + err.message; }
+    try {
+      var G = ausDemBrowser(D, D.kampf ? speicherHolen() : null);
+      if (G.fehlt) karteFehlt(el, D); else einbauen(el, G.daten);
+    } catch (err) { el.textContent = 'Die Kampfkarte ließ sich nicht zeichnen: ' + err.message; }
   }
 
   if (typeof module !== 'undefined' && module.exports) module.exports = { zeichne: zeichne, lies: lies, wege: wege, pfad: pfad, pfadHoehe: pfadHoehe, abstand: abstand, hoehe: hoehe, feldName: feldName,
@@ -1911,7 +2107,9 @@
     // seit 1.8: die Formen der Arten, der Fortschritt einer Aufgabe
     formSvg: formSvg, formRand: formRand, formBild: formBild, formen: FORM, fortschrittLesen: fortschrittLesen,
     // seit 1.9: die Kampfbilanz
-    bilanzLesen: bilanzLesen, bilanzHtml: bilanzHtml };
+    bilanzLesen: bilanzLesen, bilanzHtml: bilanzHtml,
+    // seit 1.10: die Karte im Browser, Felder mit Namen, Schreibfehler
+    feldAusName: feldAusName, falten: falten, ausDemBrowser: ausDemBrowser, kartenFehler: kartenFehler, SPEICHER_HOECHSTENS: SPEICHER_HOECHSTENS };
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

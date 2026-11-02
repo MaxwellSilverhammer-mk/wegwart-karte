@@ -1,0 +1,73 @@
+{
+  "art": "buehne",
+  "id": "koehlerhof-hof",
+  "ort": "koehlerhof",
+  "titel": "Köhlerhof, Hof und Scheune",
+  "text": "Ein Hof aus gestampfter Erde zwischen Wohnhaus und Scheune, der Brunnen in der Mitte, hinter dem Zaun der Meiler. Von Westen kommt der Weg, im Osten geht es über einen Steg zum Bach. Im Keller unter dem Wohnhaus liegt, was der Köhler nicht verkauft.",
+  "boden": [
+    "gggggggggggggggggggggggggggggg",
+    "gg#######gggggggggg#######ggdg",
+    "gg#=====#gggggggggg#.....#gggg",
+    "gg#==o==+eeeeeeeeee+..o..#gggg",
+    "gg#=====#eeeeeeeeee#.....#gggg",
+    "gg###+###eeeOeeeeee###+###gggg",
+    "eeeeeeeeeeeeeeeeeeeeeeeeeeee==",
+    "eeeeeeeeeeeeeeeeeeeeeeeeeeee==",
+    "gggggggggggooogggggggggggggg,,",
+    "ggdgggggggg:::ggggggggggggg,~~",
+    "ggggg####gg:::ggggggggggggg,~~",
+    "ggggg#..#ggggggggggggdgggggg,~"
+  ],
+  "hoehe": [
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000000000000000000000000",
+    "000000000001110000000000000000",
+    "000000000001110000000000000000",
+    "000000000001110000000000000000",
+    "000000000000000000000000000000"
+  ],
+  "verdeckt": [
+    "..............................",
+    "..............................",
+    "...aaaaa............bbbbb.....",
+    "...aaaaa............bbbbb.....",
+    "...aaaaa............bbbbb.....",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "......cc......................"
+  ],
+  "gruppen": {
+    "a": "Wohnhaus, drinnen",
+    "b": "Scheune, drinnen",
+    "c": { "name": "Keller, nur durch eine Luke im Wohnhaus", "abgeschlossen": true }
+  },
+  "ausschnitte": { "hof": ["1/A", 30, 12], "scheune": ["18/B", 10, 7] },
+  "merkmale": [
+    { "name": "Brunnen", "feld": "13/F", "zeichen": "O", "schild": true },
+    { "name": "Meiler", "feld": "13/I", "zeichen": "o", "schild": true },
+    { "name": "Haustür", "feld": "9/D", "zeichen": "+", "schild": true },
+    { "name": "Scheunentor", "feld": "20/D", "zeichen": "+", "schild": true },
+    { "name": "Fass mit Pech", "feld": "23/D", "zeichen": "o", "schild": true },
+    { "name": "Herdstelle", "feld": "6/D", "zeichen": "o" },
+    { "name": "Geheimfach", "feld": "7/L", "zeichen": ".", "schild": true, "gruppe": "c" }
+  ],
+  "eingaenge": [
+    { "name": "Weg von Westen", "feld": "1/G" },
+    { "name": "Steg zum Bach", "feld": "30/G" }
+  ],
+  "szene": [
+    { "text": "Der Brunnen mitten im Hof", "feld": "13/F", "zeichen": "O" },
+    { "text": "Das Scheunentor steht nach Westen offen", "feld": "20/D", "zeichen": "+" }
+  ],
+  "licht": [{ "feld": "6/D", "hell": 2, "daemmer": 4 }, { "feld": "13/I", "hell": 2, "daemmer": 5 }]
+}
