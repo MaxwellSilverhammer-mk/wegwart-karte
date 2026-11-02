@@ -4,7 +4,7 @@ Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `r
 
 ## Regelwerk 3.22 (2. November 2026)
 
-Gegenüber 3.21 (31. Oktober 2026). Entwurf; gilt, sobald der Weltenhüter es einträgt. Anlass: Kampfkarte 1.10 (unten) und die Frage des Weltenhüters, wie Karten entstehen und wie sich Zeit und Token sparen lassen, ohne dass sie nicht zur Szene passen. Die Werkstatt wird 3.22 (`werkstatt-3.22.md`). Neuer Stand der Tische: `tische_stand` = `d72857535c1df76c93f5493a560e13eb1c5956fb` (Kampfkarte 1.10 und `buehne.js`; die übrigen Tische bleiben); der Würfelkasten bleibt. Keine Spielregel ändert sich: Raster, Züge und Würfe bleiben, es ändert sich nur, wie die Karte zustande kommt.
+Gegenüber 3.21 (31. Oktober 2026). Entwurf; gilt, sobald der Weltenhüter es einträgt. Anlass: Kampfkarte 1.10 (unten) und die Frage des Weltenhüters, wie Karten entstehen und wie sich Zeit und Token sparen lassen, ohne dass sie nicht zur Szene passen. Die Werkstatt wird 3.22 (`werkstatt-3.22.md`). Neuer Stand der Tische: `tische_stand` = `5e16914524e45de3d8873f8b2d44919bd041f898` (Kampfkarte 1.10 und `buehne.js`; die übrigen Tische bleiben); der Würfelkasten bleibt. Keine Spielregel ändert sich: Raster, Züge und Würfe bleiben, es ändert sich nur, wie die Karte zustande kommt.
 
 - **Woher die Karte kommt** (12.6): Die Karte steht fest, bevor der Kampf erzählt wird. Reihenfolge: Bühne, Grundriss, frei. Bei einem Widerspruch gilt das Gespielte, und die Bühne wird beim Sitzungsende berichtigt.
 - **Szenenzettel** (12.6): Vor der ersten Karte eines Kampfes steht, was schon erzählt ist, mit Feld und Zeichen, und wird gegen die Karte geprüft. Was auffällt und nicht erzählt ist, kommt in die Eröffnung.
