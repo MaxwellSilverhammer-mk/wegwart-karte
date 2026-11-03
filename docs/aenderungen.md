@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.23 (3. November 2026)
+
+Gegenüber 3.22 (3. November 2026). Entwurf; gilt, wenn der Weltenhüter es sagt. Anlass: Kampfkarte 1.11 (unten). Die Werkstatt wird 3.23 (`werkstatt-3.23.md`). Neuer Stand der Tische: `tische_stand` = `926bc1c59c02b35729dd7885d336ba8dd6e4e821`.
+
+- **Gelände** (12.6): Die Karte zeichnet ihren Boden mit einem der zehn Kachelsets. Die Bühne trägt ihr Set, sonst wählt die Spielleitung nach der Landschaft. Kosten und Deckung hängen am Zeichen, nie am Set. Was das Set nur zeichnet, ändert keine Regel.
+- **Stand** (4.2): `kacheln.js` gehört dazu.
+- **Werkstatt** (12.6): `gelaende` in der Bühne und in der frei gezeichneten Karte, die Zeichnung beim Aufdecken.
+- Nicht in 3.23: eine Bewegungsregel für Hänge, Dunkelheit, Nebel, das Dunkel hinter Türen, begehbare Dächer, ein Kampf über zwei Karten, Strömung, die eine Figur versetzt. Über jede davon entscheidet der Weltenhüter einzeln.
 
 ## Kampfkarte 1.11 (3. November 2026)
 
