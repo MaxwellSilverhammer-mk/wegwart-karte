@@ -4,7 +4,7 @@ Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `r
 
 ## Regelwerk 3.23 (3. November 2026)
 
-Gegenüber 3.22 (3. November 2026). Entwurf; gilt, wenn der Weltenhüter es sagt. Anlass: Kampfkarte 1.11 (unten). Die Werkstatt wird 3.23 (`werkstatt-3.23.md`). Neuer Stand der Tische: `tische_stand` = `926bc1c59c02b35729dd7885d336ba8dd6e4e821`.
+Gegenüber 3.22 (3. November 2026). Der Weltenhüter hat es nach der Probe im echten Widget in Kraft gesetzt. Anlass: Kampfkarte 1.11 (unten). Die Werkstatt wird 3.23 (`werkstatt-3.23.md`). Neuer Stand der Tische: `tische_stand` = `926bc1c59c02b35729dd7885d336ba8dd6e4e821`.
 
 - **Gelände** (12.6): Die Karte zeichnet ihren Boden mit einem der zehn Kachelsets. Die Bühne trägt ihr Set, sonst wählt die Spielleitung nach der Landschaft. Kosten und Deckung hängen am Zeichen, nie am Set. Was das Set nur zeichnet, ändert keine Regel.
 - **Stand** (4.2): `kacheln.js` gehört dazu.
@@ -25,6 +25,7 @@ Werkzeug, kein neues Regelwerk; gilt, sobald der Weltenhüter den Stand in meta/
 - Ohne `gelaende` ist die Karte Pixel für Pixel und Zeichen für Zeichen die von 1.10.
 - Beispiele `test/kampf-sets-beispiel.js`; `test/kampf-sets.test.js` (14 Prüfungen: alle zehn Sets, leerer Browser, Ausfall von `kacheln.js`, unbekanntes Gelände, kein Laden ohne Gelände), `test/buehne.test.js` (14 Prüfungen, zwei neu), `test/kampf.test.js` (31), `test/kampf-browser.test.js` (19).
 - Nicht in 1.11, weil es Regelfragen sind: Hänge und Dünen als Bewegungsregel (`hangAuf`; heute ist eine Rampe begehbar und ein Hang nur gezeichnet), Dunkelheit (`grundlicht`, `dunkelsicht`), Nebel, das Dunkel hinter geschlossenen Türen (bleibt `?` und verdeckte Gruppen), begehbare Dächer, ein Kampf über zwei Karten (Unterdeck, Stockwerke), Strömung, die eine Figur versetzt. Ebenfalls nicht: die Zuordnung von Ort zu Set als eigene Liste (eine Bühne trägt ihr Set selbst).
+- Mit Regelwerk 3.23 (oben) am 3. November 2026 zur Regel geworden, nach der Probe im echten Widget auf dem Handy des Weltenhüters: eine echte Bühne im Set Grasland, die zweite Karte nur mit Änderungen, das Set kam aus dem Browser und „wird richtig dargestellt“. Ein neuer Ausschnitt mitten im Kampf ist auf dem Set nur lokal im Browser geprüft.
 
 ## Regelwerk 3.22 (3. November 2026)
 
