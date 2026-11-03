@@ -1,6 +1,18 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`, `regelwerk-3.24.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`, `werkstatt-3.24.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.24 (3. November 2026)
+
+Gegenüber 3.23 (3. November 2026). Der Weltenhüter hat es beschlossen. Anlass: seine Frage, warum die Welt an der Hold und ihren Nachbarn endet; der Satz stammte aus 2.0 und war nie abgewogen worden. Die Werkstatt wird 3.24 (`werkstatt-3.24.md`). Kein neuer Stand der Tische, `tische_stand` und Würfelkasten bleiben.
+
+- **Die ganze Karte** (1): Die Welt ist die ganze Flanaess, nicht mehr nur die Hold und ihre Nachbarländer.
+- **Startort** (17.2, neu): Der Startort folgt der Figur; einen Wunsch des Spielers nimmt die Spielleitung auf und sagt ihm vorher, was die Ferne kostet.
+- **Weltraster** (4.2): Ein Hexfeld der Greyhawk-Karte (30 Meilen) sind 10 Einheiten.
+- **Angleichungen** (7.5, 8.1, 15, 20, 20.2, Spickzettel): Was von der Hold ausging, sagt das jetzt. Die Regeln rechnen weiter in Münzen der Hold, anderswo gelten dieselben Werte unter anderen Namen. Für die Hold ändert sich nichts.
+- **Chronik** (18, Werkstatt 18): Unter `orte` stehen die kanonischen Orte der ganzen Karte (`kanon`, `legende`), von Monmurg aus vermessen; die Spielleitung holt `orte` mit `out_dir`.
+- **Werkstatt** (22.3): Ein Revier außerhalb der Hold trägt einen Spickzettel seines Landes in der Spoilerdatei.
+- Nicht in 3.24: eigene Münznamen in Gepäck und Händlertisch, ein anderes Titelbild, eine Übersichtskarte über große Strecken im Kartentisch. Das kommt, wenn eine Figur wirklich weit weg startet. Wo die Karte dem Gespielten widerspricht, gilt das Gespielte (17.1); darüber entscheidet der Weltenhüter.
 
 ## Regelwerk 3.23 (3. November 2026)
 

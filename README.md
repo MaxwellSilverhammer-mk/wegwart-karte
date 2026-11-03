@@ -27,7 +27,7 @@ Die Datei wird aus einem Skript heraus nachgeladen, nicht über ein geschriebene
 
 ## Weltraster
 
-- 1 Einheit ist 1 Stunde zu Fuß, etwa 4,5 km. Monmurg liegt bei (0, 0), x wächst nach Osten, y nach Süden.
+- 1 Einheit ist 1 Stunde zu Fuß, etwa 4,5 km. Monmurg liegt bei (0, 0), x wächst nach Osten, y nach Süden. Ein Hexfeld der Greyhawk-Karte (30 Meilen) sind 10 Einheiten.
 - Eine Lage, die einmal festgelegt ist, bleibt. Jede Figur sieht denselben Ort an derselben Stelle.
 - Die Karte ist eine Skizze: Die Reisezeiten an den Wegen gelten, die Abstände sind ungefähr.
 
