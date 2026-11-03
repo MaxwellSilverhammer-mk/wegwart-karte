@@ -25,6 +25,9 @@ function kurz(o) {
   if (typeof o === 'string') return "'" + o.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n') + "'";
   return JSON.stringify(o);
 }
+// Der Zeichenmotor der Kachelsets, nur wenn eine Bühne ein Gelände trägt
+function motor() { return require(path.join(__dirname, 'kacheln.js')); }
+function setVon(B) { return motor().sets.filter(function (x) { return x.id === String(B.gelaende); })[0] || null; }
 function gruppeInfo(B, g) { var i = (B.gruppen || {})[g]; return typeof i === 'string' ? { name: i } : i || null; }
 function groesse(B) { var z = B.boden || []; return { sp: z.reduce(function (m, r) { return Math.max(m, String(r).length); }, 0), ze: z.length }; }
 function zeichenAn(B, f) { var a = kampf.feldAusName(f); return a && B.boden[a[1] - 1] ? B.boden[a[1] - 1][a[0] - 1] : undefined; }
@@ -49,6 +52,17 @@ function pruefe(B) {
   if (!B.id) fehler.push('`id` fehlt');
   if (!B.titel) fehler.push('`titel` fehlt');
   var g = groesse(B), arten = kampf.arten;
+  // Das Gelände: Das Set muss jedes Zeichen zeichnen, sonst steht auf der Karte etwas anderes, als die Bühne meint (`g` und `,` kennt kein Set, `m` nur Sumpf und Wüste)
+  var set = null;
+  if (B.gelaende != null) {
+    if (kampf.gelaende.indexOf(String(B.gelaende)) < 0) fehler.push('das Gelände „' + B.gelaende + '“ gibt es nicht; es gibt ' + kampf.gelaende.join(', '));
+    else {
+      set = setVon(B);
+      var fremd = {}, M = motor(), inSet = function (c) { return c === 'm' ? (set.ordnung || '').indexOf('m') >= 0 : !!M.kachelVon(set, c); };
+      B.boden.forEach(function (r, i) { String(r).split('').forEach(function (c, x) { if (arten[c] && !inSet(c)) (fremd[c] = fremd[c] || []).push(name(x + 1, i + 1)); }); });
+      Object.keys(fremd).forEach(function (c) { fehler.push('„' + c + '“ zeichnet das Set „' + B.gelaende + '“ nicht: ' + fremd[c].slice(0, 4).join(', ') + (fremd[c].length > 4 ? ' und ' + (fremd[c].length - 4) + ' mehr' : '')); });
+    }
+  }
   if (g.sp > BREITE_MAX || g.ze > HOEHE_MAX) fehler.push('Bühne ' + g.sp + ' × ' + g.ze + ': höchstens ' + BREITE_MAX + ' × ' + HOEHE_MAX + ' Felder (mehr zeichnet die Karte nicht; ein großer Ort bekommt mehrere Schauplätze)');
   B.boden.forEach(function (r, i) {
     r = String(r);
@@ -89,6 +103,14 @@ function pruefe(B) {
     if (String(e.zeichen).indexOf(c) < 0) fehler.push(was + ': bei ' + e.feld + ' steht „' + c + '“, nicht „' + e.zeichen + '“');
   }
   (B.merkmale || []).forEach(function (m) { if (!m || !m.name) fehler.push('ein Merkmal hat keinen Namen'); else zeichenOk(m, 'Merkmal „' + m.name + '“'); });
+  // `zeichnung`: was nur das Bild ändert; das Feld muss auf der Bühne liegen und das passende Zeichen tragen
+  var ZQ = B.zeichnung || {};
+  [['kochtopf', 'r'], ['erloschen', 'ru'], ['gerefft', 'O'], ['luken', '/'], ['dach', ''], ['hang', '']].forEach(function (a) {
+    (ZQ[a[0]] || []).forEach(function (f) { zeichenOk({ feld: f, zeichen: a[1] }, '`zeichnung.' + a[0] + '`'); });
+  });
+  Object.keys(ZQ.drehung || {}).forEach(function (f) { feldOk(f, '`zeichnung.drehung`'); });
+  (ZQ.stroemung || []).forEach(function (e) { feldOk(e[0], '`zeichnung.stroemung`'); });
+  ['gosse', 'planen', 'kran'].forEach(function (n) { (ZQ[n] || []).forEach(function (e) { feldOk(e[0], '`zeichnung.' + n + '`'); feldOk(e[1], '`zeichnung.' + n + '`'); }); });
   // Der Szenenzettel: was schon erzählt ist, je mit Feld und Zeichen
   (B.szene || []).forEach(function (s) { if (!s || !s.text) fehler.push('eine Zeile des Szenenzettels hat keinen Text'); else zeichenOk(s, 'Szene „' + s.text + '“'); });
   if (!(B.merkmale || []).length && !(B.szene || []).length) hinweise.push('weder Merkmale noch Szenenzettel: nichts bindet die Karte an die Erzählung');
@@ -141,7 +163,16 @@ function sicht(B, c, offen) {
   function sichtbar(f) { var a = kampf.feldAusName(f); if (!a || !imAusschnitt(c, a[0], a[1])) return false; var gr = gruppeAn(B, a[0], a[1]); return !gr || offen.indexOf(gr) >= 0; }
   var notizen = (B.merkmale || []).filter(function (m) { return m && m.schild && sichtbar(m.feld) && (!m.gruppe || offen.indexOf(m.gruppe) >= 0); }).map(function (m) { return { feld: m.feld, text: m.name }; });
   var licht = (B.licht || []).filter(function (l) { return l && sichtbar(l.feld); });
-  return { boden: boden, hoehe: flach ? null : hoehe, notizen: notizen, licht: licht };
+  // Auch die Zeichnung verrät nichts: Was in einer verdeckten Gruppe oder außerhalb des Ausschnitts liegt, bleibt weg (Rechtecke, wenn beide Ecken sichtbar sind oder außerhalb liegen)
+  var Q = B.zeichnung || {}, zn = {};
+  ['kochtopf', 'erloschen', 'gerefft', 'luken', 'dach', 'hang'].forEach(function (n) { var l = (Q[n] || []).filter(sichtbar); if (l.length) zn[n] = l; });
+  Object.keys(Q.drehung || {}).forEach(function (f) { if (sichtbar(f)) { zn.drehung = zn.drehung || {}; zn.drehung[f] = Q.drehung[f]; } });
+  var st = (Q.stroemung || []).filter(function (e) { return sichtbar(e[0]); }); if (st.length) zn.stroemung = st;
+  function keinGeheimnis(f) { var a = kampf.feldAusName(f); if (!a) return false; var gr = gruppeAn(B, a[0], a[1]); return !gr || offen.indexOf(gr) >= 0; }
+  function ueberlappt(e) { var a = kampf.feldAusName(e[0]), b = kampf.feldAusName(e[1]); return !!a && !!b && Math.max(a[0], b[0]) >= c.x && Math.min(a[0], b[0]) < c.x + c.b && Math.max(a[1], b[1]) >= c.y && Math.min(a[1], b[1]) < c.y + c.h; }
+  ['gosse', 'planen', 'kran'].forEach(function (n) { var l = (Q[n] || []).filter(function (e) { return ueberlappt(e) && keinGeheimnis(e[0]) && keinGeheimnis(e[1]); }); if (l.length) zn[n] = l; });
+  ['dachboden', 'unterDeck', 'unterWasser'].forEach(function (n) { if (Q[n]) zn[n] = true; });
+  return { boden: boden, hoehe: flach ? null : hoehe, notizen: notizen, licht: licht, zeichnung: Object.keys(zn).length ? zn : null };
 }
 
 // Die Wörter, die der Spieler lesen wird, gegen Spielstand und Spoilerdatei
@@ -182,9 +213,12 @@ function karte(B, o) {
     var W = { kampf: o.kampf, nr: o.nr, spalten: c.b, zeilen: c.h, ursprung: [c.x, ZEILEN[c.y - 1]], boden: s.boden };
     if (s.hoehe) W.hoehe = s.hoehe;
     W.notizen = s.notizen; W.licht = s.licht;
+    if (B.gelaende && s.zeichnung) W.zeichnung = s.zeichnung;
     return { daten: W, ausschnitt: c, sicht: s };
   }
   var K = { kampf: o.kampf, nr: o.nr, ganz: true, titel: o.titel || B.titel, runde: o.runde, stand: o.stand };
+  if (B.gelaende) K.gelaende = B.gelaende;
+  if (B.gelaende && s.zeichnung) K.zeichnung = s.zeichnung;
   if (o.profil) K.figur = o.profil.id;
   K.spalten = c.b; K.zeilen = c.h;
   if (c.x !== 1 || c.y !== 1) K.ursprung = [c.x, ZEILEN[c.y - 1]];
@@ -236,12 +270,13 @@ function aufdecken(B, g, o) {
   if (!flach) eintrag.push(hoehe.length === 1 ? hoehe[0] : hoehe);
   var neueSchilder = (B.merkmale || []).filter(function (m) { var a = m && m.schild ? kampf.feldAusName(m.feld) : null; return a && imAusschnitt(c, a[0], a[1]) && (gruppeAn(B, a[0], a[1]) === g || m.gruppe === g); }).map(function (m) { return { feld: m.feld, text: m.name }; });
   var neuesLicht = (B.licht || []).filter(function (l) { var a = l ? kampf.feldAusName(l.feld) : null; return a && imAusschnitt(c, a[0], a[1]) && gruppeAn(B, a[0], a[1]) === g; });
-  return { eintrag: eintrag, schilder: neueSchilder, licht: neuesLicht };
+  var vor = sicht(B, c, o.offen).zeichnung, nach = sicht(B, c, (o.offen || []).concat([g])).zeichnung;
+  return { eintrag: eintrag, schilder: neueSchilder, licht: neuesLicht, zeichnung: JSON.stringify(vor) !== JSON.stringify(nach) ? nach : null };
 }
 
 // Karte mit Spalten und Zeilen, zum Lesen für die Spielleitung
 function zeige(B, c) {
-  var aus = [], kopf1 = '      ', kopf2 = '      ';
+  var aus = B.gelaende ? ['  Gelände: ' + B.gelaende] : [], kopf1 = '      ', kopf2 = '      ';
   for (var x = c.x; x < c.x + c.b; x++) { kopf1 += x % 10 === 0 ? String(x / 10 % 10) : ' '; kopf2 += String(x % 10); }
   aus.push(kopf1, kopf2);
   for (var y = c.y; y < c.y + c.h; y++) {
@@ -312,7 +347,7 @@ if (require.main === module) {
       rc = ende(!fehler3.length, B3.titel + ' · Ausschnitt ' + k3.ausschnitt.name + ': ' + k3.ausschnitt.b + ' × ' + k3.ausschnitt.h + ' ab ' + name(k3.ausschnitt.x, k3.ausschnitt.y) + ' · Kampfkarte ' + kampf.version, fehler3, hin3);
       if (!rc) console.log('var KAMPF=' + kurz(k3.daten));
     } else if (opt.aufdecken) {
-      var B4 = lade(opt.aufdecken), g4 = frei[0], e4 = aufdecken(B4, g4, { ausschnitt: opt.ausschnitt });
+      var B4 = lade(opt.aufdecken), g4 = frei[0], e4 = aufdecken(B4, g4, { ausschnitt: opt.ausschnitt, offen: offenListe });
       if (!e4) { console.log('GESPERRT · Gruppe „' + g4 + '“ liegt nicht in diesem Ausschnitt'); rc = 1; }
       else {
         console.log('aendern:[' + kurz(e4.eintrag) + ']');
@@ -324,6 +359,7 @@ if (require.main === module) {
           var offen5 = offenListe.concat([g4]), c5 = ausschnittVon(B4, opt.ausschnitt);
           console.log('licht:' + kurz(sicht(B4, c5, offen5).licht));
         }
+        if (e4.zeichnung) console.log('zeichnung:' + kurz(e4.zeichnung));
         rc = 0;
       }
     } else if (opt.profil) {

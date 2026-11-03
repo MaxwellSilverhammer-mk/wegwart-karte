@@ -1,6 +1,6 @@
 /*
  * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
- * Version 1.10
+ * Version 1.11
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
@@ -65,13 +65,17 @@
  * Zugzeile, auch in einem Ausschnitt. Fehlt die Karte im Browser (ein anderes Gerät, gelöschte Daten), schickt ein Knopf „(Karte ganz: …)“;
  * die Antwort ist die ganze Karte mit `ganz: true`, die neu anfängt.
  * Eine Karte mit `kampf` meldet Schreibfehler (Zeilenlänge, unbekannte Zeichen, Wesen ohne Namen oder Feld). Ohne `kampf` alles wie bisher.
+ *
+ * Seit 1.11: die Kachelsets (`gelaende: 'kueste'`): Die Karte lädt kacheln.js neben sich und zeichnet den Boden mit dem Set; Steine, Zug, Reichweite,
+ * Zonen und Bilanz bleiben. Lädt die Datei nicht, zeichnet sie wie bisher. Dazu `zeichnung` (Drehung, Kochtopf, Plane, was nur die Zeichnung ändert) und
+ * die Zeichen der Sets: gesperrt F W L; kostet 1 s z c l h T f; kostet 2 mit halber Deckung p k t r; kostet 2 S H b u. Ohne `gelaende` alles wie in 1.10.
  * Der Spieler zieht seine Figur und schickt den Zug als „Kampf #nr · …“ per sendPrompt an die Spielleitung.
  * Alle Felder stehen in der README (Abschnitt „Kampf“).
  */
 (function () {
   'use strict';
 
-  var VERSION = '1.10';
+  var VERSION = '1.11';
   var Z = 30;      // Kantenlänge eines Felds in Kartenpunkten
   var RAND = 26;   // Rand für die Beschriftung, auf allen vier Seiten
   var METER = 1.5; // ein Feld, auch eine Höhenstufe
@@ -97,7 +101,26 @@
     '~': { name: 'tiefes Wasser (schwimmen)', kurz: 'tiefes Wasser', kosten: 2, wasser: true, muster: 'wasser' },
     'o': { name: 'Fass, Kiste, Mauerrest, Brustwehr: halbe Deckung, drüber ist schwer', kurz: 'Fass: halbe Deckung', kosten: 2, deckung: 'halbe', muster: 'stein', aufsatz: 'fass' },
     'O': { name: 'Baum, Pfeiler, Karren: Dreiviertel-Deckung, nicht betretbar', kurz: 'Baum: Dreiviertel', kosten: 0, deckung: 'Dreiviertel-', muster: 'stein', aufsatz: 'baum' },
-    '#': { name: 'Wand, Fels', kurz: 'Wand', kosten: 0, muster: 'wand' },
+    '#': { name: 'Wand, Fels', kurz: 'Wand', kosten: 0, wand: true, muster: 'wand' },
+    // seit 1.11: die Zeichen der Kachelsets. Ohne `gelaende` zeichnet die Karte sie mit den Kacheln, die sie hat
+    'W': { name: 'Holzwand', kurz: 'Holzwand', kosten: 0, wand: true, muster: 'wand' },
+    'L': { name: 'Lehmwand', kurz: 'Lehmwand', kosten: 0, wand: true, muster: 'wand' },
+    'F': { name: 'Fels, Abbruchkante, die Höhen sagen, wo oben ist', kurz: 'Fels', kosten: 0, wand: true, fels: true, muster: 'wand' },
+    's': { name: 'Steinplatten', kurz: 'Steinplatten', kosten: 1, muster: 'stein' },
+    'z': { name: 'Ziegel', kurz: 'Ziegel', kosten: 1, muster: 'stein' },
+    'c': { name: 'Fliesen', kurz: 'Fliesen', kosten: 1, muster: 'stein' },
+    'l': { name: 'Lehmboden', kurz: 'Lehm', kosten: 1, muster: 'erde' },
+    'h': { name: 'Stroh', kurz: 'Stroh', kosten: 1, muster: 'erde' },
+    'T': { name: 'Teppich', kurz: 'Teppich', kosten: 1, muster: 'holz' },
+    'f': { name: 'Fell', kurz: 'Fell', kosten: 1, muster: 'holz' },
+    'p': { name: 'Tisch: halbe Deckung, drüber ist schwer', kurz: 'Tisch: halbe Deckung', kosten: 2, deckung: 'halbe', muster: 'holz', aufsatz: 'fass' },
+    'k': { name: 'Kiste: halbe Deckung, drüber ist schwer', kurz: 'Kiste: halbe Deckung', kosten: 2, deckung: 'halbe', muster: 'stein', aufsatz: 'fass' },
+    't': { name: 'Truhe: halbe Deckung, drüber ist schwer', kurz: 'Truhe: halbe Deckung', kosten: 2, deckung: 'halbe', muster: 'stein', aufsatz: 'fass' },
+    'r': { name: 'Feuerstelle: halbe Deckung; wer in brennendes Feuer tritt, nimmt Feuerschaden', kurz: 'Feuerstelle: halbe Deckung', kosten: 2, deckung: 'halbe', muster: 'stein', aufsatz: 'fass' },
+    'S': { name: 'Stuhl: schwieriges Gelände', kurz: 'Stuhl', kosten: 2, muster: 'holz' },
+    'H': { name: 'Hocker: schwieriges Gelände', kurz: 'Hocker', kosten: 2, muster: 'holz' },
+    'b': { name: 'Bank: schwieriges Gelände', kurz: 'Bank', kosten: 2, muster: 'holz' },
+    'u': { name: 'Lagerfeuer; wer hineintritt, nimmt Feuerschaden', kurz: 'Lagerfeuer', kosten: 2, muster: 'erde' },
     'x': { name: 'Hindernis, unpassierbar', kurz: 'Hindernis', kosten: 0, muster: 'stein', aufsatz: 'kreuz' },
     '?': { name: 'nicht zu sehen', kurz: 'nicht zu sehen', kosten: 1, unbekannt: true, muster: 'nebel' },
     ' ': { name: 'nicht zu sehen', kurz: 'nicht zu sehen', kosten: 1, unbekannt: true, muster: 'nebel' }
@@ -131,7 +154,28 @@
     }).join('') + '</defs>';
   }
   // Ein Muster als kleines Bild für Legende und Auskunft (16 × 16)
-  function kachelBild(c, gross) {
+  // seit 1.11: der Zeichenmotor der Kachelsets aus kacheln.js und das Set einer Karte
+  var GELAENDE = ['arktis', 'berge', 'kueste', 'grasland', 'unterreich', 'sumpf', 'wald', 'wueste', 'gewaesser', 'stadt'];
+  var HIER = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : '';
+  function motor() { return typeof globalThis !== 'undefined' && globalThis.KACHELN ? globalThis.KACHELN : typeof window !== 'undefined' && window.KACHELN ? window.KACHELN : null; }
+  function setVon(D) {
+    var M = motor();
+    if (!M || !D || !D.gelaende) return null;
+    return M.sets.filter(function (s) { return s.id === String(D.gelaende); })[0] || null;
+  }
+  // Was das Set nicht zeichnet: `g`, `^`, `?` stehen auf seinem Grund, `,` als seichtes Wasser, wo es das gibt, `m` als schwieriges Gelände. Die Kosten bleiben die des Zeichens.
+  var SEICHT_AUF_I = { sumpf: 1, gewaesser: 1, kueste: 1 };
+  function setZeichen(M, set, c) {
+    if (c === '?' || c === ' ' || c === '^' || c === 'g') return '.';
+    if (c === ',') return SEICHT_AUF_I[set.id] ? 'i' : '~';
+    if (c === 'm' && (set.ordnung || '').indexOf('m') < 0) return ':';
+    return M.kachelVon(set, c) ? c : '.';
+  }
+  function kachelBild(c, gross, K) {
+    if (K && K.set) {
+      var M0 = motor(), k0 = c === '?' ? null : M0.kachelVon(K.set, setZeichen(M0, K.set, c));
+      if (k0) return M0.kachelSvg(K.set, k0, gross || 16, 0, 'class="kkKb" aria-hidden="true"');
+    }
     var a = ARTEN[c] || ARTEN['?'], s = gross || 16;
     return '<svg class="kkKb" width="' + s + '" height="' + s + '" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" fill="' + MUSTER[a.muster][0] + '"/>' + MUSTER[a.muster][1] + (a.aufsatz ? AUFSATZ[a.aufsatz] : '') + '</svg>';
   }
@@ -318,6 +362,7 @@
     var u = ursprungVon(D);
     D._ux = u[0];
     D._uy = u[1];
+    var kset = setVon(D);
     // seit 1.10: Felder mit ihrem Namen (`feld: '19/H'`) auf das Raster dieser Karte umgerechnet; was außerhalb des Ausschnitts liegt, steht nicht auf ihr
     function aufRaster(f) { var a = feldAusName(f); return a ? [a[0] - D._ux + 1, a[1] - D._uy + 1] : null; }
     function imRaster(p) { return !!p && p[0] >= 1 && p[1] >= 1 && p[0] <= sp && p[1] <= ze; }
@@ -388,7 +433,7 @@
       return imRaster(p) ? mitFeld(n, p) : null;
     }).filter(function (n) { return n && isFinite(n.x) && isFinite(n.y) && n.text; })
       .map(function (n) { return { x: +n.x, y: +n.y, text: String(n.text), fortschritt: fortschrittLesen(n.fortschritt) }; });
-    return { sp: sp, ze: ze, raster: raster, hoehen: hoehen, rampen: rampen, wesen: wesen, ausserhalb: ausserhalb, figur: figur, ux: D._ux, uy: D._uy,
+    return { sp: sp, ze: ze, raster: raster, hoehen: hoehen, rampen: rampen, wesen: wesen, ausserhalb: ausserhalb, figur: figur, ux: D._ux, uy: D._uy, set: kset,
       aufstellung: aufstellung, aufSet: aufSet, notizen: notizen,
       // wer sich aufstellen lässt: die Figur zuerst, dann die Ihren mit `aufstellen: true`; ohne Aufstellungsfelder niemand
       aufstellen: aufstellung.length && figur ? [figur].concat(wesen.filter(function (w) { return w !== figur && w.aufstellen; })) : [] };
@@ -699,9 +744,10 @@
       var x = f[0], y = f[1];
       if (x < 1 || y < 1 || x > K.sp || y > K.ze) return { s: 0, g: '' };
       var c = K.raster[y - 1][x - 1], s = 0, g = '';
-      if (c === '#' || c === 'x') { s = 3; g = c === '#' ? 'eine Wand' : 'ein Hindernis'; }
-      else if (c === 'O') { s = 2; g = 'hohe Deckung'; }
-      else if (c === 'o') { s = 1; g = 'niedrige Deckung'; }
+      var a = ARTEN[c] || ARTEN['?'];
+      if (a.wand || c === 'x') { s = 3; g = c === 'x' ? 'ein Hindernis' : a.fels ? 'der Fels' : 'eine Wand'; }
+      else if (a.deckung === 'Dreiviertel-') { s = 2; g = 'hohe Deckung'; }
+      else if (a.deckung === 'halbe') { s = 1; g = 'niedrige Deckung'; }
       var w = b[x + ',' + y];
       if (w && w !== ziel && w.art !== 'figur' && s < 1) { s = 1; g = w.name; }
       return { s: s, g: g ? g + ' bei ' + feldNameK(K, x, y) : '' };
@@ -793,9 +839,12 @@
   // Ein Feld: die Kachel seiner Art, darüber je Ebene ein hellerer Ton, dann der Aufsatz (Tür, Treppe, Fass, Baum, Kreuz)
   function feld(K, x, y) {
     var c = K.raster[y - 1][x - 1], a = ARTEN[c] || ARTEN['?'], h = hoehe(K, x, y), X = px(x), Y = py(y), out = [];
-    out.push('<rect x="' + X + '" y="' + Y + '" width="' + Z + '" height="' + Z + '" fill="url(#kkM-' + a.muster + ')"/>');
-    if (h > 0 && !a.unbekannt && c !== '#') out.push('<rect x="' + X + '" y="' + Y + '" width="' + Z + '" height="' + Z + '" class="kkHo" fill="#fff6dc" fill-opacity="' + Math.min(0.55, 0.16 * h) + '"/>');
-    if (a.aufsatz) out.push('<g transform="translate(' + X + ' ' + Y + ') scale(' + (Math.round(Z / 36 * 1000) / 1000) + ')">' + AUFSATZ[a.aufsatz] + '</g>');
+    // seit 1.11: Mit einem Set liegt die Zeichnung schon darunter (setBoden), hier bleibt nur die Fläche zum Tippen
+    if (!K.set) {
+      out.push('<rect x="' + X + '" y="' + Y + '" width="' + Z + '" height="' + Z + '" fill="url(#kkM-' + a.muster + ')"/>');
+      if (h > 0 && !a.unbekannt && !a.wand) out.push('<rect x="' + X + '" y="' + Y + '" width="' + Z + '" height="' + Z + '" class="kkHo" fill="#fff6dc" fill-opacity="' + Math.min(0.55, 0.16 * h) + '"/>');
+      if (a.aufsatz) out.push('<g transform="translate(' + X + ' ' + Y + ') scale(' + (Math.round(Z / 36 * 1000) / 1000) + ')">' + AUFSATZ[a.aufsatz] + '</g>');
+    }
     // seit 1.8: ein Aufstellungsfeld (blau getönt) vor dem Initiativewurf
     var auf = K.aufSet && K.aufSet[x + ',' + y];
     return '<g id="kk' + x + '_' + y + '" data-x="' + x + '" data-y="' + y + '" data-h="' + h + '" class="kkF' + (auf ? ' kkAuf' : '') + '">' + out.join('') + '<rect x="' + X + '" y="' + Y + '" width="' + Z + '" height="' + Z + '" class="kkK"/></g>';
@@ -808,9 +857,9 @@
     var out = [], schilder = [];
     meiden = meiden || {};
     var SEITEN = [[0, -1, 'n'], [0, 1, 's'], [-1, 0, 'w'], [1, 0, 'e']];
-    function sichtbar(x, y) { var c = K.raster[y - 1][x - 1]; return c !== '#' && c !== '?' && c !== ' ' && c !== 'x'; }
+    function sichtbar(x, y) { var c = K.raster[y - 1][x - 1], a = ARTEN[c] || ARTEN['?']; return !a.wand && c !== '?' && c !== ' ' && c !== 'x'; }
     for (var y = 1; y <= K.ze; y++) for (var x = 1; x <= K.sp; x++) {
-      if (!sichtbar(x, y)) continue;
+      if (K.set || !sichtbar(x, y)) continue;
       var h = hoehe(K, x, y), X = px(x), Y = py(y);
       SEITEN.forEach(function (s) {
         var nx = x + s[0], ny = y + s[1];
@@ -922,6 +971,45 @@
       '<polygon class="kkSpK" points="' + r1(ex) + ',' + r1(ey) + ' ' + p1 + ' ' + p2 + '"/></g>';
   }
 
+  // seit 1.11: was nur die Zeichnung ändert, mit Feldnamen (`drehung: {'26/H': 270}`, `kochtopf: ['13/F']`, `planen: [['11/F', '13/F']]`), auf das Raster dieser Karte umgerechnet
+  function zeichnungFuerMotor(K, D) {
+    var Q = D.zeichnung && typeof D.zeichnung === 'object' ? D.zeichnung : {}, S = { drehung: {} };
+    function p(f) { var a = Array.isArray(f) ? [+f[0], +f[1]] : feldAusName(f); return a && !Array.isArray(f) ? [a[0] - D._ux + 1, a[1] - D._uy + 1] : a; }
+    function drin(q) { return !!q && q[0] >= 1 && q[1] >= 1 && q[0] <= K.sp && q[1] <= K.ze; }
+    function klemme(q) { return [Math.max(1, Math.min(K.sp, q[0])), Math.max(1, Math.min(K.ze, q[1]))]; }
+    function kasten(e) {
+      var a = p(e[0]), b = p(e[1]);
+      if (!a || !b || Math.max(a[0], b[0]) < 1 || Math.max(a[1], b[1]) < 1 || Math.min(a[0], b[0]) > K.sp || Math.min(a[1], b[1]) > K.ze) return null;
+      return klemme(a).concat(klemme(b));
+    }
+    ['kochtopf', 'erloschen', 'dach', 'gerefft', 'luken', 'hang'].forEach(function (n) { S[n] = (Array.isArray(Q[n]) ? Q[n] : []).map(p).filter(drin); });
+    if (Q.drehung && typeof Q.drehung === 'object') Object.keys(Q.drehung).forEach(function (f) { var q = feldAusName(f) ? p(f) : f.split(',').map(Number); if (drin(q)) S.drehung[q[0] + ',' + q[1]] = +Q.drehung[f] || 0; });
+    S.stroemung = (Array.isArray(Q.stroemung) ? Q.stroemung : []).map(function (e) { var q = p(e[0]); return drin(q) ? [q[0], q[1], +e[1] || 0] : null; }).filter(Boolean);
+    ['gosse', 'planen'].forEach(function (n) { S[n] = (Array.isArray(Q[n]) ? Q[n] : []).map(kasten).filter(Boolean); });
+    S.kran = (Array.isArray(Q.kran) ? Q.kran : []).map(function (e) { var q = kasten(e); return q ? q.concat([+e[2] || 0, +e[3] || 0]) : null; }).filter(Boolean);
+    ['dachboden', 'unterDeck', 'unterWasser'].forEach(function (n) { if (Q[n]) S[n] = true; });
+    // Rampen der Karte (Buchstaben in `hoehe`): ein Hang, also kein Steinrand, an ihnen und am Feld eine Ebene höher daneben
+    var SEITEN = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    for (var y = 1; y <= K.ze; y++) for (var x = 1; x <= K.sp; x++) {
+      if (!K.rampen[y - 1][x - 1]) continue;
+      S.hang.push([x, y]);
+      SEITEN.forEach(function (d) { var nx = x + d[0], ny = y + d[1]; if (drin([nx, ny]) && hoehe(K, nx, ny) === hoehe(K, x, y) + 1) S.hang.push([nx, ny]); });
+    }
+    return S;
+  }
+  // Der Boden aus dem Kachelset: die Zeichnung ohne Rand und Beschriftung an ihrem Platz im Raster; was die Figur nicht sieht (`?`), dunkel und schraffiert darüber
+  function setBoden(K, D) {
+    var M = motor(), set = K.set, S = zeichnungFuerMotor(K, D);
+    S.titel = ''; S.wesen = []; S.schilder = [];
+    S.boden = K.raster.map(function (r) { return r.map(function (c) { return setZeichen(M, set, c); }).join(''); });
+    S.hoehe = K.hoehen.map(function (r) { return r.join(''); });
+    S.lichter = (D.licht || []).filter(function (l) { return l && isFinite(l.x) && isFinite(l.y) && l.x >= 1 && l.y >= 1 && l.x <= K.sp && l.y <= K.ze; }).map(function (l) { var hell = Math.max(0, +l.hell || 0); return [+l.x, +l.y, hell, Math.max(hell, +l.daemmer || hell * 2)]; });
+    var teil = M.karteSvg(set, S, { probe: true }).svg.replace(/^<svg [^>]*>/, '<svg x="' + RAND + '" y="' + RAND + '" width="' + K.sp * Z + '" height="' + K.ze * Z + '" viewBox="0 0 ' + K.sp * Z + ' ' + K.ze * Z + '" class="kkSet" aria-hidden="true">');
+    var dunkel = [];
+    for (var y = 1; y <= K.ze; y++) for (var x = 1; x <= K.sp; x++) if ((ARTEN[K.raster[y - 1][x - 1]] || ARTEN['?']).unbekannt) dunkel.push('<rect x="' + px(x) + '" y="' + py(y) + '" width="' + (Z + 0.5) + '" height="' + (Z + 0.5) + '" fill="url(#kkUngesehen)"/>');
+    return teil + (dunkel.length ? '<defs><pattern id="kkUngesehen" patternUnits="userSpaceOnUse" width="' + Z + '" height="' + Z + '"><rect width="' + Z + '" height="' + Z + '" fill="#2f2b26"/><path d="M-5 5l10-10M0 30L30 0M25 35l10-10" stroke="#3e3832" stroke-width="1.6"/></pattern></defs>' + dunkel.join('') : '');
+  }
+
   function zeichne(D) {
     var K = lies(D), sp = K.sp, ze = K.ze;
     var W = RAND * 2 + sp * Z, H = RAND * 2 + ze * Z, out = [];
@@ -929,10 +1017,12 @@
     out.push('<style>' + SVG_CSS + '</style>' + musterDefs());
     out.push('<rect x="0" y="0" width="' + W + '" height="' + H + '" rx="6" class="kP"/>');
     out.push('<rect x="' + RAND + '" y="' + RAND + '" width="' + (sp * Z) + '" height="' + (ze * Z) + '" class="kkB"/>');
+    // seit 1.11: der Boden aus dem Kachelset, darüber die Felder als Flächen zum Tippen
+    if (K.set) out.push(setBoden(K, D));
     // Felder
     for (var y = 1; y <= ze; y++) for (var x = 1; x <= sp; x++) out.push(feld(K, x, y));
-    // Licht, seit 1.3 als Schein über den Kacheln
-    (D.licht || []).forEach(function (l, i) {
+    // Licht, seit 1.3 als Schein über den Kacheln (im Set tönt der Motor die Felder)
+    (K.set ? [] : D.licht || []).forEach(function (l, i) {
       if (!isFinite(l.x) || !isFinite(l.y)) return;
       var cx = px(+l.x) + Z / 2, cy = py(+l.y) + Z / 2, hell = Math.max(0.5, +l.hell || 4), daemmer = Math.max(hell, +l.daemmer || hell * 2);
       out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (daemmer * Z) + '" class="kkLd"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (hell * Z) + '" class="kkLh"/>');
@@ -941,7 +1031,7 @@
     var g = '';
     for (var i = 0; i <= sp; i++) g += 'M' + px(i + 1) + ' ' + RAND + 'V' + (RAND + ze * Z);
     for (var j = 0; j <= ze; j++) g += 'M' + RAND + ' ' + py(j + 1) + 'H' + (RAND + sp * Z);
-    out.push('<path d="' + g + '" class="kkG"/>');
+    if (!K.set) out.push('<path d="' + g + '" class="kkG"/>');
     // Kanten und Höhenschilder; die Schilder meiden Felder mit Spielstein oder Notiz
     out.push('<g class="kkKan">' + kanten(K, meidenVon(K)) + '</g>');
     // Beschriftung, oben und unten, links und rechts
@@ -983,12 +1073,21 @@
     var kreuz = art === 'tot' ? '<path d="M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5" stroke="#f6efdd" stroke-width="1.8"/>' : '';
     return '<svg class="kkKb" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="' + (art === 'tot' ? '#9a9086' : F.rot) + '"' + (art === 'tot' ? ' stroke="#625a50" stroke-width="1"' : '') + '/>' + ring + kreuz + '</svg>';
   }
+  // seit 1.11: Mit einem Set heißt das Gelände, wie das Set es nennt („Schilf“ statt „Dickicht“); Kosten und Deckung bleiben die des Zeichens
+  function setKachel(K, c) { var M = motor(); if (!K || !K.set || !M || c === '?' || c === ' ') return null; return M.kachelVon(K.set, setZeichen(M, K.set, c)) || null; }
+  function artName(K, c) {
+    var a = ARTEN[c] || ARTEN['?'], k = setKachel(K, c);
+    if (!k) return a.name;
+    return k.name + (a.deckung ? ': ' + deckungWort(a) : '') + (a.kosten === 2 ? ', kostet doppelt' : a.kosten === 0 ? ', nicht betretbar' : '');
+  }
+  function artKurz(K, c) { var a = ARTEN[c] || ARTEN['?'], k = setKachel(K, c); return k ? k.name + (a.deckung ? ': ' + deckungWort(a) : '') : a.kurz; }
+  function deckungWort(a) { return a.deckung === 'Dreiviertel-' ? 'Dreiviertel-Deckung' : a.deckung + ' Deckung'; }
   // Die Legende (seit 1.3 knapp): nur die Kacheln, Arten, Wunden und Zustände, die auf dieser Karte vorkommen, dazu die Markierungen
   function legendeHtml(K) {
     var da = {}, out = [];
     K.raster.forEach(function (r) { r.forEach(function (c) { da[c === ' ' ? '?' : c] = 1; }); });
-    ['.', '=', 'e', 'g', '+', '/', '^', ':', 'd', ',', 'm', 'i', '~', 'o', 'O', '#', 'x', '?'].forEach(function (c) {
-      if (da[c]) out.push('<span title="' + esc(ARTEN[c].name) + '">' + kachelBild(c) + ' ' + esc(ARTEN[c].kurz) + '</span>');
+    ['.', '=', 's', 'z', 'c', 'l', 'h', 'T', 'f', 'e', 'g', '+', '/', '^', ':', 'd', ',', 'm', 'i', '~', 'o', 'k', 't', 'p', 'S', 'H', 'b', 'r', 'u', 'O', '#', 'W', 'L', 'F', 'x', '?'].forEach(function (c) {
+      if (da[c]) out.push('<span title="' + esc(artName(K, c)) + '">' + kachelBild(c, 0, K) + ' ' + esc(artKurz(K, c)) + '</span>');
     });
     if (K.hoehen.some(function (r) { return r.some(function (h) { return h > 0; }); })) out.push('<span>' + hoeheBild() + ' höher: heller, mit Schatten auf das tiefere Feld (je Ebene 1,5 m; an Rampen und Treppen leicht)</span>');
     // seit 1.8: Aufstellung und Fortschritt, wenn es sie gibt; die Arten mit ihrer Form
@@ -1441,6 +1540,7 @@
   function kartenFehler(D) {
     if (!D || !D.kampf) return [];
     var aus = [], u = ursprungVon(D), sp = Math.max(1, Math.min(60, +D.spalten || 36)), ze = Math.max(1, Math.min(26, +D.zeilen || 12)), b = Array.isArray(D.boden) ? D.boden : [];
+    if (D.gelaende && GELAENDE.indexOf(String(D.gelaende)) < 0) aus.push('das Gelände „' + D.gelaende + '“ gibt es nicht');
     if (b.length !== ze) aus.push(b.length + ' statt ' + ze + ' Zeilen');
     b.forEach(function (z, i) {
       var t = String(z == null ? '' : z), name = ZEILEN[(u[1] + i - 1) % 26] || '?';
@@ -1876,7 +1976,7 @@
     function feldArt(x, y) {
       var a = ARTEN[K.raster[y - 1][x - 1]] || ARTEN['?'];
       if (a.unbekannt) return '';
-      return a.kurz + (a.kosten === 2 ? ', schwierig' : '') + (istStufe(K, x, y) && !a.stufe ? ', Rampe' : '');
+      return artKurz(K, K.raster[y - 1][x - 1]) + (a.kosten === 2 ? ', schwierig' : '') + (istStufe(K, x, y) && !a.stufe ? ', Rampe' : '');
     }
     function zielText(von, w) {
       var ab = abstand(von, w, K), dh = hoeheVon(K, w) - hoeheVon(K, von);
@@ -1909,7 +2009,7 @@
       var t = [], a = ARTEN[K.raster[s.y - 1][s.x - 1]];
       if (s.hoehe.sprung) t.push('springt ' + m(s.hoehe.sprung) + ' hinab (1W6 Wucht je 3 m, am Boden)');
       if (a && a.unbekannt) t.push('ins Ungewisse');
-      if (a && a.deckung) t.push(a.deckung + ' Deckung auf ' + feldNameK(K, s.x, s.y));
+      if (a && a.deckung) t.push(deckungWort(a) + ' auf ' + feldNameK(K, s.x, s.y));
       return t.join(' · ');
     }
     // was in die Zugzeile kommt, ohne ein Schritt zu sein: die Waffe, die noch wartet (seit 1.3.1), die Bonusaktion ohne Ziel, das Ziel ohne Waffen
@@ -2103,12 +2203,25 @@
     if (D.hinweis) sag(esc(D.hinweis) + (info.innerHTML ? ' · ' + info.innerHTML : ''));
   }
 
+  // seit 1.11: Trägt die Karte ein Gelände, lädt sie erst kacheln.js, das neben ihr liegt. Lädt die Datei nicht, zeichnet sie wie bisher
+  function mitKacheln(daten, weiter) {
+    if (!daten.gelaende || motor() || !HIER || GELAENDE.indexOf(String(daten.gelaende)) < 0) { weiter(); return; }
+    var fertig = false, s = document.createElement('script');
+    function los() { if (!fertig) { fertig = true; weiter(); } }
+    s.src = HIER.replace(/kampf\.js(\?.*)?$/, 'kacheln.js');
+    s.onload = los; s.onerror = los;
+    setTimeout(los, 15000);
+    document.head.appendChild(s);
+  }
   function start() {
     var el = document.getElementById('kampf'), D = window.KAMPF;
     if (!el || !D) return;
     try {
       var G = ausDemBrowser(D, D.kampf ? speicherHolen() : null);
-      if (G.fehlt) karteFehlt(el, D); else einbauen(el, G.daten);
+      if (G.fehlt) { karteFehlt(el, D); return; }
+      mitKacheln(G.daten, function () {
+        try { einbauen(el, G.daten); } catch (err) { el.textContent = 'Die Kampfkarte ließ sich nicht zeichnen: ' + err.message; }
+      });
     } catch (err) { el.textContent = 'Die Kampfkarte ließ sich nicht zeichnen: ' + err.message; }
   }
 
@@ -2123,7 +2236,9 @@
     // seit 1.9: die Kampfbilanz
     bilanzLesen: bilanzLesen, bilanzHtml: bilanzHtml,
     // seit 1.10: die Karte im Browser, Felder mit Namen, Schreibfehler
-    feldAusName: feldAusName, falten: falten, ausDemBrowser: ausDemBrowser, kartenFehler: kartenFehler, SPEICHER_HOECHSTENS: SPEICHER_HOECHSTENS };
+    feldAusName: feldAusName, falten: falten, ausDemBrowser: ausDemBrowser, kartenFehler: kartenFehler, SPEICHER_HOECHSTENS: SPEICHER_HOECHSTENS,
+    // seit 1.11: die Kachelsets
+    gelaende: GELAENDE, setZeichen: setZeichen, zeichnungFuerMotor: zeichnungFuerMotor };
   else if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

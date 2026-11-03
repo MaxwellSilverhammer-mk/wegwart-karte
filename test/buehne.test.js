@@ -221,4 +221,69 @@ assert.strictEqual(befehl([]).rc, 2);
 fs.rmSync(dir, { recursive: true, force: true });
 ok('die Befehle');
 
+// Bühnen mit Gelände (seit 1.11): das Set zeichnet die Karte, die Zeichnung verrät so wenig wie der Boden
+var GB = {
+  art: 'buehne', id: 'fischer', ort: 'ufer', titel: 'Fischerhütte', gelaende: 'kueste', text: 'Unter dem Herd liegt das Netz, das niemand vermisst.',
+  boden: ['..........', '.LLLLL..~~', '.LlrlL..~~', '.LllhL.ee~', '.LL+LL.i~~', '........~~'],
+  verdeckt: ['..........', '..........', '..aaa.....', '..aaa.....', '..........', '..........'],
+  gruppen: { a: 'Hütte, drinnen' },
+  merkmale: [{ name: 'Steg', feld: '8/D', zeichen: 'e', schild: true }, { name: 'Herd', feld: '4/C', zeichen: 'r', schild: true, gruppe: 'a' }],
+  eingaenge: [{ name: 'vom Weg', feld: '1/F' }],
+  szene: [{ text: 'Der Steg', feld: '8/D', zeichen: 'e' }],
+  ausschnitte: { westen: ['1/A', 7, 6] },
+  zeichnung: { kochtopf: ['4/C'], drehung: { '8/D': 90 }, stroemung: [['9/B', 180]], gosse: [['3/C', '5/D']], planen: [['1/A', '3/A']] }
+};
+var r1 = buehne.pruefe(GB);
+assert.ok(r1.ok, r1.fehler.join(' | '));
+function falschG(aendere) { var x = kopie(GB); aendere(x); return buehne.pruefe(x); }
+meldet(falschG(function (x) { x.gelaende = 'mond'; }), /das Gelände „mond“ gibt es nicht; es gibt arktis/);
+meldet(falschG(function (x) { x.boden[0] = 'g' + x.boden[0].slice(1); }), /„g“ zeichnet das Set „kueste“ nicht: 1\/A/);
+meldet(falschG(function (x) { x.boden[5] = ',,,,,,,,~~'; }), /„,“ zeichnet das Set „kueste“ nicht: 1\/F, 2\/F, 3\/F, 4\/F und 4 mehr/);
+meldet(falschG(function (x) { x.boden[0] = 'm' + x.boden[0].slice(1); }), /„m“ zeichnet das Set „kueste“ nicht/);
+assert.ok(falschG(function (x) { x.gelaende = 'sumpf'; x.boden[0] = 'm' + x.boden[0].slice(1); }).ok, 'Morast gibt es im Sumpf');
+assert.ok(buehne.pruefe(Object.assign(kopie(GB), { gelaende: undefined, boden: GB.boden.map(function (z) { return z.replace(/^\./, 'g'); }) })).fehler.every(function (f) { return !/zeichnet das Set/.test(f); }), 'ohne Gelände zählt das Set nicht');
+meldet(falschG(function (x) { x.zeichnung.kochtopf = ['5/C']; }), /`zeichnung.kochtopf`: bei 5\/C steht „l“, nicht „r“/);
+meldet(falschG(function (x) { x.zeichnung.kochtopf = ['99/C']; }), /`zeichnung.kochtopf`: Feld „99\/C“ liegt nicht auf der Bühne/);
+meldet(falschG(function (x) { x.zeichnung.drehung = { '99/C': 90 }; }), /`zeichnung.drehung`: Feld „99\/C“/);
+meldet(falschG(function (x) { x.zeichnung.gosse = [['1/A', '99/A']]; }), /`zeichnung.gosse`: Feld „99\/A“/);
+ok('das Gelände: nur, was das Set zeichnet; `zeichnung` nur auf der Bühne und auf dem passenden Zeichen');
+
+var dg = buehne.karte(GB, { kampf: 'x', nr: 1, profil: P, feld: '1/F' }).daten;
+assert.strictEqual(dg.gelaende, 'kueste', 'das Gelände kommt in die Karte');
+assert.strictEqual(dg.boden[2].slice(2, 5), '???', 'die Hütte liegt verdeckt');
+assert.ok(!dg.zeichnung.kochtopf, 'der Kochtopf steht in der verdeckten Hütte und bleibt draußen');
+assert.ok(!dg.zeichnung.gosse, 'eine Gosse in der verdeckten Hütte auch');
+assert.deepStrictEqual(dg.zeichnung.drehung, { '8/D': 90 }, 'die Drehung am Steg ist zu sehen');
+assert.deepStrictEqual(dg.zeichnung.stroemung, [['9/B', 180]]);
+assert.deepStrictEqual(dg.zeichnung.planen, [['1/A', '3/A']]);
+assert.ok(!/Netz|vermisst/.test(JSON.stringify(dg)), 'der Text der Bühne kommt nie in die Karte');
+assert.ok(!kampf.kartenFehler(dg).length, 'die Karte hat keine Fehler: ' + kampf.kartenFehler(dg).join(' | '));
+var dw = buehne.karte(GB, { kampf: 'x', nr: 1, ausschnitt: 'westen', profil: P, feld: '1/F' }).daten;
+assert.ok(!dw.zeichnung.drehung && !dw.zeichnung.stroemung, 'was außerhalb des Ausschnitts liegt, kommt nicht mit');
+var dv = buehne.karte(GB, { kampf: 'x', nr: 3, weiter: true, offen: ['a'] }).daten;
+assert.ok(!dv.gelaende, 'eine spätere Karte kennt ihr Gelände aus dem Browser');
+assert.deepStrictEqual(dv.zeichnung.kochtopf, ['4/C'], 'der Kochtopf kommt, wenn die Hütte offen ist');
+assert.deepStrictEqual(dv.zeichnung.gosse, [['3/C', '5/D']], 'die Gosse auch');
+var auf = buehne.aufdecken(GB, 'a', {});
+assert.deepStrictEqual(auf.zeichnung.kochtopf, ['4/C'], 'aufdecken nennt die Zeichnung, wie sie dann gilt');
+assert.deepStrictEqual(auf.eintrag[0], '3/C');
+assert.deepStrictEqual(auf.schilder, [{ feld: '4/C', text: 'Herd' }]);
+var ohneGelaende = kopie(GB); delete ohneGelaende.gelaende;
+var dn = buehne.karte(ohneGelaende, { kampf: 'x', nr: 1 }).daten;
+assert.ok(!('gelaende' in dn) && !('zeichnung' in dn), 'ohne Gelände keine Zeichnung: die alte Karte kann nichts damit anfangen');
+var dir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'buehne-set-'));
+var gPfad = path.join(dir2, 'set.json');
+fs.writeFileSync(gPfad, JSON.stringify(GB));
+function befehl2(args) { var r = kind.spawnSync('node', [path.join(__dirname, '..', 'buehne.js')].concat(args), { encoding: 'utf8' }); return { rc: r.status, aus: (r.stdout || '') + (r.stderr || '') }; }
+var c1 = befehl2(['--karte', gPfad, '--kampf', 'x', '--nr', '1']);
+assert.strictEqual(c1.rc, 0, c1.aus);
+assert.ok(/gelaende:'kueste'/.test(c1.aus) && /zeichnung:\{/.test(c1.aus) && !/kochtopf/.test(c1.aus), c1.aus);
+var c2 = befehl2(['--aufdecken', gPfad, 'a']);
+assert.strictEqual(c2.rc, 0, c2.aus);
+assert.ok(/^zeichnung:\{.*kochtopf:\['4\/C'\]/m.test(c2.aus.replace(/"kochtopf"/, 'kochtopf').replace(/\["4\/C"\]/, "['4/C']")), c2.aus);
+var c3 = befehl2(['--zeige', gPfad]);
+assert.ok(/Gelände: kueste/.test(c3.aus), c3.aus);
+fs.rmSync(dir2, { recursive: true, force: true });
+ok('die erste Karte, die spätere und das Aufdecken auf einem Set');
+
 console.log('\n' + n + ' Prüfungen bestanden.');
