@@ -1,6 +1,28 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`, `regelwerk-3.24.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`, `werkstatt-3.24.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`, `regelwerk-3.24.md`, `regelwerk-3.25.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`, `werkstatt-3.24.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 3.25 (4. November 2026)
+
+Gegenüber 3.24 (3. November 2026). Der Weltenhüter hat es am 4. November 2026 entschieden, auf Vorschläge nach Regelwerk 2 aus dem Projekt Visegard. Die Werkstatt bleibt 3.24. Neu ist der Würfelkasten: Fassung 1.2 (unten), Commit `617ce622d33dba8ecacb4d786007e17b967ad181`. `tische_stand` bleibt.
+
+- **Zusatzwürfel** (6.2, 6.3, 6.6): `zusatz` bei Probe, Rettungswurf und Angriff. Guidance und Verbindendes Band brauchen keinen eigenen W4-Kasten vor dem Wurf mehr und lassen sich nach dem W20 entscheiden. Heldenmut wirft nur den W20 neu, keinen Zusatz. Ein Zusatz ist verbraucht, wenn er in der Zeile steht.
+- **Rast** (4.3, 6.3): Die Rast beginnt mit der Zeile der Rastübersicht; bis dahin vergeht keine Rastzeit, und nichts aus der Übersicht gilt. Schreibt der Spieler vorher frei, spielt die Spielleitung nur, was vor der Rast geschieht, und endet mit „Die Rastübersicht wartet auf dich.“ Die offene Übersicht bleibt gültig und behält ihre Nummer, auch nach neueren Würfen.
+- **Bauen und Betreiben** (8.4): neu gefasst. Die Arbeit rechnet in **Werk** (Hausregel): ein gelernter Arbeitstag 1 Werk, ein ungelernter 0,1. Ein Bau kostet seinen Anker ÷ 5 in Werk, Material ist der halbe Anker. Gebaut wird an sechs Tagen der Woche, Freeday ruht. Siedlungen gehören dazu; für eine ganze Siedlung genügt eine Vereinbarung mit dem Weltenhüter.
+- **Preisanker** (10.1): Grubenhaus für 6 Köpfe 10 GA, Palisade je 10 m 5 GA, Brunnen 25 GA, Speicher 25 GA; eine Holzkapelle zählt als Haus im Dorf.
+- **Orte lesen** (18, Vorlage der Projektanweisungen auf der Chronikseite): `orte` nur per `query` mit `where` auf das eigene Revier oder `kanon`, nicht per `list` und nicht ungefiltert: Das Ergebnis nennt alle Kennungen, auch mit `out_dir`. Bei zwei Figuren eines Spielers standen so zweimal fremde Orte im Verlauf. Einen bestimmten Ort sucht die Spielleitung mit `where` auf `name` (4.2, 20.1).
+
+## Würfelkasten 1.2 (4. November 2026)
+
+Werkzeug im Repository wegwart-wuerfel, Commit `617ce622d33dba8ecacb4d786007e17b967ad181`; gilt mit Regelwerk 3.25 und meta/welt (`wuerfelkasten`). Anlass: Guidance und Verbindendes Band brauchten einen eigenen W4-Kasten vor der Probe, also eine Antwort mehr je Wurf, und Guidance ließ sich nicht erst nach dem W20 entscheiden.
+
+- **`zusatz`** bei `probe`, `rettung` und `angriff`: Nach dem W20 zeigt der Kasten die Zwischensumme und je einen Knopf für jeden Zusatz, Heldenmut und „Behalten“, auch ohne `held`. Ein gefallener Zusatz zählt in der Zwischensumme mit, die übrigen Knöpfe bleiben; der Grad kommt zuletzt und rechnet die Zusätze mit.
+- **`minus:true`** (Bane): wird abgezogen und von selbst gewürfelt, gleich nach dem W20. Ist nichts zu entscheiden, gibt es keine Knöpfe.
+- **Natürliche 20 oder 1:** keine Zusatzknöpfe, auch `minus` fällt nicht, der Zusatz bleibt unverbraucht (Regelwerk 6.5). Wirft Heldenmut die 1 neu, erscheinen die Knöpfe danach. Heldenmut wirft nur den W20 neu.
+- **Angriff:** Der Zusatz zählt nur für den Angriffswurf. Die Zusatzwürfel haben eine eigene Reihe unter den W20, denn die Schadenswürfel belegen schon die ihre.
+- **Zeile:** „Würfel #17 · Überzeugen +5 · Guidance W4: 3 · 14 + 5 + 3 = 22 · gut gelungen“. Was nicht gefallen ist, steht nicht darin.
+- Ohne `zusatz` läuft alles wie in 1.1: In 266 Läufen mit festgelegten Würfen über alle Arten waren jeder Schritt und jede Zeile dieselben.
+- Tests neu im Repository: `test/wuerfel.test.js` (22 Gruppen im Browser, mit festgelegten Würfen).
 
 ## Regelwerk 3.24 (3. November 2026)
 
