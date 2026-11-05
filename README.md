@@ -167,7 +167,7 @@ Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemä
 ```html
 <h2 class="sr-only">Titelbildschirm: Die Wege von Oerik</h2>
 <div id="titel">Titelbild lädt … Falls nicht, schreib „Spiel laden“.</div>
-<script>var TITEL={fuss:'Regelwerk 4.0 · Welttag 9 · 9. Patchwall 576 CY', buch:'https://claude.ai/artifact/…', befehle:['Questlog','Glossar','Karte','Inventar'], figuren:[{name:'Probefigur', zeile:'Barde 2 · Reisende', ort:'Rohrdorf, Alte Eiche', datum:'9. Patchwall 576', tageszeit:'Abend', welttag:9, frist:[9,28,'Die Brücke bei Rohrdorf'], ep:[450,900,3,300], sitzung:4, held:true}]}</script>
+<script>var TITEL={fuss:'Regelwerk 4.1 · Welttag 9 · 9. Patchwall 576 CY', buch:'https://claude.ai/artifact/…', befehle:['Questlog','Glossar','Karte','Inventar'], figuren:[{name:'Probefigur', zeile:'Barde 2 · Reisende', ort:'Rohrdorf, Alte Eiche', datum:'9. Patchwall 576', tageszeit:'Abend', welttag:9, frist:[9,28,'Die Brücke bei Rohrdorf'], ep:[450,900,3,300], sitzung:4, held:true, bild:'data:image/webp;base64,…'}]}</script>
 <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/titel.js';document.head.appendChild(s);</script>
 ```
 

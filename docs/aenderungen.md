@@ -1,6 +1,17 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.0.md`, `werkstatt-4.0.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.1.md`, `werkstatt-4.1.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.1 (5. November 2026)
+
+Gegenüber 4.0 (5. November 2026). Neuer Stand der Tische: `7a3f8cb7679bbd4d31c57c60b171241ab8b246ea` (neu ist nur titel.js 1.1 mit Test; die übrigen Tische und das Spielerbuch sind unverändert, das Spielerbuch muss nicht neu gebaut werden). Der Würfelkasten bleibt. Die Werkstatt wird 4.1 (`werkstatt-4.1.md`). **Keine Spielregel geändert.**
+
+- **Titelbildnis** (3.3, 4.10, 21.3, W 21.6, W 24). Der Titelbildschirm zeigt je Spielerfigur ihr Bildnis als Miniatur im Hochformat links neben dem Namen. Das Bild kommt als eingebettete Daten (`data:`-Adresse) aus dem Bildersaal (`bilder/bildnis_<figur>_titel.txt`, daneben als `.webp`), denn das Widget im Chat lädt Bilder nur von cdn.jsdelivr.net, cdnjs, unpkg und Google Fonts, und claude.ai gehört nicht dazu. Der Weltenhüter hat sich gegen ein Bild im öffentlichen Repository entschieden: Nichts von einer Figur wird öffentlich, und es geht auch für Spieler ohne GitHub; dafür nimmt er rund 5.000 Zeichen je Sitzung im Verlauf in Kauf. Nur Spielerfiguren, keine Gefährten.
+- Anlass: Wunsch des Weltenhüters vom 5. November 2026, das Charakterportrait in der Charakterauswahl links neben dem Namen zu sehen.
+
+## Titel 1.1 (5. November 2026)
+
+- `titel.js`: Feld `bild` je Figur. Die Miniatur (64 × 85 px, Goldrahmen, `object-fit: cover`) steht in einer Reihe mit Name, Zeile und Ort; Datum und Mond bleiben darüber, Frist, EP und Fußzeile darunter. Lädt das Bild nicht, verschwindet der Rahmen, und der Platz sieht aus wie ohne `bild`. Der Test prüft Lage, Höhe und den Fehlerfall mit einem erfundenen 2 × 2-Pixel-Bild; README mit dem Feld `bild`.
 
 ## Regelwerk 4.0 (5. November 2026)
 

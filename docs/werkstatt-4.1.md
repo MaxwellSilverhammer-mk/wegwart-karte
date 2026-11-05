@@ -1,6 +1,6 @@
 # Oerik – Werkstatt der Spielleitung
 
-**Zum Regelwerk 4.0 · 5. November 2026 · Weltenhüter: Max**
+**Zum Regelwerk 4.1 · 5. November 2026 · Weltenhüter: Max**
 
 Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, das Spielerbuch oder die Chronik beschreibt, Tische baut oder prüft, ein Treffen leitet, eine neue Figur anlegt oder einem Revier einen neuen Auftrag oder eine neue Bedrohung gibt, wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
 
@@ -130,6 +130,7 @@ Die Dateien bearbeitet die Spielleitung als Dateien mit gezielten Änderungen (E
 - Gibt es einen Bildersaal (3.3), bekommt jeder Ort, den die Figur in der Sitzung zum ersten Mal betreten hat, ein Gemälde, als letzter Schritt des Sitzungsendes, wenn alles andere gesichert ist (21.3, Schritt 12). Ist der Chat dafür schon zu lang, malt die Spielleitung in einem eigenen Chat nach dem Sitzungsende („Gemälde für <Ort>“) oder beim nächsten Sitzungsende; bis dahin hat der Ort kein Bild.
 - Motiv ist der Ort, wie die Figur ihn beim ersten Betreten wahrgenommen hat, mit Tageszeit und Wetter der Ankunft. Auf das Bild kommt nichts, was die Figur nicht gesehen hat, und nichts, was nur die Spoilerdatei weiß (4.8).
 - Gemalt wird mit dem Skill für selbstmalende Gemälde. Das Bild wird als PNG mit 1040 × 780 Pixeln gerendert (Playwright: warten, bis es fertig gemalt ist, dann das Canvas speichern) und kommt als `bilder/<ort>.png` in den Bildersaal: die Seite mit Artifact `read` holen, ein Bild mit Messingschild ergänzen (Ort, Motiv, Weg und Reisezeit, soweit die Figur sie kennt) und mit `url` und `files` neu veröffentlichen, das HTML des Gemäldes als `bilder/<ort>.html` gleich mit. `<ort>` ist der Ortsname klein, mit ae, oe, ue und ss für ä, ö, ü und ß und `_` für Leerzeichen (`alte_eiche`, `muehlfurt`).
+- **Bildnisse und Titelbildnis.** Ein Bildnis der Spielerfigur oder eines Gefährten (`bilder/bildnis_<figur>.png`, 800 × 1200, mit dem Personen-Kern des Malkastens, das HTML als `bilder/bildnis_<figur>.html` daneben) malt die Spielleitung, wenn der Spieler es will, und malt es neu, wenn er es will; die Metadaten der Seite (`gruppe[]`) halten fest, wie die Figur aussieht und was der Spieler sich gewünscht hat. Zu jedem Bildnis der Spielerfigur gehört ihr Titelbildnis (Regelwerk 3.3, 4.10): Kopf und Schultern im Hochformat 3 : 4 aus dem Bildnis geschnitten, auf 150 × 200 Pixel verkleinert, als WebP (Qualität um 80, rund 4 KB) unter `bilder/bildnis_<figur>_titel.webp` und dieselben Bytes als `data:image/webp;base64,…` in `bilder/bildnis_<figur>_titel.txt`; `gruppe[].bild_titel` nennt die Textdatei. Beide Dateien schreibt sie neu, sobald das Bildnis neu gemalt ist, in derselben Veröffentlichung. Gefährten bekommen kein Titelbildnis, denn der Titelbildschirm zeigt nur Spielerfiguren.
 - Ins Projekt kommt dabei nichts, denn nach den Kopien (21.3, Schritt 11) soll das Projekt bleiben, wie es ist (21.5).
 
 ## 22 Neu einsteigen
@@ -315,7 +316,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 | Eingang nach Oerik | https://claude.ai/artifact/TBdN725HV7U3bjcmiFHiQg | Einstieg, Regelbuch, Werkzeugkoffer, Dateien; ohne Datenbank, öffentlich teilbar | 22 | alle |
 | Chronik von Oerik | Adresse in den Projektanweisungen | die gemeinsame Datenbank, Kalender, Postrechner, Briefkasten; kein öffentlicher Link | 18 | eingeladene Konten |
 | Spielerbuch | eines je Figur, gebaut aus seite/buch.html | Glossar, Logbuch, Gepäck, Karte, „Was bisher geschah“, Ablage der Spielleitung | 4.7, W 21.5 | Spieler, Spielleitung |
-| Bildersaal | einer je Figur | Ortsgemälde und Bildnisse als PNG | 3.3, W 21.6 | freiwillig |
+| Bildersaal | einer je Figur | Ortsgemälde und Bildnisse als PNG, das Titelbildnis als WebP und `data:`-Text | 3.3, 4.10, W 21.6 | freiwillig |
 
 **Für die Spielleitung** (Node, aus dem Repository im Stand `tische_stand`, holen nach 4.2)
 
@@ -338,7 +339,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 
 **Außerhalb des Koffers** steht D&D Beyond: Jede Figur wird in der Kampagne des Weltenhüters gebaut, und ihr Bogen kommt als PDF ins Projekt (7.2, 7.4).
 
-**Lücken, Stand 4.0.** Sie stören das Spiel nicht, aber man sollte sie kennen:
+**Lücken, Stand 4.1.** Sie stören das Spiel nicht, aber man sollte sie kennen:
 - Der Kartentisch kennt die Gebiete `sumpf`, `totholz`, `wald`, `berge`, `felder`, `mangroven`; für Wüste, Eis und Steppe gibt es noch keine Gebietsart. Bis dahin stehen sie als Name und Notiz auf der Karte. Große Strecken zeigt er nur im Ausschnitt.
 - Klangtisch Live hat keine Ortstypen für Gebirge, Wüste und Eis.
 - Eine Spielleitung ohne Datenbank, Code oder Widgets spielt nach 22.1 in Textform.
