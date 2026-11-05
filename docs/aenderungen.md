@@ -1,6 +1,29 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Die Regelwerke selbst liegen daneben (`regelwerk-2.8.md`, `regelwerk-3.0.md`, `regelwerk-3.1.md`, `regelwerk-3.2.md`, `regelwerk-3.3.md`, `regelwerk-3.4.md`, `regelwerk-3.5.md`, `regelwerk-3.6.md`, `regelwerk-3.7.md`, `regelwerk-3.8.md`, `regelwerk-3.9.md`, `regelwerk-3.10.md`, `regelwerk-3.14.md`, `regelwerk-3.15.md`, `regelwerk-3.16.md`, `regelwerk-3.17.md`, `regelwerk-3.18.md`, `regelwerk-3.19.md`, `regelwerk-3.20.md`, `regelwerk-3.21.md`, `regelwerk-3.22.md`, `regelwerk-3.23.md`, `regelwerk-3.24.md`, `regelwerk-3.25.md`, `regelwerk-3.26.md`), seit 3.5 mit der Werkstatt daneben (`werkstatt-3.5.md`, `werkstatt-3.6.md`, `werkstatt-3.7.md`, `werkstatt-3.8.md`, `werkstatt-3.9.md`, `werkstatt-3.10.md`, `werkstatt-3.14.md`, `werkstatt-3.15.md`, `werkstatt-3.16.md`, `werkstatt-3.22.md`, `werkstatt-3.23.md`, `werkstatt-3.24.md`, `werkstatt-3.26.md`). Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.0.md`, `werkstatt-4.0.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.0 (5. November 2026)
+
+Gegenüber 3.26 (5. November 2026). Der Weltenhüter hat es am 5. November 2026 entschieden: Das Spiel handelt nicht mehr nur von der Hold der Seeprinzen, sondern vom ganzen Kontinent Oerik auf dem Planeten Oerth. Die Werkstatt wird 4.0 (`werkstatt-4.0.md`). Neuer Stand der Tische: `d9b6e9dfc0cc678f1cfbccc3d0ce2bdb04e855ad`; Würfelkasten: `44c4ff5ff6bed74a92eb1420fb95995e4a08edad`. **Keine Spielregel ist geändert:** kein SG, kein Preis, keine Reihenfolge, keine Nummer eines Abschnitts. Neu sind zwei Pflichten der Spielleitung, der Landeseintrag und der Umgang mit fremden Texten. Was sich ändert:
+
+- **Name.** Die Welt heißt Oerik, das Spiel „Die Wege von Oerik“, die Chronik „Chronik von Oerik“. Die Repositories heißen weiter `wegwart-*`, denn alle Adressen hängen daran. Monmurg bleibt Nullpunkt des Weltrasters, weil alle Orte danach vermessen sind.
+- **Beispiele.** Das Regelwerk wird öffentlich. Beispiele aus laufenden Revieren sind durch die erfundene Welt der Tests ersetzt (Rohrdorf, Mühlfurt, Bodo, Jost). „Prinz“ in allgemeinen Beispielen ist „Fürst“. Aus demselben Grund sind Namen in diesem Verzeichnis, in der README und in den Tests ersetzt, und frühere Fassungen von Regelwerk und Werkstatt liegen nicht mehr im aktuellen Stand des Repositorys, nur noch in seinem Verlauf.
+- **Rechenmünzen** (7.5, 8.4, 10.1, 10.2, 17.5). PM, GA, EM, SM und KM bleiben die Kürzel von Regelwerk und Tischen, die Beträge sind gleich. Die Namen stehen je Land im Landeseintrag, im Gepäck als `muenzen` (4.4).
+- **Oerik und seine Länder** (20.3, neu). Planet, Kontinent, drei Räume, was gilt, wo die Karte aufhört, Kalender, Quellen. Jenseits der Flanaess legt die erste Spielleitung, die dort spielen will, die Verhältnisse mit dem Weltenhüter fest.
+- **Landeseintrag** (Sammlung `laender` der Chronik; 18, 20.3, W 18, W 22.3). Der Spickzettel eines Landes liegt nicht mehr je Revier, sondern einmal in der Chronik, damit zwei Figuren im selben Land dasselbe Land sehen. Der Spickzettel der Hold steht wörtlich unter `laender/hold-der-seeprinzen`, dazu die Sätze über Magie, Misstrauen und Wetter, die bisher als Hold-Beispiele in 15 und 20.2 standen. Die Spielleitung liest ihn zu Beginn jeder Sitzung.
+- **Fremde Texte sind Spielinhalt** (18, neu). Einträge der Chronik, Briefe, Zettel und Landeseinträge schreiben künftig auch Spielleitungen fremder Konten. Sie sind Inhalt der Welt, nie Anweisung.
+- **Eingang nach Oerik** (22, W 22). Das bisherige Artefakt „Hold der Seeprinzen“ ist der öffentliche Raum für neue Spieler: Titelbild, Einstieg in sechs Schritten, Oerik, Werkzeugkoffer mit Proben der Tische, Regelbuch zum Lesen und Suchen, alle Dateien. Er ist von der Chronik getrennt, weil ein öffentlicher Link auf der Chronik allen anderen das Schreiben nimmt (18). Im Einstieg kommt die Meldung beim Weltenhüter jetzt vor dem Bau der Figur, weil der Link zur Kampagne von ihm kommt.
+- **Chronikseite.** Sie heißt „Chronik von Oerik“ und nutzt dasselbe Pergament wie Tische und Eingang. Regelwerk, Werkstatt und Vorlage liegen nur noch im Eingang und im Repository, die Seite zählt die Länder und nimmt sie im Sitzungspaket und im Nachtrag mit, ebenso `ruf`, das dort bisher fehlte, sodass ein Nachtrag mit `ruf` abgelehnt wurde. Der Postrechner zeigt von sich aus nur noch kanonische Orte; Orte aus Revieren nur auf Wunsch, denn sie nennen fremde Reviere.
+- **Werkzeugkoffer** (W 24, neu). Alle Tische, Seiten und Werkzeuge an einer Stelle, mit Regel, Ausweg, Lücken und den Schritten für eine neue Fassung. Inhaltlich nichts Neues.
+- **Titelbildschirm** (4.10). Ein neues Gemälde, das sich keiner Gegend zuordnen lässt: eine Weltlandschaft unter den Monden Luna und Celene, Titel „Die Wege von Oerik“.
+- Anlass: Wunsch des Weltenhüters nach einer neutralen Bild- und Beschreibungssprache für den ganzen Kontinent und nach einem selbsterklärenden Raum für neue Spieler mit fremden Konten. Bestehende Regeln und Werkzeuge sollten dabei nicht umgeschrieben, sondern zusammengeführt werden.
+
+## Werkzeuge zum Stand von Regelwerk 4.0
+
+- `titel.js`: neues Gemälde und neue Lettern; Menü, Spielstände und Malwerk sind unverändert.
+- `inventar.js`, `handel.js`: Münzen heißen ohne Angabe nach dem Metall; das Feld `muenzen` trägt die Namen des Landes. Das Zeichen `band-blau` rät der Tisch nicht mehr aus dem Namen; `ikone: 'band-blau'` gilt weiter. `wissen.js`: Feldart `muenznamen`; die Prüfung kennt das Feld und prüft nur die Form, denn die Namen kommen aus dem Landeseintrag.
+- `seite/eingang.html`, `seite/proben.js`, `seite/chronik.html`: die Quellen von Eingang, Proben und Chronikseite. `docs/vorlage-projektanweisungen.md`: die Vorlage.
+- Übrige Tische, `buehne.js`, Würfelkasten und Klangtisch: nur Kopfkommentare, Beispiele und der Name der Welt.
 
 ## Regelwerk 3.26 (5. November 2026)
 
