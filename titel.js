@@ -1,6 +1,6 @@
 /*
  * Wegwart-Titel – Titelbildschirm für die geteilte Welt „Die Wege von Oerik“
- * Version 1.0
+ * Version 1.1 (1.1: Bildnis der Figur links neben dem Namen, Feld `bild`)
  *
  * Aufruf in einem Visualizer-Widget:
  *   <h2 class="sr-only">Titelbildschirm: Die Wege von Oerik</h2>
@@ -11,7 +11,8 @@
  * Ein Ölgemälde malt sich selbst, grob bis fein: eine Weltlandschaft in der Dämmerung unter Luna und
  * Celene, Wegweiser und Laterne im Vordergrund, zuletzt die Goldlettern „Die Wege von Oerik“. Darunter das
  * Menü mit Spiel laden, Spielerbuch und Befehlen; Spiel laden öffnet die Spielstände, ein Platz je
- * Figur. Knöpfe schicken ihr Wort per sendPrompt. Bei reduzierter Bewegung erscheint das Bild fertig;
+ * Figur, mit ihrem Bildnis links neben dem Namen, wenn `bild` eine Adresse nennt (nur cdn.jsdelivr.net,
+ * das Widget sperrt andere Quellen; lädt es nicht, bleibt der Platz ohne Bild). Knöpfe schicken ihr Wort per sendPrompt. Bei reduzierter Bewegung erscheint das Bild fertig;
  * canvas[data-fertig] zeigt, dass es fertig ist. Die Lettern sind aus IM Fell (Igino Marini,
  * SIL Open Font License 1.1) als Pfade eingebacken. Felder: README, Abschnitt „Titel“.
  * Szene, Malwerk und Lettern stehen ganz in dieser Datei; im Spiel ändert die Spielleitung nur die Daten.
@@ -43,6 +44,11 @@ css.textContent='#titel{max-width:1040px;margin:0 auto;font-family:"IM Fell Engl
 +'#titel .ts-slot span{display:block}'
 +'#titel .ts-datum{font-size:14px;color:#c4ad80;display:flex!important;align-items:center;gap:7px}'
 +'#titel .ts-mond{width:18px;height:18px;flex:none}'
++'#titel .ts-reihe{display:flex!important;align-items:center;gap:12px}'
++'#titel .ts-text{flex:1;min-width:0}'
++'#titel .ts-rahmen{flex:none;padding:2px;border:1px solid #a8864a;border-radius:4px;background:#120d09}'
++'#titel .ts-bildnis{display:block;width:64px;height:85px;object-fit:cover;border-radius:2px;background:#17110c}'
++'#titel button.ts-slot:hover .ts-rahmen{border-color:#ecc66c}'
 +'#titel .ts-name{font-family:"IM Fell English SC",Georgia,serif;font-size:23px;line-height:1.15;margin:3px 0 1px;color:#ecc66c}'
 +'#titel .ts-zeile{font-size:15px;color:#e6d6ae}'
 +'#titel .ts-ort{font-size:15px;color:#d8c69c;font-style:italic;margin-bottom:6px}'
@@ -105,7 +111,9 @@ function staende(){var w=el('div');w.style.cssText='display:flex;flex-direction:
 w.appendChild(el('div','ts-kopf','Spielstände'));w.appendChild(el('div','ts-unter','Ein Platz je Figur'));
 var erst=null;(T.figuren||[]).forEach(function(f){var b=el('button','ts-slot');b.setAttribute('aria-label','Spielstand von '+f.name+' laden');
 var d=el('span','ts-datum');if(f.welttag)d.appendChild(mond(f.welttag));d.appendChild(document.createTextNode((f.datum||'')+(f.tageszeit?' · '+f.tageszeit:'')));b.appendChild(d);
-b.appendChild(el('span','ts-name',f.name));if(f.zeile)b.appendChild(el('span','ts-zeile',f.zeile));if(f.ort)b.appendChild(el('span','ts-ort',f.ort));
+var r=el('span','ts-reihe'),tx=el('span','ts-text');
+if(f.bild){var rh=el('span','ts-rahmen'),im=document.createElement('img');im.className='ts-bildnis';im.alt='';im.decoding='async';im.onerror=function(){if(rh.parentNode)rh.parentNode.removeChild(rh);};im.src=f.bild;rh.appendChild(im);r.appendChild(rh);}
+tx.appendChild(el('span','ts-name',f.name));if(f.zeile)tx.appendChild(el('span','ts-zeile',f.zeile));if(f.ort)tx.appendChild(el('span','ts-ort',f.ort));r.appendChild(tx);b.appendChild(r);
 if(f.frist)b.appendChild(balken('Tag '+f.frist[0]+' von '+f.frist[1]+(f.frist[2]?' · '+f.frist[2]:''),f.frist[0]/f.frist[1]));
 if(f.ep){var e0=f.ep[3]||0;b.appendChild(balken('EP '+fmt(f.ep[0])+' von '+fmt(f.ep[1])+(f.ep[2]?' bis Stufe '+f.ep[2]:''),(f.ep[0]-e0)/(f.ep[1]-e0)));}
 var s=el('span','ts-sfuss');s.appendChild(el('span','',(f.sitzung?'Nach Sitzung '+f.sitzung:'')+(f.held?' · ✦ Heldenmut':'')));var l=el('span','ts-laden','Laden ↗');s.appendChild(l);b.appendChild(s);

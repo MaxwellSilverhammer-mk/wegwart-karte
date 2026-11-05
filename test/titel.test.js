@@ -8,12 +8,16 @@ var code = fs.readFileSync(path.join(__dirname, '..', 'titel.js'), 'utf8');
 var n = 0;
 function ok(name) { n++; console.log('ok  ' + name); }
 
+// Ein erfundenes Bildnis: ein 2 × 2 Pixel großes PNG, damit kein echtes Bild im Test liegt.
+var BILDNIS = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVQI12P4z8DwHwyBFBhCeAwMAHbkC/Vb8m9oAAAAAElFTkSuQmCC', 'base64');
+var BILD = 'https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/bildnisse/probefigur.webp';
+
 var TITEL = {
   fuss: 'Regelwerk 3.6 · Welttag 9 · 9. Patchwall 576 CY',
   buch: 'https://claude.ai/artifact/beispiel',
   befehle: ['Questlog', 'Glossar', 'Karte', 'Inventar'],
   figuren: [{ name: 'Probefigur', zeile: 'Barde 2 · Wegwart', ort: 'Rohrdorf, Alte Eiche', datum: '9. Patchwall 576', tageszeit: 'Abend',
-    welttag: 9, frist: [9, 28, 'Die Brücke bei Rohrdorf'], ep: [450, 900, 3, 300], sitzung: 4, held: true }]
+    welttag: 9, frist: [9, 28, 'Die Brücke bei Rohrdorf'], ep: [450, 900, 3, 300], sitzung: 4, held: true, bild: BILD }]
 };
 
 function aufruf(daten) {
@@ -27,7 +31,12 @@ async function seite(b, daten, opt) {
   var pg = await b.newPage({ viewport: { width: 380, height: 1000 } }), fehler = [];
   pg.on('pageerror', function (e) { fehler.push(String(e)); });
   if (opt && opt.ruhig) await pg.emulateMedia({ reducedMotion: 'reduce' });
-  await pg.route('https://cdn.jsdelivr.net/**', function (r) { r.fulfill({ status: 200, contentType: 'application/javascript', body: code }); });
+  await pg.route('https://cdn.jsdelivr.net/**', function (r) {
+    var u = r.request().url();
+    if (/fehlt\.webp$/.test(u)) return r.fulfill({ status: 404, body: '' });
+    if (/\.webp$/.test(u)) return r.fulfill({ status: 200, contentType: 'image/png', body: BILDNIS });
+    r.fulfill({ status: 200, contentType: 'application/javascript', body: code });
+  });
   await pg.route('https://fonts.googleapis.com/**', function (r) { r.fulfill({ status: 200, contentType: 'text/css', body: '' }); });
   var stub = opt && opt.ohnePrompt ? '' : '<script>window.GESENDET=[];window.sendPrompt=function(t){GESENDET.push(t)}</script>';
   await pg.setContent('<!doctype html><meta charset="utf-8">' + stub + aufruf(daten));
@@ -56,6 +65,17 @@ async function seite(b, daten, opt) {
     assert.strictEqual(await pg.$$eval('.ts-spur i', function (e) { return e.map(function (x) { return x.style.width; }).join(' '); }), '32% 25%');
     assert.ok((await pg.textContent('.ts-leer')).indexOf('Freier Platz') >= 0);
     ok('Spielstände: ein Platz je Figur, Mond, Frist und EP');
+
+    await pg.waitForFunction(function () { var i = document.querySelector('button.ts-slot .ts-rahmen img.ts-bildnis'); return i && i.complete && i.naturalWidth > 0; });
+    assert.strictEqual(await pg.getAttribute('button.ts-slot img.ts-bildnis', 'src'), BILD);
+    assert.strictEqual(await pg.getAttribute('button.ts-slot img.ts-bildnis', 'alt'), '', 'das Bildnis ist Schmuck, der Name steht daneben');
+    var lage = await pg.evaluate(function () {
+      var r = document.querySelector('.ts-rahmen').getBoundingClientRect(), n = document.querySelector('.ts-name').getBoundingClientRect();
+      return { links: r.right <= n.left, hoehe: Math.round(r.height) };
+    });
+    assert.ok(lage.links, 'das Bildnis steht links neben dem Namen');
+    assert.ok(lage.hoehe > 80 && lage.hoehe < 100, 'Miniatur im Hochformat (' + lage.hoehe + ' px)');
+    ok('Bildnis links neben dem Namen');
 
     await pg.click('button.ts-slot');
     assert.deepStrictEqual(await pg.evaluate('GESENDET'), ['Spiel laden: Probefigur']);
@@ -96,6 +116,15 @@ async function seite(b, daten, opt) {
     assert.ok((await pg.textContent('.ts-hinweis')).indexOf('„Spiel laden: Probefigur“') >= 0);
     assert.strictEqual((await pg.textContent('button.ts-slot .ts-laden')).trim(), 'Laden ↗');
     ok('ohne sendPrompt: Hinweis statt Nachricht');
+    await pg.close();
+
+    pg = await seite(b, { figuren: [{ name: 'Probefigur', zeile: 'Barde 2 · Wegwart', bild: BILD.replace('probefigur', 'fehlt') }, { name: 'Zweite Figur', zeile: 'Kundschafterin' }] }, { ruhig: true });
+    await pg.click('button.ts-haupt');
+    await pg.waitForFunction(function () { return !document.querySelector('.ts-rahmen'); });
+    assert.strictEqual(await pg.$$eval('button.ts-slot .ts-name', function (e) { return e.map(function (x) { return x.textContent; }); }).then(function (a) { return a.join('|'); }), 'Probefigur|Zweite Figur');
+    assert.strictEqual(await pg.$('img.ts-bildnis'), null, 'ein Bild, das nicht lädt, verschwindet samt Rahmen');
+    assert.deepStrictEqual(pg.fehler, []);
+    ok('ohne Bildnis und bei einem Bild, das nicht lädt: Platz wie bisher');
     await pg.close();
   } finally { await b.close(); }
   console.log(n + ' Prüfungen bestanden.');

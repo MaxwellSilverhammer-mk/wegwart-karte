@@ -162,7 +162,7 @@ Beispielnachrichten: „Handel #4 · bei Ilse, Rohrdorf · kauft 2 × Ration (1 
 
 ## Titel
 
-Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemälde malt sich selbst, grob bis fein: eine Weltlandschaft Oeriks in der Dämmerung unter den Monden Luna und Celene, vorn eine Wegkreuzung mit Wegweiser und Laterne, in der Ferne Gebirge und Meer, zuletzt die Goldlettern „Die Wege von Oerik“. Darunter das Menü: **Spiel laden** öffnet die Spielstände, ein Platz je Figur mit Datum und Lunas Phase, Ort, Frist und Erfahrung, dazu ein freier Platz; „Laden“ schickt „Spiel laden: <Name>“. Daneben stehen der Link zum Spielerbuch, die Befehle als Knöpfe (jeder schickt sein Wort) und „Wie wird gespielt?“, das „(Wie wird gespielt?)“ schickt. Das Menü geht sofort; das Bild braucht auf dem Handy etwa zehn Sekunden, bei reduzierter Bewegung erscheint es fertig.
+Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemälde malt sich selbst, grob bis fein: eine Weltlandschaft Oeriks in der Dämmerung unter den Monden Luna und Celene, vorn eine Wegkreuzung mit Wegweiser und Laterne, in der Ferne Gebirge und Meer, zuletzt die Goldlettern „Die Wege von Oerik“. Darunter das Menü: **Spiel laden** öffnet die Spielstände, ein Platz je Figur mit Datum und Lunas Phase, Ort, Frist und Erfahrung, dazu ein freier Platz; „Laden“ schickt „Spiel laden: <Name>“. Nennt `bild` eine Adresse, steht das Bildnis der Figur als Miniatur im Hochformat links neben ihrem Namen (seit Titel 1.1). Daneben stehen der Link zum Spielerbuch, die Befehle als Knöpfe (jeder schickt sein Wort) und „Wie wird gespielt?“, das „(Wie wird gespielt?)“ schickt. Das Menü geht sofort; das Bild braucht auf dem Handy etwa zehn Sekunden, bei reduzierter Bewegung erscheint es fertig.
 
 ```html
 <h2 class="sr-only">Titelbildschirm: Die Wege von Oerik</h2>
@@ -173,7 +173,8 @@ Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemä
 
 | Feld | Inhalt |
 |---|---|
-| `figuren[]` | je eigener Figur ein Platz: `name` (Pflicht), `zeile` (Klasse und Stufe, Herkunft), `ort`, `datum`, `tageszeit`, `welttag` (daraus Lunas Phase, Regelwerk 8.1), `frist: [heute, Frist, wofür]`, `ep: [Stand, Grenze, nächste Stufe, Grenze der jetzigen Stufe]` (der Balken läuft von der jetzigen Stufe an), `sitzung` (die zuletzt beendete), `held` (`true` bei Heldenmut), `laden` (was „Laden“ schickt, sonst „Spiel laden: <name>“) |
+| `figuren[]` | je eigener Figur ein Platz: `name` (Pflicht), `zeile` (Klasse und Stufe, Herkunft), `ort`, `datum`, `tageszeit`, `welttag` (daraus Lunas Phase, Regelwerk 8.1), `frist: [heute, Frist, wofür]`, `ep: [Stand, Grenze, nächste Stufe, Grenze der jetzigen Stufe]` (der Balken läuft von der jetzigen Stufe an), `sitzung` (die zuletzt beendete), `held` (`true` bei Heldenmut), `laden` (was „Laden“ schickt, sonst „Spiel laden: <name>“), `bild` (Adresse des Bildnisses, siehe unten) |
+| `bild` | Adresse eines Bildnisses der Figur: Kopf und Schultern im Hochformat 3 : 4, etwa 150 × 200 px, als WebP oder PNG; der Platz zeigt es mit 64 × 85 px links neben dem Namen, `object-fit: cover`. Die Adresse muss auf `cdn.jsdelivr.net` liegen (ein fester Commit eines öffentlichen GitHub-Repositorys), denn das Widget sperrt alle anderen Quellen; wo die Bildnisse liegen, sagt Regelwerk 4.10. Lädt das Bild nicht, verschwindet der Rahmen, und der Platz sieht aus wie ohne `bild` |
 | `buch` | Link zum Spielerbuch; ohne ihn fehlt der Knopf |
 | `befehle` | Befehle als Knöpfe, z. B. `['Questlog', 'Glossar', 'Karte', 'Inventar']` |
 | `fuss` | eine Zeile unter dem Menü, etwa Regelwerk, Welttag und Datum |
@@ -183,7 +184,7 @@ Der Titelbildschirm steht am Anfang jeder Sitzung (Regelwerk 4.10). Ein Ölgemä
 - Was in `TITEL` steht, kann der Spieler lesen: nur eigene Figuren, nur aus dem Spielstand (Regelwerk 4.8, 4.10). pruefen.js prüft den Titel nicht.
 - Im Chat stehen nur die vier Zeilen. Szene, Malwerk (Pinselstriche in vier Lagen nach Hertzmann, Relief, Lasur und Firnis) und Lettern stecken ganz in `titel.js`; die Lettern sind aus IM Fell (Igino Marini, SIL Open Font License 1.1) als Pfade eingebacken und brauchen keine Schrift. Das Menü nutzt IM Fell English von Google Fonts, das `titel.js` selbst nachlädt, sonst Georgia. `canvas[data-fertig]` zeigt, dass das Bild fertig ist.
 - Ohne `sendPrompt` (etwa in einer Vorschau außerhalb des Chats) sagt ein Hinweis, was ein Knopf im Spiel schicken würde.
-- `node test/titel.test.js` lädt den Titel mit diesem Aufruf in Chromium (Playwright) und prüft Menü, Spielstände, Nachrichten und das fertige Bild an einer erfundenen Figur.
+- `node test/titel.test.js` lädt den Titel mit diesem Aufruf in Chromium (Playwright) und prüft Menü, Spielstände, Bildnis (auch eins, das nicht lädt), Nachrichten und das fertige Bild an einer erfundenen Figur.
 
 ## Kampf
 
@@ -449,4 +450,4 @@ git -C wegwart-karte fetch -q --depth 1 origin <STAND> && git -C wegwart-karte c
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.2 (Ablage seit Regelwerk 3.5; seit Regelwerk 3.16 liest `bauen.js` auch gekürzte `list`-Ergebnisse, spielt mit `--reihe-ab` nur neue Abschnitte ein und schreibt mit `--dokumente` die Projektdokumente in die Kopien), Titel 1.0 (seit Regelwerk 3.6), Kampf 1.11 (1.0 seit Regelwerk 3.15, 1.1 seit 3.17, 1.6 seit 3.19, 1.8 seit 3.20, 1.9 seit 3.21, 1.10 mit `buehne.js` seit 3.22, 1.11 mit den Kachelsets seit 3.23); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.0, Spielerbuch 1.2 (Ablage seit Regelwerk 3.5; seit Regelwerk 3.16 liest `bauen.js` auch gekürzte `list`-Ergebnisse, spielt mit `--reihe-ab` nur neue Abschnitte ein und schreibt mit `--dokumente` die Projektdokumente in die Kopien), Titel 1.1 (1.0 seit Regelwerk 3.6, 1.1 mit Bildnis), Kampf 1.11 (1.0 seit Regelwerk 3.15, 1.1 seit 3.17, 1.6 seit 3.19, 1.8 seit 3.20, 1.9 seit 3.21, 1.10 mit `buehne.js` seit 3.22, 1.11 mit den Kachelsets seit 3.23); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
