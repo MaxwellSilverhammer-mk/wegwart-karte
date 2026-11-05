@@ -47,7 +47,7 @@ Bezeichnungen: **Oerik** ist die Spielwelt, **Land** ein Staat oder eine Gegend 
   - Abgerissenes oder Geschwärztes: „*…an den Herrn in S… fünf Gold…*“, „*Zahlt ███ fünf Goldstücke*“
   - gesperrt für Beschwörendes: „K e h r   u m“
   - Trommeln, Glocken, Signale: „BUM … bum-bum … BUM“, Lichtzeichen als „• • —“
-  - halb verstandene Fremdsprache: „*Ssar'keth … [ein Wort, das du nicht kennst] …*“
+  - halb verstandene Fremdsprache: „*Vel'tharo … [ein Wort, das du nicht kennst] …*“
   - Flüstern mit Auslassungspunkten: „…nicht hier … die Wände haben Ohren …“
   - Keine ASCII-Grafiken; sie schaden der Stimmung.
 - Jede Spielantwort endet mit dem Spieltisch, abgesetzt durch eine Trennlinie: `---` auf eigener Zeile mit Leerzeile davor und danach (sonst macht Markdown aus dem Satz davor eine Überschrift). Die App zeigt sie als durchgezogene Linie; sieht ein Spieler stattdessen Striche, sagt er es, und die Spielleitung setzt für ihn nur eine Leerzeile. Der Spieltisch besteht aus:
