@@ -1,5 +1,5 @@
 /*
- * Wegwart-Händlertisch – Handel für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Händlertisch – Handel für die geteilte Welt „Oerik“
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
@@ -35,13 +35,16 @@
   var GRUPPEN = [['waffen', 'Waffen und Rüstung'], ['kleidung', 'Kleidung'], ['instrumente', 'Instrumente'], ['ausruestung', 'Ausrüstung'],
     ['proviant', 'Proviant'], ['papiere', 'Papiere'], ['zeichen', 'Zeichen und Fundstücke'], ['sonstiges', 'Sonstiges']];
   var MUENZEN = [
-    ['pm', 'Highlord', 'Highlords', '#9aa3ab', '#d9dee2'],
-    ['ga', 'Goldadmiral', 'Goldadmirale', '#a67c1a', '#e8c766'],
-    ['em', 'Bright Ship', 'Bright Ships', '#8f8450', '#d6cb8e'],
+    ['pm', 'Platin', 'Platin', '#9aa3ab', '#d9dee2'],
+    ['ga', 'Gold', 'Gold', '#a67c1a', '#e8c766'],
+    ['em', 'Elektrum', 'Elektrum', '#8f8450', '#d6cb8e'],
     ['sm', 'Silber', 'Silber', '#7d8085', '#cfd2d6'],
-    ['km', 'Common', 'Common', '#8a4b2a', '#d49a6a']
+    ['km', 'Kupfer', 'Kupfer', '#8a4b2a', '#d49a6a']
   ];
-  // Alles wird in Common gerechnet (Regelwerk 7.5): 1 Highlord = 10 Goldadmirale = 20 Bright Ships = 100 Silber = 1000 Common
+  // Alles wird in KM gerechnet (Regelwerk 7.5): 1 PM = 10 GA = 20 EM = 100 SM = 1000 KM
+  // Ohne Angabe heißen die Münzen nach ihrem Metall; `muenzen` im Gepäck trägt die Namen des Landes (Regelwerk 20.3)
+  var landNamen = null;
+  function muenzName(x, n) { var o = landNamen && landNamen[x[0]], e = o ? (Array.isArray(o) ? o : [o]) : [x[1], x[2]]; return n === 1 ? e[0] : (e[1] || e[0]); }
   var KM = { pm: 1000, ga: 100, em: 50, sm: 10, km: 1 };
   var ORD = ['pm', 'ga', 'em', 'sm', 'km'];
   var KURZ = { pm: 'PM', ga: 'GA', em: 'EM', sm: 'SM', km: 'KM' };
@@ -145,7 +148,7 @@
     [/tinte/i, 'tinte'], [/feder/i, 'feder'], [/wachs/i, 'wachs'], [/kohle|stift|kreide/i, 'kohle'],
     [/siegelbrief|urkunde/i, 'siegel'], [/zettel|notiz|streifen/i, 'zettel'], [/schriftrolle|rolle/i, 'rolle'], [/buch/i, 'buch', ['papier', 'wertsache', 'sonstiges', 'fund']],
     [/karte/i, 'karte'], [/schlüssel/i, 'schluessel'], [/kompass/i, 'kompass'], [/kette|fessel/i, 'kette'],
-    [/blaues band/i, 'band-blau'], [/band/i, 'band'], [/flagge|banner|wimpel/i, 'flagge'], [/\bring\b/i, 'ring'],
+    [/band/i, 'band'], [/flagge|banner|wimpel/i, 'flagge'], [/\bring\b/i, 'ring'],
     [/juwel|edelstein|rubin|smaragd|saphir/i, 'juwel'], [/perle/i, 'perle'], [/scheibe/i, 'scheibe'], [/seide|faser/i, 'seide'],
     [/münz|geldbeutel|beutel mit/i, 'beutel'], [/aal|fisch/i, 'fisch'], [/flasche/i, 'flasche'], [/trank|elixier/i, 'trank'],
     [/schlauch|wasser/i, 'schlauch'], [/schlamm|salbe|schale/i, 'schale'], [/kraut|kräuter/i, 'kraut'], [/tuch|leinen/i, 'tuch'],
@@ -214,7 +217,7 @@
     return w > g[2] ? 'zu schwer' : w > g[1] ? 'schwer belastet' : w > g[0] ? 'belastet' : 'unbelastet';
   }
 
-  // Ein Preis als Münzen {ga:1, sm:5}, als Text „1 GA 5 SM“ oder als Zahl (Goldadmirale) → Common
+  // Ein Preis als Münzen {ga:1, sm:5}, als Text „1 GA 5 SM“ oder als Zahl (GA) → KM
   function wert(g) {
     if (g == null || g === '') return 0;
     if (typeof g === 'number') return Math.round(g * 100);
@@ -227,7 +230,7 @@
     ORD.forEach(function (k) { s += zahl(g[k]) * KM[k]; });
     return Math.round(s);
   }
-  // Common → „1 GA, 2 SM, 5 KM“ (Goldadmiral, Silber, Common, wie in der Statuszeile)
+  // KM → „1 GA, 2 SM, 5 KM“ (wie in der Statuszeile)
   function betrag(v) {
     v = Math.max(0, Math.round(v));
     var t = [], ga = Math.floor(v / 100), sm = Math.floor((v % 100) / 10), km = v % 10;
@@ -297,6 +300,7 @@
   /* ---------- Daten ---------- */
   function vorbereiten(D) {
     var h = D.haendler || {}, G = D.gepaeck || {};
+    landNamen = G.muenzen || D.muenzen || null;
     var H = {
       nr: D.nr, ort: D.ort || h.ort || '', stand: D.stand || '', hinweis: D.hinweis || '',
       name: h.name || 'Händler', kurz: h.kurz || h.name || 'Händler', art: h.art || '', glossar: h.glossar || '',
@@ -385,7 +389,7 @@
   function beutelHtml(m, leerText) {
     var h = '', da = MUENZEN.filter(function (x) { return zahl(m[x[0]]) > 0; });
     if (!da.length) return '<p class="hdLeer">' + esc(leerText || 'leer') + '</p>';
-    da.forEach(function (x) { var n = zahl(m[x[0]]); h += '<span class="hdM">' + muenzenSvg(x[0], n, 24) + '<span><b>' + n + '</b> ' + esc(n === 1 ? x[1] : x[2]) + '</span></span>'; });
+    da.forEach(function (x) { var n = zahl(m[x[0]]); h += '<span class="hdM">' + muenzenSvg(x[0], n, 24) + '<span><b>' + n + '</b> ' + esc(muenzName(x, n)) + '</span></span>'; });
     return h;
   }
   function geruest(H) {

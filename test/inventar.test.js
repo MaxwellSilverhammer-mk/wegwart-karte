@@ -23,6 +23,17 @@ var D = {
   ] }]
 };
 var h = inv.zeichne(D);
+ok('Münznamen: neutral nach Metall, mit `muenzen` nach dem Land', function () {
+  var mz = { titel: 'x', geld: { ga: 3, sm: 1 }, traeger: [] };
+  var a = inv.zeichne(mz);
+  assert.ok(/<b>3<\/b> Gold/.test(a) && a.indexOf('Goldadmiral') < 0, 'ohne Angabe nach dem Metall');
+  assert.ok(a.indexOf('3,1 Gold wert') >= 0, 'Summe in Gold');
+  mz.muenzen = { ga: ['Goldadmiral', 'Goldadmirale'], sm: 'Silber' };
+  var b = inv.zeichne(mz);
+  assert.ok(/<b>3<\/b> Goldadmirale/.test(b) && b.indexOf('3,1 Goldadmirale wert') >= 0, 'Namen des Landes');
+  mz.geld = { ga: 1 };
+  assert.ok(/<b>1<\/b> Goldadmiral</.test(inv.zeichne(mz)), 'Einzahl');
+});
 
 ok('Notiz und Herkunft erscheinen nicht', function () {
   assert(h.indexOf('Großvater,') < 0 && h.indexOf('rostig am Heft') < 0);

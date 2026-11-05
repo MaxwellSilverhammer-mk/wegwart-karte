@@ -17,7 +17,7 @@ var TITEL = {
 };
 
 function aufruf(daten) {
-  return '<h2 class="sr-only">Titelbildschirm: Hold der Seeprinzen</h2>\n' +
+  return '<h2 class="sr-only">Titelbildschirm: Die Wege von Oerik</h2>\n' +
     '<div id="titel">Titelbild lädt … Falls nicht, schreib „Spiel laden“.</div>\n' +
     '<script>var TITEL=' + JSON.stringify(daten) + '</script>\n' +
     '<script>var s=document.createElement(\'script\');s.src=\'https://cdn.jsdelivr.net/gh/KONTO/wegwart-karte@STAND/titel.js\';document.head.appendChild(s);</script>';

@@ -152,6 +152,12 @@ function pruefe(D, schema, quellen, zusatz) {
     if (typ === 'zahl') { if (typeof v !== 'number' || !isFinite(v) || v < 0) melde(fehler, wo + ': muss eine Zahl ab 0 sein'); return; }
     if (typ === 'zahlen') { if (!Array.isArray(v) || !v.every(function (x) { return typeof x === 'number' && isFinite(x); })) melde(fehler, wo + ': muss eine Liste aus Zahlen sein'); return; }
     if (typ === 'ja') { if (typeof v !== 'boolean') melde(fehler, wo + ': muss true oder false sein'); return; }
+    // Münznamen eines Landes (Regelwerk 7.5): aus dem Landeseintrag der Chronik, kein Spoiler; geprüft wird nur die Form
+    if (typ === 'muenznamen') {
+      var mzOk = v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).every(function (k) { return ['pm', 'ga', 'em', 'sm', 'km'].indexOf(k) >= 0 && (typeof v[k] === 'string' || (Array.isArray(v[k]) && v[k].length >= 1 && v[k].length <= 2 && v[k].every(function (x) { return typeof x === 'string'; }))); });
+      if (!mzOk) melde(fehler, wo + ': muss die Form {ga: [Einzahl, Mehrzahl], …} haben');
+      return;
+    }
     // Ein Pixelraster (Ikone): Zeilen gleicher Länge mit | verbunden, keine Wörter; die Farben prüft der Tisch selbst
     if (typ === 'raster') {
       if (typeof v !== 'string' || !/^[^|\s]+(\|[^|\s]+)+$/.test(v)) { melde(fehler, wo + ': muss ein Raster sein (Zeilen mit | verbunden)'); return; }

@@ -1,5 +1,5 @@
 /*
- * Wegwart-Logbuch – Questlog für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Logbuch – Questlog für die geteilte Welt „Oerik“
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:

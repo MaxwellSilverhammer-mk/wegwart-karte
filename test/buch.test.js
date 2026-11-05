@@ -147,12 +147,12 @@ pruef('fremde Datei nicht als Kopie', r.status === 1, r.stderr);
 var bauenModul = require(bauen);
 var vk = bauenModul.versionenAus([
   '222 documents from collection "glossar" saved as JSON files under "/x/buch/glossar":',
-  '- "abflussgraben"  686 bytes  version 11  "/x/buch/glossar/abflussgraben.json"',
-  '[172 more saved documents, at <that directory>/<doc_id>.json each (id, version): "draus-letzter-brief" 11, "draus-notizblatt" 3, "zur-schiefen-rah" 1]',
+  '- "muehlgraben"  686 bytes  version 11  "/x/buch/glossar/muehlgraben.json"',
+  '[172 more saved documents, at <that directory>/<doc_id>.json each (id, version): "bodos-letzter-brief" 11, "bodos-notizblatt" 3, "zur-alten-eiche" 1]',
   '3 documents from collection "tische" saved as JSON files under "/x/buch/tische":',
   '- "karte"  29549 bytes  version 12  "/x/buch/tische/karte.json"'
 ].join('\n'));
-pruef('versionenAus liest die gekürzte Schlusszeile je Sammlung', vk['glossar/abflussgraben'] === 11 && vk['glossar/draus-letzter-brief'] === 11 && vk['glossar/draus-notizblatt'] === 3 && vk['glossar/zur-schiefen-rah'] === 1 && vk['tische/karte'] === 12 && Object.keys(vk).length === 5, JSON.stringify(vk));
+pruef('versionenAus liest die gekürzte Schlusszeile je Sammlung', vk['glossar/muehlgraben'] === 11 && vk['glossar/bodos-letzter-brief'] === 11 && vk['glossar/bodos-notizblatt'] === 3 && vk['glossar/zur-alten-eiche'] === 1 && vk['tische/karte'] === 12 && Object.keys(vk).length === 5, JSON.stringify(vk));
 var nurNeu = schreib('02_geschichte-neu.md', '### Sitzung 3, Tag 4\n- Der Damm hält.\n');
 var nurSl = schreib('wuerfelprotokoll-3.md', '## Würfelprotokoll Sitzung 3\nAthletik 9.\n');
 var dbN = path.join(dir, 'db-nur-neu');

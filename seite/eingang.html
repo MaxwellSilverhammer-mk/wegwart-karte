@@ -1,0 +1,816 @@
+<title>Eingang nach Oerik</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ein gebundener Atlas. Ein dunkler Deckel mit dem Gemälde, darunter ein Reiterregister, dahinter Blätter aus demselben Pergament wie die Tische. */
+:root {
+  --deckel: #17110c; --deckel-text: #e6d6ae; --deckel-gold: #ecc66c; --deckel-linie: rgba(168, 134, 74, .55);
+  --grund: #ddd1b6; --blatt: #f3ead4; --tinte: #2b1d10; --leise: #5f4e35; --linie: #bfa97f; --akzent: #7a4410; --marke: #8e3b22; --kalt: #2f5568; --feld: #fbf5e6;
+  --text-primary: var(--tinte); --text-secondary: var(--leise);
+  --schrift-titel: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --schrift-zier: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --schrift-text: "EB Garamond", Garamond, Georgia, "Times New Roman", serif;
+  --schrift-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --grund: #13100c; --blatt: #1d1812; --tinte: #e8dfca; --leise: #b4a486; --linie: #41362a; --akzent: #e0b76a; --marke: #d98a6a; --kalt: #8fb6c9; --feld: #120e0a; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --grund: #13100c; --blatt: #1d1812; --tinte: #e8dfca; --leise: #b4a486; --linie: #41362a; --akzent: #e0b76a; --marke: #d98a6a; --kalt: #8fb6c9; --feld: #120e0a; color-scheme: dark;
+}
+body { background: var(--grund); color: var(--tinte); font-family: var(--schrift-text); font-size: 1.1875rem; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--deckel); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+a { color: var(--akzent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--kalt); outline-offset: 2px; }
+p { margin: 0; }
+code, .mono { font-family: var(--schrift-mono); font-size: .8em; overflow-wrap: anywhere; }
+h2 { font-family: var(--schrift-titel); font-weight: 400; font-size: clamp(1.75rem, 5.5vw, 2.25rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--schrift-zier); font-weight: 400; font-size: 1.4rem; line-height: 1.2; margin: 0; text-wrap: balance; }
+
+.deckel { background: var(--deckel); color: var(--deckel-text); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 16px; }
+.deckel-innen { max-width: 46rem; margin: 0 auto; display: grid; gap: 14px; }
+.deckel p { font-size: 1.1875rem; text-align: center; text-wrap: balance; }
+#titel { min-height: 60px; font-size: 15px; color: #8f7d5c; }
+.nur-bild #titel .ts-panel { display: none; }
+.nur-bild #titel .ts-bild { border-radius: 4px; }
+.register { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--deckel); border-top: 1px solid var(--deckel-linie); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.register-innen { max-width: 46rem; margin: 0 auto; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.register-innen::-webkit-scrollbar { display: none; }
+.register button { font-family: var(--schrift-titel); font-size: 1.0625rem; color: var(--deckel-text); background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 10px 8px; min-height: 44px; white-space: nowrap; cursor: pointer; flex: 0 0 auto; }
+.register button:hover { color: #fff0c4; }
+.register button[aria-selected="true"] { color: var(--deckel-gold); border-bottom-color: var(--deckel-gold); }
+
+main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 48px; }
+.ansicht { max-width: 46rem; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 34px; min-width: 0; }
+.ansicht > section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.leise { color: var(--leise); }
+.klein { font-size: 1.0625rem; }
+
+/* Eine Spielantwort, wie sie im Chat steht */
+.runde { background: var(--blatt); border: 1px solid var(--linie); border-radius: 6px; padding: 16px 18px; display: grid; gap: 10px; }
+.runde hr { border: 0; border-top: 1px solid var(--linie); width: 100%; margin: 4px 0; }
+.runde .status { font-size: 1.0625rem; }
+.runde ol { margin: 0; padding-left: 1.5em; display: grid; gap: 2px; }
+
+/* Wer liest was */
+.bau { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: stretch; }
+.bau > div { background: var(--blatt); border: 1px solid var(--linie); border-radius: 6px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.bau .mitte { background: var(--feld); border-color: var(--akzent); }
+.bau b { font-family: var(--schrift-zier); font-weight: 400; font-size: 1.25rem; line-height: 1.2; }
+.bau ul { margin: 0; padding-left: 1.05em; font-size: 1.0625rem; line-height: 1.35; }
+.bau .pfeil { font-size: 1rem; color: var(--marke); font-style: italic; line-height: 1.25; }
+.bau .unten { grid-column: 1 / -1; }
+@media (max-width: 620px) { .bau { grid-template-columns: 1fr; } }
+
+.tabelle { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 1.0625rem; line-height: 1.35; }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--linie); }
+th { font-family: var(--schrift-zier); font-weight: 400; color: var(--leise); }
+
+/* Schritte zum Einstieg: echte Reihenfolge, daher nummeriert */
+.schritte { margin: 0; padding: 0; list-style: none; counter-reset: schritt; display: grid; gap: 26px; }
+.schritte > li { counter-increment: schritt; display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0 10px; }
+.schritte > li::before { content: counter(schritt); font-family: var(--schrift-titel); font-size: 2rem; line-height: 1; color: var(--marke); }
+.schritte > li > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.schritte h3 { font-size: 1.35rem; }
+
+.knoepfe { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button.knopf { font: inherit; font-size: 1.0625rem; color: var(--tinte); background: var(--feld); border: 1px solid var(--linie); border-radius: 6px; padding: 6px 12px; min-height: 40px; cursor: pointer; }
+button.knopf:hover { border-color: var(--akzent); }
+button.knopf.haupt { border-color: var(--akzent); color: var(--akzent); font-weight: 500; }
+.meldung { font-size: 1.0625rem; color: var(--leise); min-height: 1.3em; }
+.meldung[data-art="gut"] { color: var(--kalt); }
+.meldung[data-art="warnung"] { color: var(--marke); }
+label { display: grid; gap: 3px; font-size: 1.0625rem; color: var(--leise); min-width: 0; }
+input[type="text"], input[type="search"], select, textarea { font: inherit; font-size: 1.0625rem; color: var(--tinte); background: var(--feld); border: 1px solid var(--linie); border-radius: 6px; padding: 6px 9px; min-width: 0; width: 100%; box-sizing: border-box; }
+textarea { font-family: var(--schrift-mono); font-size: .8125rem; line-height: 1.45; min-height: 10rem; }
+.felder { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 10px; }
+.merker { display: inline-flex; gap: 6px; align-items: center; font-size: 1rem; color: var(--leise); cursor: pointer; width: fit-content; grid-auto-flow: column; }
+.warnung { border-left: 3px solid var(--marke); padding-left: 12px; }
+
+/* Schema, keine Karte */
+.schema { display: grid; grid-template-columns: 1fr 10px 1.25fr 10px 2.6fr; gap: 0; align-items: stretch; font-size: 1rem; line-height: 1.25; }
+.schema .raum { background: var(--blatt); border: 1px solid var(--linie); padding: 10px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.schema .gebirge { background: repeating-linear-gradient(135deg, var(--linie) 0 4px, transparent 4px 8px); }
+.schema b { font-family: var(--schrift-zier); font-weight: 400; font-size: 1.125rem; }
+.flan { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.flan span { border: 1px dotted var(--linie); padding: 5px 6px; min-width: 0; overflow-wrap: anywhere; }
+.flan .breit { grid-column: 1 / -1; text-align: center; }
+@media (max-width: 620px) { .schema { grid-template-columns: 1fr; } .schema .gebirge { min-height: 10px; } }
+
+/* Werkzeugkoffer */
+.fach { display: grid; gap: 0; border-top: 1px solid var(--linie); }
+.werkzeug { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto; gap: 4px 14px; padding: 10px 0; border-bottom: 1px solid var(--linie); align-items: baseline; }
+.werkzeug > b { font-family: var(--schrift-zier); font-weight: 400; font-size: 1.1875rem; line-height: 1.2; }
+.werkzeug .was { font-size: 1.0625rem; line-height: 1.35; min-width: 0; }
+.werkzeug .was small { display: block; font-size: 1rem; color: var(--leise); }
+.werkzeug button.knopf { font-size: 1rem; padding: 3px 10px; min-height: 36px; }
+.probe { grid-column: 1 / -1; padding-top: 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.probe .fehlt { font-style: italic; color: var(--leise); }
+@media (max-width: 620px) { .werkzeug { grid-template-columns: minmax(0, 1fr) auto; } .werkzeug .was { grid-column: 1 / -1; grid-row: 2; } .werkzeug > .probe { grid-row: 3; } }
+
+/* Regelbuch */
+.teile { display: flex; flex-wrap: wrap; gap: 6px; }
+.teile button { font: inherit; font-size: 1.0625rem; color: var(--tinte); background: transparent; border: 1px solid var(--linie); border-radius: 999px; padding: 3px 13px; min-height: 36px; cursor: pointer; }
+.teile button[aria-pressed="true"] { background: var(--tinte); color: var(--blatt); border-color: var(--tinte); }
+.buch-kopf { display: grid; gap: 10px; }
+.treffer { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.treffer a { display: grid; gap: 1px; text-decoration: none; color: inherit; border-bottom: 1px dotted var(--linie); padding-bottom: 6px; }
+.treffer b { font-family: var(--schrift-zier); font-weight: 400; color: var(--akzent); font-size: 1.125rem; }
+.treffer small { font-size: 1rem; color: var(--leise); }
+.treffer mark { background: color-mix(in srgb, var(--akzent) 26%, transparent); color: inherit; }
+.kapitel { border-top: 1px solid var(--linie); }
+.kapitel > summary { cursor: pointer; font-family: var(--schrift-zier); font-size: 1.3125rem; line-height: 1.25; padding: 9px 0; list-style-position: outside; margin-left: 1.1em; }
+.kapitel > summary .nr { font-family: var(--schrift-titel); color: var(--marke); margin-right: .35em; }
+.kapitel .inhalt { padding: 2px 0 20px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 11px; min-width: 0; }
+.inhalt h3 { font-size: 1.3rem; margin-top: 10px; scroll-margin-top: 62px; color: var(--akzent); }
+.inhalt h4 { font-family: var(--schrift-zier); font-weight: 400; font-size: 1.125rem; margin: 6px 0 0; }
+.inhalt ul, .inhalt ol { margin: 0; padding-left: 1.2em; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.inhalt li { min-width: 0; }
+.inhalt li > ul, .inhalt li > ol { margin-top: 5px; }
+.inhalt li > * + * { margin-top: 6px; }
+.inhalt pre { margin: 0; background: var(--feld); border: 1px solid var(--linie); border-radius: 6px; padding: 9px 11px; overflow-x: auto; }
+.inhalt pre code { font-size: .75rem; line-height: 1.5; overflow-wrap: normal; white-space: pre; }
+.inhalt blockquote { margin: 0; border-left: 3px solid var(--linie); padding-left: 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.inhalt td code, .inhalt p code, .inhalt li code { background: color-mix(in srgb, var(--linie) 28%, transparent); padding: 0 3px; border-radius: 3px; }
+.inhalt a { color: var(--kalt); overflow-wrap: anywhere; }
+.ziel { outline: 2px solid var(--kalt); outline-offset: 3px; border-radius: 3px; }
+footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); padding-top: 12px; font-size: 1rem; color: var(--leise); }
+</style>
+
+<header class="deckel">
+  <div class="deckel-innen nur-bild" id="deckel-innen">
+    <h1 class="sr-only">Die Wege von Oerik: Eingang für Spieler einer geteilten Welt</h1>
+    <h2 class="sr-only">Titelbild: Ein Ölgemälde malt sich selbst, eine Weltlandschaft in der Dämmerung unter den Monden Luna und Celene, darüber in Goldlettern „Die Wege von Oerik“.</h2>
+    <div id="titel">Titelbild lädt …</div>
+    <p>Eine geteilte Welt für Solo-Abenteuer mit Claude. Jeder spielt für sich, und alle hinterlassen Spuren auf demselben Kontinent.</p>
+  </div>
+</header>
+<nav class="register" aria-label="Teile dieser Seite"><div class="register-innen" role="tablist">
+  <button type="button" role="tab" data-ziel="spiel" aria-selected="true">Das Spiel</button>
+  <button type="button" role="tab" data-ziel="mitspielen" aria-selected="false">Mitspielen</button>
+  <button type="button" role="tab" data-ziel="oerik" aria-selected="false">Oerik</button>
+  <button type="button" role="tab" data-ziel="werkzeugkoffer" aria-selected="false">Werkzeugkoffer</button>
+  <button type="button" role="tab" data-ziel="regelbuch" aria-selected="false">Regelbuch</button>
+</div></nav>
+
+<main>
+<div class="ansicht" id="spiel">
+  <section>
+    <h2>Das Spiel</h2>
+    <p>Du spielst eine einzige Figur in einem Textabenteuer im Stil von <em>Roadwarden</em>: in der Welt von Greyhawk, nach den Regeln von D&amp;D 5e, auf Deutsch. Claude leitet das Spiel. Du spielst, wann du willst und so schnell oder langsam du willst.</p>
+    <p>Allein bist du trotzdem nicht. Alle Figuren leben auf demselben Kontinent, und was eine tut, hinterlässt Spuren: ein Gerücht im Gasthaus, ein Grab am Weg, ein Brief, der nach Wochen ankommt. Niemand muss dafür auf jemanden warten.</p>
+    <p>Die Welt ist rau. Sklaverei, Gewalt und ihre Folgen kommen vor und werden ernst genommen. Was du nicht spielen willst, sagst du deiner Spielleitung, bevor es losgeht.</p>
+  </section>
+  <section>
+    <h3>So sieht eine Antwort aus</h3>
+    <div class="runde" aria-label="Beispiel einer Spielantwort aus einer erfundenen Gegend">
+      <p>🧭 <strong>Rohrdorf, Alte Eiche</strong></p>
+      <p>Es riecht nach nassem Hund und angebranntem Zwiebelfett. Der Regen hat die Gäste hereingetrieben, und keiner von ihnen sieht dich an, als du die Tür hinter dir zuziehst. <strong>Bodo</strong>, der Wirt, stellt ungefragt einen Krug hin und wischt mit demselben Lappen den Tresen.</p>
+      <p>„Du bist wegen der <strong>Brücke</strong> hier“, sagt er leise. „Alle, die so fragen, sind wegen der Brücke hier.“</p>
+      <p><em>Er hat zur Tür gesehen, bevor er das gesagt hat.</em></p>
+      <hr>
+      <p class="status">📅 Tag 8/28 · Abend · 🌧️ · TP 15/21 · Erschöpfung 0 · Plätze 3/4, 1/2 · Inspiration 1/2</p>
+      <ol>
+        <li>Bodo einen zweiten Krug spendieren und zuhören. (Überzeugen +6)</li>
+        <li>Fragen, wer vor dir gefragt hat. (Motiv erkennen +2)</li>
+        <li>Schweigen und den Raum beobachten. (Wahrnehmung +4)</li>
+        <li>Zurück in den Regen und zur Brücke, solange es noch etwa eine Stunde hell ist.</li>
+      </ol>
+      <p>Oder schreib frei, was die Figur tut, oder ein <strong>Schlüsselwort</strong>, um nachzufragen.</p>
+    </div>
+    <p class="klein leise">Du wählst eine Zahl oder schreibst frei. Würfe machst du selbst im Würfelkasten, Fragen an die Spielleitung stehen in Klammern, und <strong>fette</strong> Wörter sind Stichwörter, nach denen du fragen kannst. Wer frei etwas Treffendes schreibt, bekommt Heldenmut.</p>
+  </section>
+  <section>
+    <h3>Wie die Welt zusammenhängt</h3>
+    <div class="bau" role="group" aria-label="Aufbau: zwei Spielerprojekte und die gemeinsame Chronik">
+      <div><b>Dein Projekt</b>
+        <ul><li>deine Spielleitung</li><li>Regelwerk, Werkstatt</li><li>Spielstand, Bogen</li><li>Spoilerdatei deines Reviers (liest du nicht)</li><li>dein Spielerbuch (liest du jederzeit)</li></ul>
+        <span class="pfeil">schreibt Spuren, Post und Orte in die Chronik und liest, was bis zu dir gelangt</span></div>
+      <div class="mitte"><b>Chronik von Oerik</b>
+        <ul><li>Orte und Länder</li><li>Figuren und Reviere</li><li>Ereignisse und Spuren</li><li>Briefe und Treffen</li><li>Weltgeheimnisse</li></ul>
+        <span class="pfeil">gemeinsam, aber nur für Spielleitungen; du erfährst die Welt durch deine Figur</span></div>
+      <div><b>Projekt eines anderen</b>
+        <ul><li>eigene Spielleitung</li><li>eigene Figur, 🎭 in deinem Spiel</li><li>eigenes Revier</li><li>eigenes Tempo</li></ul>
+        <span class="pfeil">trifft dich nur, wenn ihr euch im Spiel verabredet</span></div>
+      <div class="unten"><b>Für alle gleich</b>
+        <span class="klein">dieser Eingang mit Regelbuch und Werkzeugkoffer, die Tische aus den öffentlichen Repositories <a href="https://github.com/MaxwellSilverhammer-mk/wegwart-karte" target="_blank" rel="noopener">wegwart-karte</a> und <a href="https://github.com/MaxwellSilverhammer-mk/wegwart-wuerfel" target="_blank" rel="noopener">wegwart-wuerfel</a>, der Weltkalender und der Greyhawk-Kanon. Der Weltenhüter (Max) führt die Regeln und entscheidet Streitfälle.</span></div>
+    </div>
+  </section>
+  <section>
+    <h3>Was du brauchst</h3>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Was</th><th scope="col">Wozu</th><th scope="col">Muss es sein?</th></tr></thead>
+      <tbody>
+        <tr><td>Claude-Konto mit Projekt</td><td>Dort lebt dein Spiel. Jeder Spieler hat sein eigenes Konto.</td><td>Ja. Es geht kostenlos; wer regelmäßig spielt, kommt mit Pro oder Max weiter, weil jede Nachricht Regeln und Spielstand mitlädt.</td></tr>
+        <tr><td>D&amp;D-Beyond-Konto</td><td>Du baust deine Figur in der Kampagne des Weltenhüters und lädst den Bogen als PDF hoch.</td><td>Ja, kostenlos.</td></tr>
+        <tr><td>Einladung in die Chronik</td><td>Damit deine Spielleitung Spuren schreiben kann.</td><td>Melde dich in jedem Fall bei Max. Ohne Einladung läuft die Chronik über Dateien oder über ihn.</td></tr>
+        <tr><td>Musik, Ortsgemälde</td><td>Stimmung.</td><td>Nein, beides ist freiwillig.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="knoepfe"><button type="button" class="knopf haupt" data-gehe="mitspielen">So fängst du an</button><button type="button" class="knopf" data-gehe="werkzeugkoffer">Die Tische ausprobieren</button></div>
+  </section>
+</div>
+
+<div class="ansicht" id="mitspielen" hidden>
+  <section>
+    <h2>Mitspielen</h2>
+    <p>Sechs Schritte. Alles Weitere legt deine Spielleitung selbst an.</p>
+  </section>
+  <ol class="schritte">
+    <li><div>
+      <h3>Konto und Projekt anlegen</h3>
+      <p>Leg ein eigenes Claude-Konto an und darin ein neues Projekt, zum Beispiel „Die Wege von Oerik – dein Name“. Projekte gibt es auch im kostenlosen Plan, dort höchstens fünf. Was mit einem kostenlosen Konto anders läuft, steht im Regelbuch unter <a href="#w-22-1">Werkstatt 22.1</a>.</p>
+      <label class="merker"><input type="checkbox" data-merker="1"> erledigt</label>
+    </div></li>
+    <li><div>
+      <h3>Regeln und Anweisungen ins Projekt legen</h3>
+      <p>Speichere beide Dateien und lade sie unverändert ins Projekt.</p>
+      <div class="knoepfe">
+        <button type="button" class="knopf haupt" id="lade-regelwerk">00_regelwerk.md speichern</button>
+        <button type="button" class="knopf" id="lade-werkstatt">00_werkstatt.md speichern</button>
+      </div>
+      <p>Trag deinen Namen und den deiner Figur ein und füg den Text in die <strong>Anweisungen</strong> des Projekts ein. Steht der Name der Figur noch nicht fest, trägst du ihn nach Schritt 4 nach.</p>
+      <div class="felder">
+        <label for="vorlage-spieler">Dein Name <input type="text" id="vorlage-spieler" autocomplete="off" placeholder="zum Beispiel Lena"></label>
+        <label for="vorlage-figur">Name deiner Figur <input type="text" id="vorlage-figur" autocomplete="off" placeholder="zum Beispiel Alma Sturzbach"></label>
+      </div>
+      <label for="vorlage-text">Projektanweisungen <textarea id="vorlage-text" readonly>Die Vorlage lädt …</textarea></label>
+      <div class="knoepfe"><button type="button" class="knopf haupt" id="kopiere-vorlage">Anweisungen kopieren</button></div>
+      <p class="meldung" id="lade-meldung" aria-live="polite"></p>
+      <div id="ersatz" hidden>
+        <p class="leise klein">Speichern geht in dieser Ansicht nicht. Kopier den Text und leg ihn selbst als Datei an.</p>
+        <label for="ersatz-text">Dateiinhalt <textarea id="ersatz-text" readonly></textarea></label>
+        <div class="knoepfe"><button type="button" class="knopf" id="kopiere-ersatz">Text kopieren</button></div>
+      </div>
+      <label class="merker"><input type="checkbox" data-merker="2"> erledigt</label>
+    </div></li>
+    <li><div>
+      <h3>Beim Weltenhüter melden</h3>
+      <p>Den Link zu dieser Seite hast du von Max. Schick ihm auf demselben Weg die E-Mail-Adresse deines Claude-Kontos. Er lädt dich als Bearbeiter in die <a href="https://claude.ai/artifact/Nzt2tuArXkRunn9dQezv4U" target="_blank" rel="noopener">Chronik von Oerik</a> ein, damit deine Spielleitung Spuren schreiben kann, und schickt dir den Link zu seiner D&amp;D-Beyond-Kampagne. Auf der Chronikseite prüfst du mit „Schreibrecht prüfen“, ob es klappt.</p>
+      <p class="klein leise">Hat deine Spielleitung in ihrem Chat keinen Zugang zur Datenbank, führst du die Chronik über den Briefkasten der Seite. Meldet die Seite auch angemeldet „nicht erreichbar“, läuft sie über Max (<a href="#w-22-1">Werkstatt 22.1</a>).</p>
+      <label class="merker"><input type="checkbox" data-merker="3"> erledigt</label>
+    </div></li>
+    <li><div>
+      <h3>Figur bauen</h3>
+      <p>Tritt der D&amp;D-Beyond-Kampagne bei und bau deine Figur auf Stufe 1, mit den Quellen „2014 Core Rules“, „2014 Expanded Rules“ und „Core Rules“ (<a href="#r-7-2">Regelwerk 7.2</a>).</p>
+      <ul>
+        <li>Klasse, Unterklasse, Volk, Hintergrund und Talente nur aus 2014. „Core Rules“ ist nur für die neuen Zauberfassungen eingeschaltet.</li>
+        <li>Attribute per Punktekauf (27) oder Standardreihe (15, 14, 13, 12, 10, 8), nicht gewürfelt.</li>
+        <li>Startausrüstung statt Startgeld, keine Waffenmeisterschaften.</li>
+        <li>Trag Persönlichkeit, Ideal, Bindung, Makel und Vorgeschichte gleich ein. An ihnen hängen Heldenmut und Einfälle.</li>
+      </ul>
+      <p>Exportier den Bogen als PDF und lade ihn ins Projekt.</p>
+      <label class="merker"><input type="checkbox" data-merker="4"> erledigt</label>
+    </div></li>
+    <li><div>
+      <h3>Figur anlegen lassen</h3>
+      <p>Überleg dir, wo die Figur am 1. Patchwall 576 steht; Vorschläge stehen unter <a href="#oerik">Oerik</a>. Füll das aus und schick es als erste Nachricht in einen neuen Chat im Projekt.</p>
+      <div class="felder">
+        <label for="erst-gegend">Startgegend, mein Wunsch <input type="text" id="erst-gegend" autocomplete="off" placeholder="zum Beispiel die Yeomanry"></label>
+        <label for="erst-tut">Was die Figur dort tut oder will <input type="text" id="erst-tut" autocomplete="off"></label>
+        <label for="erst-lust">Worauf ich Lust habe (Aufträge, Ton) <input type="text" id="erst-lust" autocomplete="off"></label>
+        <label for="erst-nicht">Was ich nicht spielen will <input type="text" id="erst-nicht" autocomplete="off"></label>
+        <label for="erst-bilder">Ortsgemälde <select id="erst-bilder"><option>nein</option><option>ja, wenn es hier geht</option></select></label>
+        <label for="erst-musik">Musik <select id="erst-musik"><option>nein</option><option>eigene Links</option></select></label>
+        <label for="erst-einf">Einführung in Sitzung 1 <select id="erst-einf"><option>ja</option><option>ohne</option></select></label>
+      </div>
+      <label for="erst-text">Erste Nachricht <textarea id="erst-text" readonly></textarea></label>
+      <div class="knoepfe"><button type="button" class="knopf haupt" id="kopiere-erst">Nachricht kopieren</button></div>
+      <p class="meldung" id="erst-meldung" aria-live="polite"></p>
+      <p class="warnung">Die Spielleitung nennt dir den Startort und was die Ferne kostet. Beim Anlegen fragt die App mehrmals um Freigabe: Seiten veröffentlichen, in dein Spielerbuch und dein Projekt schreiben, in die Chronik schreiben. Das ist so gewollt. Klapp dabei Gedanken und Werkzeugaufrufe nicht auf und öffne die Spoilerdatei nicht, sonst liest du die Geheimnisse deines Reviers. Verlangt eine Anfrage etwas anderes, lehn sie ab und frag Max.</p>
+      <label class="merker"><input type="checkbox" data-merker="5"> erledigt</label>
+    </div></li>
+    <li><div>
+      <h3>Losspielen</h3>
+      <p>Ist alles angelegt, zeigt die Spielleitung den Titelbildschirm mit deiner Figur. Tipp auf <strong>Spiel laden</strong> und beim Platz deiner Figur auf <strong>Laden</strong>. Dann folgen Einführung und erste Szene. Jede weitere Sitzung beginnst du in einem neuen Chat im Projekt mit „Neue Sitzung“.</p>
+      <p>Wird der Chat lang, sichert <strong>Zwischenhalt</strong> den Faden, und im neuen Chat geht es mit „Weiter“ weiter. <strong>Sitzungsende</strong> speichert alles und schreibt deine Spuren in die Chronik.</p>
+      <label class="merker"><input type="checkbox" data-merker="6"> erledigt</label>
+    </div></li>
+  </ol>
+  <section>
+    <h3>Wenn etwas hakt</h3>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Was passiert</th><th scope="col">Was du tust</th></tr></thead>
+      <tbody>
+        <tr><td>Ein Tisch oder der Würfelkasten bleibt bei „… lädt“ stehen</td><td>Schreib, was der Ladetext vorschlägt, oder würfle selbst und schreib das Ergebnis. Das Spiel geht auch ganz in Textform.</td></tr>
+        <tr><td>Die Spielleitung meldet ein neueres Regelwerk</td><td>Speichere beide Dateien hier neu und ersetz sie im Projekt.</td></tr>
+        <tr><td>Die Figur weiß etwas, das sie nicht wissen kann</td><td>Frag in Klammern: (Woher weiß sie das?). Die Spielleitung prüft, ob die Kunde bis zu ihr gelangen konnte.</td></tr>
+        <tr><td>Du hast versehentlich etwas aus dem Revier gelesen</td><td>Sag es in Klammern. Was noch nicht gespielt ist, kann die Spielleitung ändern.</td></tr>
+        <tr><td>Beim Sitzungsende scheitert die Chronik</td><td>Die Spielleitung gibt einen Chroniknachtrag als Datei aus. Reich ihn ungelesen auf der <a href="https://claude.ai/artifact/Nzt2tuArXkRunn9dQezv4U" target="_blank" rel="noopener">Chronikseite</a> ein oder schick ihn Max.</td></tr>
+        <tr><td>Das Anlegen bricht ab</td><td>Öffne einen neuen Chat und schick die erste Nachricht noch einmal. Die Spielleitung sieht nach, was schon da ist.</td></tr>
+        <tr><td>Dir fällt eine bessere Regel ein</td><td>Die Spielleitung schreibt einen Vorschlag; entscheiden kann ihn der Weltenhüter (<a href="#r-2">Regelwerk 2</a>).</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<div class="ansicht" id="oerik" hidden>
+  <section>
+    <h2>Oerik</h2>
+    <p><strong>Oerth</strong> ist der Planet, <strong>Oerik</strong> sein größter Kontinent und die Spielwelt. Am Himmel stehen zwei Monde: Luna, groß und silbern, und Celene, klein und aquamarin. Die Figuren beginnen am 1. Patchwall 576 CY, jede in ihrer eigenen Gegend.</p>
+    <div class="schema" role="group" aria-label="Schema der drei Räume Oeriks von West nach Ost; keine Karte">
+      <div class="raum"><b>West-Oerik</b><span class="leise">kaum Kanon, fast alles offen</span></div>
+      <div class="gebirge" title="das größte Gebirge Oerths"></div>
+      <div class="raum"><b>Zentral-Oerik</b><span>Celestial Imperium, Khanate, Erypt, Zindia, Nippon</span><span class="leise">wenig Kanon</span></div>
+      <div class="gebirge" title="Barrier Peaks, Crystalmists, Hellfurnaces"></div>
+      <div class="raum"><b>Flanaess</b><div class="flan">
+        <span class="breit">Norden</span>
+        <span>Westen: Baklunen</span><span>Mitte</span><span>Osten</span>
+        <span>Staubmeer</span><span>Sheldomar-Tal</span><span>Küsten</span>
+        <span class="breit">Süden: Amedio</span>
+      </div></div>
+    </div>
+    <p class="klein leise">Ein Schema von West nach Ost, keine Karte. Die Schraffur steht für die großen Gebirge. Für die Flanaess gilt die Karte von 576 CY; die Links stehen unten.</p>
+  </section>
+  <section>
+    <h3>Wo du anfangen kannst</h3>
+    <p>Die Herkunft deiner Figur sagt, wo sie steht; deinen Wunsch nimmt die Spielleitung auf. Sie prüft beim Anlegen, ob dort schon jemand spielt, und sagt dir, was die Ferne kostet: Je weiter weg von anderen, desto später kommen Spuren und Post, und desto seltener werden Treffen.</p>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Gegend</th><th scope="col">Länder</th><th scope="col">Was du dort findest</th></tr></thead>
+      <tbody>
+        <tr><td>Sheldomar-Tal</td><td>Keoland, Ulek-Staaten, Gran March, Bissel, Geoff, Sterich, Yeomanry, Hold der Seeprinzen</td><td>alte Königreiche, Hügel und Hochland, Flüsse, im Süden Küste und Sumpf</td></tr>
+        <tr><td>Mitte der Flanaess</td><td>Greyhawk, Dyvers, Verbobonc, Furyondy, Veluna, Shield Lands, Perrenland, Celene, Wild Coast</td><td>Freie Städte und der Nyr Dyv, Handel, Grenzen gegen den Norden</td></tr>
+        <tr><td>Osten</td><td>Great Kingdom, Nyrond, Urnst-Staaten, Pale, Tenh, Iron League</td><td>ein verfallendes Großreich, Hofintrigen, große Küstenstädte</td></tr>
+        <tr><td>Norden</td><td>Barbaren der Thillonrian-Halbinsel, Stonefist, Ratik, Blackmoor, Bandit Kingdoms, Iuz</td><td>Kälte und Eis, Raubzüge, finstere Herrschaften</td></tr>
+        <tr><td>Westen</td><td>Zeif, Ekbir, Tusmit, Ket, Ull, Paynim-Ebenen, dahinter Staubmeer und Trockensteppen</td><td>baklunische Reiche, Nomaden, Wüste, die Asche des Suel-Reichs</td></tr>
+        <tr><td>Süden</td><td>Amedio-Dschungel, Tilvanot-Halbinsel</td><td>Dschungel, Regenzeit, Olman, verlorene Städte</td></tr>
+        <tr><td>Zentral- und West-Oerik</td><td>nach den Quellen wenig gesichert</td><td>die weißen Flecken. Lage und Verhältnisse legst du mit deiner Spielleitung und dem Weltenhüter fest (<a href="#r-20-3">Regelwerk 20.3</a>); danach gelten sie für alle.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section>
+    <h3>So sprechen wir</h3>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Wort</th><th scope="col">Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Oerik</td><td>die Spielwelt. Die Flanaess ist ihr Osten.</td></tr>
+        <tr><td>Land</td><td>ein Staat oder eine Gegend. Jedes Land, in dem gespielt wird, hat in der Chronik einen Landeseintrag mit Herrschern, Göttern und Münznamen.</td></tr>
+        <tr><td>Revier</td><td>das Gebiet mit der eigenen Geschichte einer Figur</td></tr>
+        <tr><td>Figur, 🎭</td><td>deine Spielerfigur; 🎭 steht vor Figuren anderer Spieler</td></tr>
+        <tr><td>Spielleitung</td><td>Claude in deinem Projekt</td></tr>
+        <tr><td>Chronik</td><td>die gemeinsame Datenbank aller Spielleitungen</td></tr>
+        <tr><td>Spuren, Post, Treffen</td><td>die drei Wege, auf denen Figuren sich berühren; nur ein Treffen braucht beide Spieler zugleich</td></tr>
+        <tr><td>Welttag</td><td>die gemeinsame Zeitrechnung. Welttag 1 ist der 1. Patchwall 576 CY.</td></tr>
+        <tr><td>PM, GA, EM, SM, KM</td><td>die Rechenmünzen: Platin, Gold, Elektrum, Silber, Kupfer. Jedes Land hat eigene Namen dafür.</td></tr>
+        <tr><td>Weltenhüter</td><td>Max. Er führt die Regeln, lädt Spieler ein und entscheidet Streitfälle.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section>
+    <h3>Nachschlagen</h3>
+    <p>Der Kanon ist Ausgangspunkt, nicht Schicksal: Was Figuren herausfinden, darf die Geschichte ihres Landes verändern. Zum Vorbereiten taugt das <a href="https://greyhawkonline.com/greyhawkwiki/Oerik" target="_blank" rel="noopener">Greyhawk-Wiki zu Oerik</a>, zur <a href="https://greyhawkonline.com/greyhawkwiki/Eastern_Oerik" target="_blank" rel="noopener">Flanaess</a> und zu <a href="https://greyhawkonline.com/greyhawkwiki/Central_Oerik" target="_blank" rel="noopener">Zentral-Oerik</a>. Die Karten: <a href="https://www.greyhawkonline.com/greyhawkwiki/Darlene_map" target="_blank" rel="noopener">Darlene, 1983</a> (der Kanon von 576 CY) und <a href="https://greyhawkonline.com/greyhawkwiki/Meyer_map" target="_blank" rel="noopener">Anna B. Meyer</a>. Lies Wiki-Artikel über dein Revier mit Maß: Die Spielleitung baut Geheimnisse daraus.</p>
+  </section>
+</div>
+
+<div class="ansicht" id="werkzeugkoffer" hidden>
+  <section>
+    <h2>Werkzeugkoffer</h2>
+    <p>Alles Werkzeug der Welt an einer Stelle. Die Tische erscheinen im Spiel von selbst, wenn du sie brauchst. Hier kannst du sie mit einem Beispiel aus einer erfundenen Gegend ausprobieren; was im Spiel an die Spielleitung ginge, steht dann unter dem Tisch.</p>
+  </section>
+  <section>
+    <h3>Am Spieltisch</h3>
+    <div class="fach" id="fach-tische"></div>
+    <p class="klein leise">Lädt ein Tisch nicht, geht alles auch in Textform; der Ladetext sagt, was du dann schreibst.</p>
+  </section>
+  <section>
+    <h3>Seiten</h3>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Seite</th><th scope="col">Was sie zeigt</th><th scope="col">Wer sie sieht</th></tr></thead>
+      <tbody>
+        <tr><td>Eingang nach Oerik</td><td>diese Seite: Einstieg, Regelbuch, Werkzeugkoffer, Dateien</td><td>alle, auch mit fremdem Konto</td></tr>
+        <tr><td>Chronik von Oerik</td><td>Zählungen, Kalender, Postrechner, Briefkasten; die Einträge selbst nur für Spielleitungen</td><td>eingeladene Konten</td></tr>
+        <tr><td>Spielerbuch</td><td>eines je Figur: Glossar, Logbuch, Gepäck, Karte, „Was bisher geschah“</td><td>du; teilen kannst du es</td></tr>
+        <tr><td>Bildersaal</td><td>Ortsgemälde deiner Figur, freiwillig</td><td>du</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section>
+    <h3>Für die Spielleitung</h3>
+    <p>Diese Werkzeuge liegen im Repository und laufen bei deiner Spielleitung, du siehst sie nicht. Die wichtigste ist die Spoilerprüfung: Kein Tisch darf etwas zeigen, was deine Figur nicht wissen kann.</p>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Werkzeug</th><th scope="col">Wofür</th><th scope="col">Regel</th></tr></thead>
+      <tbody>
+        <tr><td>Spoilerprüfung <code>pruefen.js</code>, <code>wissen.js</code>, <code>wissensbuch.js</code></td><td>sperrt, was die Figur nicht wissen kann, und Wissen ohne Weg</td><td><a href="#w-4-8">W 4.8</a></td></tr>
+        <tr><td>Glossar-Auszug <code>glossar.js</code></td><td>ein Eintrag für den Chat, Stichwortliste für den Spielstand</td><td><a href="#r-4-6">4.6</a></td></tr>
+        <tr><td>Bühnen und Profile <code>buehne.js</code></td><td>feste Karten, Kampfdaten, die erste Karte eines Kampfes</td><td><a href="#w-12-6">W 12.6</a></td></tr>
+        <tr><td>Buchbinder <code>seite/bauen.js</code></td><td>Spielerbuch bauen, Daten hin und zurück, Übergabe und Kopien</td><td><a href="#w-4-7">W 4.7</a></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section>
+    <h3>Freiwillig</h3>
+    <div class="tabelle"><table>
+      <thead><tr><th scope="col">Werkzeug</th><th scope="col">Was man braucht</th></tr></thead>
+      <tbody>
+        <tr><td>Musik <a href="#r-3-2">(Regelwerk 3.2)</a></td><td>eigene Playlists bei einem Dienst, der im Hintergrund weiterspielt. Wer es nahtlos will, fragt den Weltenhüter nach dem Klangtisch Live; er braucht eine eigene Kopie des Repositorys, Spotify Premium und eine Spotify-App.</td></tr>
+        <tr><td>Ortsgemälde <a href="#r-3-3">(Regelwerk 3.3)</a></td><td>den Skill „Selbstmalende Gemälde“ und den Malkasten; beide teilt der Weltenhüter. Ohne sie läuft das Spiel genauso.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+  <section>
+    <h3>Noch nicht fertig</h3>
+    <p>Der Kartentisch kennt noch keine eigenen Gebiete für Wüste, Eis und Steppe; bis dahin stehen sie als Name und Notiz auf der Karte. Klangtisch Live hat keine Ortstypen für Gebirge, Wüste und Eis. Alles Weitere steht im Regelbuch unter <a href="#w-24">Werkstatt 24</a>.</p>
+  </section>
+</div>
+
+<div class="ansicht" id="regelbuch" hidden>
+  <section class="buch-kopf">
+    <h2>Regelbuch</h2>
+    <p>Regelwerk und Werkstatt in einem Buch. Das Regelwerk gilt am Tisch, die Werkstatt braucht die Spielleitung zum Speichern, Bauen und Einrichten. Spieler dürfen alles lesen; Spoiler stehen hier nicht. <span id="buch-fassung" class="leise"></span></p>
+    <label for="buch-suche">Im Regelbuch suchen <input type="search" id="buch-suche" autocomplete="off" placeholder="zum Beispiel Feilschen oder Post"></label>
+    <div class="teile" role="group" aria-label="Teil wählen">
+      <button type="button" data-teil="r" aria-pressed="true">Regelwerk</button>
+      <button type="button" data-teil="w" aria-pressed="false">Werkstatt</button>
+    </div>
+    <ul class="treffer" id="buch-treffer" hidden></ul>
+  </section>
+  <section id="buch-text"><p class="leise">Das Regelbuch lädt …</p></section>
+</div>
+</main>
+<footer style="padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 28px">
+  <p>Die Wege von Oerik ist ein Fanprojekt in der Welt von Greyhawk, ohne Verbindung zu Wizards of the Coast. Die Lettern sind aus IM Fell (Igino Marini, SIL Open Font License).</p>
+</footer>
+
+<script>
+window.TITEL = {
+  fuss: 'So beginnt jede Sitzung; hier mit einer erfundenen Figur',
+  befehle: ['Questlog', 'Glossar', 'Karte', 'Inventar'],
+  figuren: [{ name: 'Probefigur', zeile: 'Barde 2 · Reisende', ort: 'Rohrdorf, Alte Eiche', datum: '9. Patchwall 576', tageszeit: 'Abend', welttag: 9, frist: [9, 28, 'Die Brücke bei Rohrdorf'], ep: [450, 900, 3, 300], sitzung: 4, held: true }]
+};
+</script>
+<script src="tische/titel.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var CHRONIK = 'https://claude.ai/artifact/Nzt2tuArXkRunn9dQezv4U';
+
+  /* ---------- Ansichten ---------- */
+  var ANSICHTEN = ['spiel', 'mitspielen', 'oerik', 'werkzeugkoffer', 'regelbuch'];
+  var knoepfe = Array.prototype.slice.call(document.querySelectorAll('.register button'));
+  function zeige(name) {
+    ANSICHTEN.forEach(function (a) { $(a).hidden = a !== name; });
+    knoepfe.forEach(function (k) {
+      var an = k.getAttribute('data-ziel') === name;
+      k.setAttribute('aria-selected', String(an));
+      if (an && k.parentNode.scrollWidth > k.parentNode.clientWidth) k.parentNode.scrollLeft = k.offsetLeft - 16;
+    });
+    if (name === 'regelbuch') ladeBuch();
+  }
+  function nachOben() {
+    var r = document.querySelector('.register');
+    var y = r.getBoundingClientRect().top + window.pageYOffset;
+    if (window.pageYOffset > y) window.scrollTo(0, y);
+  }
+  function route() {
+    var h = (location.hash || '').slice(1);
+    if (ANSICHTEN.indexOf(h) >= 0) { zeige(h); nachOben(); return; }
+    if (/^[rw]-[0-9-]+$/.test(h)) { zeige('regelbuch'); oeffne(h); return; }
+    zeige('spiel');
+  }
+  function geheZu(name) {
+    if (location.hash === '#' + name) route(); else location.hash = name;
+  }
+  knoepfe.forEach(function (k) { k.addEventListener('click', function () { geheZu(k.getAttribute('data-ziel')); }); });
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest && e.target.closest('[data-gehe]');
+    if (g) geheZu(g.getAttribute('data-gehe'));
+  });
+  window.addEventListener('hashchange', route);
+
+  /* ---------- Meldungen, Kopieren, Speichern ---------- */
+  function melde(el, text, art) { el.textContent = text; if (art) el.dataset.art = art; else delete el.dataset.art; }
+  function kopiere(text, meldung, feld) {
+    function daneben() {
+      if (feld) { try { feld.focus(); feld.select(); } catch (e) { /* bleibt markierbar */ } }
+      melde(meldung, 'Kopieren ging nicht. Markier den Text und kopier ihn selbst.', 'warnung');
+    }
+    try { navigator.clipboard.writeText(text).then(function () { melde(meldung, 'Kopiert.', 'gut'); }, daneben); } catch (e) { daneben(); }
+  }
+  function holeText(pfad) { return fetch(pfad).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); }); }
+  var ladeMeldung = $('lade-meldung');
+  function speichere(pfad, dateiname) {
+    melde(ladeMeldung, 'Lade ' + dateiname + ' …');
+    var zeigeErsatz = function (t) { melde(ladeMeldung, ''); $('ersatz-text').value = t; $('ersatz').hidden = false; };
+    Promise.all([holeText(pfad), window.claude ? window.claude.use('downloads') : Promise.resolve(null)]).then(function (w) {
+      var text = w[0], d = w[1];
+      if (!d) { zeigeErsatz(text); return; }
+      return d.save({ filename: dateiname, data: text }).then(function (res) {
+        melde(ladeMeldung, res && res.status === 'saved' ? dateiname + ' gespeichert.' : '', 'gut');
+      }, function (f) {
+        var c = f && f.code;
+        if (c === 'declined') melde(ladeMeldung, 'Speichern abgebrochen.');
+        else if (c === 'rate_limited') melde(ladeMeldung, 'Es läuft schon ein Speichern. Versuch es gleich noch einmal.', 'warnung');
+        else zeigeErsatz(text);
+      });
+    }).catch(function () { melde(ladeMeldung, 'Die Datei ließ sich nicht laden. Lade die Seite neu und versuch es noch einmal.', 'warnung'); });
+  }
+  $('lade-regelwerk').addEventListener('click', function () { speichere('regelwerk.md', '00_regelwerk.md'); });
+  $('lade-werkstatt').addEventListener('click', function () { speichere('werkstatt.md', '00_werkstatt.md'); });
+  $('kopiere-ersatz').addEventListener('click', function () { kopiere($('ersatz-text').value, ladeMeldung, $('ersatz-text')); });
+
+  /* ---------- Vorlage und erste Nachricht ---------- */
+  var vorlage = '';
+  function fuelleVorlage() {
+    var s = $('vorlage-spieler').value.trim() || '<Spielername>', f = $('vorlage-figur').value.trim() || '<Name der Figur>';
+    $('vorlage-text').value = vorlage.split('<Spielername>').join(s).split('<Name der Figur>').join(f).split('<Adresse der Weltchronik>').join(CHRONIK);
+  }
+  holeText('vorlage-projektanweisungen.md').then(function (t) { vorlage = t; fuelleVorlage(); }, function () { $('vorlage-text').value = 'Die Vorlage ließ sich nicht laden. Lade die Seite neu.'; });
+  ['vorlage-spieler', 'vorlage-figur'].forEach(function (i) { $(i).addEventListener('input', fuelleVorlage); });
+  $('kopiere-vorlage').addEventListener('click', function () { kopiere($('vorlage-text').value, ladeMeldung, $('vorlage-text')); });
+  function wert(i, leer) { return $(i).value.trim() || leer; }
+  function fuelleErst() {
+    $('erst-text').value = 'Neue Figur anlegen. Der Bogen liegt im Projekt.\n\nWas nicht auf dem Bogen steht:\n' +
+      '- Startgegend, mein Wunsch: ' + wert('erst-gegend', '…') + '\n' +
+      '- Was die Figur dort am 1. Patchwall 576 tut oder will: ' + wert('erst-tut', '…') + '\n' +
+      '- Worauf ich Lust habe (Art von Aufträgen, Ton): ' + wert('erst-lust', '…') + '\n' +
+      '- Was ich nicht spielen will: ' + wert('erst-nicht', '…') + '\n' +
+      '- Ortsgemälde: ' + $('erst-bilder').value + '\n' +
+      '- Musik: ' + $('erst-musik').value + '\n' +
+      '- Einführung in Sitzung 1: ' + $('erst-einf').value + '\n\n' +
+      'Schlag mir zuerst den Startort vor und warte auf mein Ja. Zeig mir nichts aus dem Revier.';
+  }
+  ['erst-gegend', 'erst-tut', 'erst-lust', 'erst-nicht', 'erst-bilder', 'erst-musik', 'erst-einf'].forEach(function (i) { $(i).addEventListener('input', fuelleErst); });
+  fuelleErst();
+  $('kopiere-erst').addEventListener('click', function () { kopiere($('erst-text').value, $('erst-meldung'), $('erst-text')); });
+
+  /* Merker: nur für diesen Browser */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-merker]'), function (c) {
+    var k = 'oerik-schritt-' + c.getAttribute('data-merker');
+    try { c.checked = localStorage.getItem(k) === '1'; } catch (e) { /* ohne Speicher ohne Merker */ }
+    c.addEventListener('change', function () { try { localStorage.setItem(k, c.checked ? '1' : '0'); } catch (e) { /* dito */ } });
+  });
+
+  /* ---------- Werkzeugkoffer ---------- */
+  var TISCHE = [
+    { name: 'Würfelkasten', id: 'wk', datei: 'wuerfel.js', was: 'Alle Würfe deiner Figur: Der Kasten würfelt sichtbar und sagt, ob es gelingt. Den Schwierigkeitsgrad zeigt er nie.', regel: 'r-6-2', regeltext: '6.2', daten: function (P) { window.WK = P.wuerfel; }, nochmal: true },
+    { name: 'Kartentisch', id: 'karte', datei: 'karte.js', was: 'Pergamentkarte mit allem, was die Figur kennt. Gesehenes in Kohle, von Karten Abgezeichnetes in roter Tinte, Gehörtes gestrichelt.', regel: 'r-4-2', regeltext: '4.2', daten: function (P) { window.KARTE = P.karte; } },
+    { name: 'Gepäck', id: 'gepaeck', datei: 'inventar.js', was: 'Geld, Rationen, Traglast und jedes Ding mit Zeichen, Seltenheit und Werten.', regel: 'r-4-4', regeltext: '4.4', daten: function (P) { window.INVENTAR = P.gepaeck; } },
+    { name: 'Logbuch', id: 'logbuch', datei: 'questlog.js', was: 'Aufträge und Etappen, Fristen mit Lunas Phasen, gegebenes Wort und Erfahrung.', regel: 'r-4-5', regeltext: '4.5', daten: function (P) { window.QUESTLOG = P.logbuch; } },
+    { name: 'Glossar', id: 'glossar', datei: 'glossar.js', was: 'Das Gedächtnis der Figur: was sie über Leute, Orte, Dinge und Gerüchte weiß, und von wem.', regel: 'r-4-6', regeltext: '4.6', daten: function (P, c) { var s = document.createElement('script'); s.type = 'text/plain'; s.id = 'glossar-text'; s.textContent = P.glossar; c.appendChild(s); } },
+    { name: 'Rastübersicht', id: 'rast', datei: 'rast.js', was: 'Kurze und lange Rast: Trefferwürfel, Essen, Fähigkeiten, Zauber vorbereiten.', regel: 'r-4-3', regeltext: '4.3', daten: function (P) { window.RAST = P.rast; } },
+    { name: 'Händlertisch', id: 'handel', datei: 'handel.js', was: 'Ware auf die Waage legen, die Münzen legt der Tisch selbst dazu. Feilschen geht per Würfelkasten.', regel: 'r-4-9', regeltext: '4.9', daten: function (P) { window.HANDEL = P.handel; } },
+    { name: 'Kampfkarte', id: 'kampf', datei: 'kampf.js', was: 'Raster mit Gelände, Höhe und Deckung, wenn der Raum zählt. Du baust deinen Zug und schickst ihn ab.', regel: 'r-12-6', regeltext: '12.6', daten: function (P) { window.KAMPF = P.kampf; } },
+    { name: 'Titelbildschirm', titel: true, was: 'Das Gemälde oben mit Menü und Spielständen. So beginnt jede Sitzung.', regel: 'r-4-10', regeltext: '4.10' }
+  ];
+  var aktiveMeldung = null;
+  window.sendPrompt = function (t) {
+    if (aktiveMeldung) melde(aktiveMeldung, 'Im Spiel ginge das an die Spielleitung: „' + t + '“', 'gut');
+  };
+  var probenGeladen = null;
+  function ladeSkript(pfad) { return new Promise(function (ok, nein) { var s = document.createElement('script'); s.src = pfad; s.onload = ok; s.onerror = nein; document.body.appendChild(s); }); }
+  function ladeProben() { if (!probenGeladen) probenGeladen = ladeSkript('tische/proben.js'); return probenGeladen; }
+  var fach = $('fach-tische');
+  TISCHE.forEach(function (t) {
+    var z = document.createElement('div'); z.className = 'werkzeug';
+    var b = document.createElement('b'); b.textContent = t.name; z.appendChild(b);
+    var w = document.createElement('div'); w.className = 'was'; w.textContent = t.was + ' ';
+    var a = document.createElement('a'); a.href = '#' + t.regel; a.textContent = 'Regel ' + t.regeltext; w.appendChild(a); z.appendChild(w);
+    var k = document.createElement('button'); k.type = 'button'; k.className = 'knopf'; k.textContent = t.titel ? 'Menü zeigen' : 'Ausprobieren'; k.setAttribute('aria-expanded', 'false'); z.appendChild(k);
+    var p = null, geladen = false;
+    k.addEventListener('click', function () {
+      if (t.titel) {
+        var aus = $('deckel-innen').classList.toggle('nur-bild');
+        k.textContent = aus ? 'Menü zeigen' : 'Menü verbergen'; k.setAttribute('aria-expanded', String(!aus));
+        if (!aus) window.scrollTo(0, 0);
+        return;
+      }
+      if (geladen) {
+        var auf = p.hidden; p.hidden = !auf; k.textContent = auf ? 'Schließen' : 'Ausprobieren'; k.setAttribute('aria-expanded', String(auf));
+        if (auf) aktiveMeldung = p.querySelector('.meldung');
+        return;
+      }
+      geladen = true; k.textContent = 'Schließen'; k.setAttribute('aria-expanded', 'true');
+      p = document.createElement('div'); p.className = 'probe';
+      var c = document.createElement('div'); c.id = t.id; c.textContent = t.name + ' lädt …'; p.appendChild(c);
+      var m = document.createElement('p'); m.className = 'meldung'; m.setAttribute('aria-live', 'polite'); p.appendChild(m);
+      z.appendChild(p); aktiveMeldung = m;
+      ladeProben().then(function () {
+        t.daten(window.PROBEN, p);
+        return ladeSkript('tische/' + t.datei);
+      }).then(function () {
+        if (t.nochmal) {
+          var n = document.createElement('button'); n.type = 'button'; n.className = 'knopf'; n.textContent = 'Noch einmal würfeln'; n.style.width = 'fit-content';
+          n.addEventListener('click', function () { aktiveMeldung = m; melde(m, ''); ladeSkript('tische/' + t.datei + '?n=' + Date.now()); });
+          p.appendChild(n);
+        }
+      }).catch(function () { c.className = 'fehlt'; c.textContent = 'Dieser Tisch ließ sich hier nicht laden. Im Spiel kommt er aus dem Repository.'; });
+    });
+    p = null;
+    fach.appendChild(z);
+  });
+
+  /* ---------- Regelbuch: Markdown der Regeln wird hier gesetzt ---------- */
+  var BUCH = { r: null, w: null }, IDS = {}, buchLaeuft = null, offenerTeil = 'r', wartet = null;
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function anker(teil, nr) { return teil + '-' + nr.replace(/\./g, '-'); }
+  function verweis(teil, nr, istW) {
+    var id = null;
+    if (istW) id = anker('w', nr);
+    else if (teil === 'w' && IDS[anker('w', nr)]) id = anker('w', nr);
+    else id = anker('r', nr);
+    return IDS[id] ? id : null;
+  }
+  function verlinke(t, teil) {
+    t = t.replace(/\(([^()]*)\)/g, function (g, innen) {
+      var rein = /^(?:(?:W |Regelwerk )?\d{1,2}(?:\.\d{1,2})?(?:, | und | bis )?)+$/.test(innen);
+      var neu = innen.replace(/(W |Regelwerk )?\b(\d{1,2}(?:\.\d{1,2})?)\b(?![\d,])/g, function (ganz, vor, nr, pos) {
+        if (nr.indexOf('.') < 0 && !vor && !rein) return ganz;
+        if (/(seit|Seit|Fassung|Kampfkarte|Lagebild|Spielerbuch|Würfelkasten|Gepäck|Version|Stufe)\s$/.test(innen.slice(Math.max(0, pos - 14), pos))) return ganz;
+        var ziel = vor === 'Regelwerk ' ? (IDS[anker('r', nr)] ? anker('r', nr) : null) : verweis(teil, nr, vor === 'W ');
+        return ziel ? '<a href="#' + ziel + '">' + ganz + '</a>' : ganz;
+      });
+      return '(' + neu + ')';
+    });
+    return t.replace(/(^|[^(\w])(W|Regelwerk|Abschnitt) (\d{1,2}(?:\.\d{1,2})?)\b(?![\d,])/g, function (ganz, v, wort, nr) {
+      var ziel = wort === 'W' ? verweis(teil, nr, true) : (IDS[anker('r', nr)] ? anker('r', nr) : (wort === 'Abschnitt' ? verweis(teil, nr) : null));
+      return ziel ? v + '<a href="#' + ziel + '">' + wort + ' ' + nr + '</a>' : ganz;
+    });
+  }
+  function zeile(s, teil) {
+    return s.split('`').map(function (st, i) {
+      if (i % 2) return '<code>' + esc(st) + '</code>';
+      var t = esc(st).replace(/\\~/g, '\u0001').replace(/\\\|/g, '|');
+      t = t.replace(/https?:\/\/[^\s)<]+/g, function (u) { return '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'; });
+      t = verlinke(t, teil);
+      t = t.replace(/\*\*([^*]+(?:\*[^*]+\*[^*]*)*)\*\*/g, '<strong>$1</strong>').replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/~~([^~]+)~~/g, '<s>$1</s>');
+      return t.replace(/\u0001/g, '~');
+    }).join('');
+  }
+  function einzug(l) { return l.match(/^ */)[0].length; }
+  var LISTE = /^( *)([-*]|\d+\.) +(.*)$/;
+  function setze(zeilen, teil, ohneAbsatz) {
+    var aus = [], i = 0, n = zeilen.length;
+    while (i < n) {
+      var l = zeilen[i];
+      if (!l.trim()) { i++; continue; }
+      var f = /^( *)```/.exec(l);
+      if (f) {
+        var code = []; i++;
+        while (i < n && !/^ *```/.test(zeilen[i])) code.push(zeilen[i++].slice(f[1].length));
+        i++; aus.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>'); continue;
+      }
+      var h = /^(#{1,4}) +(.*)$/.exec(l);
+      if (h) {
+        var st = h[1].length, tx = h[2], nr = /^(\d+\.\d+)\b/.exec(tx);
+        var attr = nr ? ' id="' + anker(teil, nr[1]) + '"' : '';
+        aus.push('<h' + Math.max(st, 3) + attr + '>' + zeile(tx, teil) + '</h' + Math.max(st, 3) + '>'); i++; continue;
+      }
+      if (/^ *\|/.test(l) && i + 1 < n && /^ *\|[-| :]+\|\s*$/.test(zeilen[i + 1])) {
+        var kopf = zellen(l), rumpf = []; i += 2;
+        while (i < n && /^ *\|/.test(zeilen[i])) rumpf.push(zellen(zeilen[i++]));
+        aus.push('<div class="tabelle"><table><thead><tr>' + kopf.map(function (c) { return '<th scope="col">' + zeile(c, teil) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+          rumpf.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + zeile(c, teil) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>');
+        continue;
+      }
+      if (/^ *>/.test(l)) {
+        var zit = [];
+        while (i < n && /^ *>/.test(zeilen[i])) zit.push(zeilen[i++].replace(/^ *> ?/, ''));
+        aus.push('<blockquote>' + setze(zit, teil) + '</blockquote>'); continue;
+      }
+      var m = LISTE.exec(l);
+      if (m) {
+        var tief = m[1].length, geordnet = /\d/.test(m[2]), teile = [];
+        while (i < n) {
+          var a = LISTE.exec(zeilen[i]);
+          if (!a || a[1].length !== tief || /\d/.test(a[2]) !== geordnet) break;
+          var inhalt = [a[3]], rein = a[1].length + a[2].length + 1; i++;
+          while (i < n) {
+            var z = zeilen[i];
+            if (!z.trim()) {
+              var w = i + 1; while (w < n && !zeilen[w].trim()) w++;
+              if (w < n && einzug(zeilen[w]) > tief) { inhalt.push(''); i++; continue; }
+              break;
+            }
+            if (einzug(z) <= tief) break;
+            inhalt.push(z.slice(Math.min(rein, einzug(z)))); i++;
+          }
+          teile.push('<li>' + setze(inhalt, teil, true) + '</li>');
+          while (i < n && !zeilen[i].trim()) { var w2 = i + 1; while (w2 < n && !zeilen[w2].trim()) w2++; if (w2 < n && LISTE.test(zeilen[w2]) && einzug(zeilen[w2]) === tief) i = w2; else break; }
+        }
+        var tag = geordnet ? 'ol' : 'ul';
+        aus.push('<' + tag + '>' + teile.join('') + '</' + tag + '>'); continue;
+      }
+      var abs = [];
+      while (i < n && zeilen[i].trim() && !/^ *(```|#{1,4} |>|\|)/.test(zeilen[i]) && !(abs.length && LISTE.test(zeilen[i]))) abs.push(zeilen[i++].trim());
+      if (!abs.length) { abs.push(zeilen[i++].trim()); }
+      aus.push((ohneAbsatz && !aus.length ? '<span>' : '<p>') + zeile(abs.join(' '), teil) + (ohneAbsatz && !aus.length ? '</span>' : '</p>'));
+    }
+    return aus.join('');
+  }
+  function zellen(l) {
+    var s = l.trim().replace(/^\|/, '').replace(/\|\s*$/, ''), teile = [], jetzt = '', code = false;
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (c === '`') code = !code;
+      if (c === '\\' && s[i + 1] === '|') { jetzt += '\\|'; i++; continue; }
+      if (c === '|' && !code) { teile.push(jetzt.trim()); jetzt = ''; continue; }
+      jetzt += c;
+    }
+    teile.push(jetzt.trim());
+    return teile;
+  }
+  function zerlege(text, teil) {
+    var zeilen = text.split('\n'), kap = [], jetzt = { nr: '0', titel: teil === 'r' ? 'Vorwort und Bezeichnungen' : 'Vorwort', zeilen: [] };
+    zeilen.forEach(function (l) {
+      if (/^# /.test(l)) return;
+      var m = /^## +(\d+)\s+(.*)$/.exec(l);
+      if (m) { kap.push(jetzt); jetzt = { nr: m[1], titel: m[2], zeilen: [] }; return; }
+      var u = /^### +(\d+\.\d+)\b/.exec(l);
+      if (u) IDS[anker(teil, u[1])] = jetzt.nr;
+      jetzt.zeilen.push(l);
+    });
+    kap.push(jetzt);
+    kap.forEach(function (k) { IDS[anker(teil, k.nr)] = k.nr; k.id = anker(teil, k.nr); k.text = k.zeilen.join('\n'); });
+    return kap;
+  }
+  function ladeBuch() {
+    if (buchLaeuft) return buchLaeuft;
+    buchLaeuft = Promise.all([holeText('regelwerk.md'), holeText('werkstatt.md')]).then(function (t) {
+      BUCH.r = zerlege(t[0], 'r'); BUCH.w = zerlege(t[1], 'w');
+      var v = /\*\*Version ([0-9.]+)[^*]*\*\*/.exec(t[0]);
+      if (v) $('buch-fassung').textContent = 'Fassung ' + v[1] + '.';
+      zeichneTeil(offenerTeil);
+      if (wartet) { var z = wartet; wartet = null; oeffne(z); }
+    }, function () { $('buch-text').innerHTML = '<p class="leise">Das Regelbuch ließ sich nicht laden. Lade die Seite neu.</p>'; });
+    return buchLaeuft;
+  }
+  function kapitelHtml(k) {
+    var d = document.createElement('details'); d.className = 'kapitel'; d.id = k.id;
+    var s = document.createElement('summary');
+    if (k.nr !== '0') { var nr = document.createElement('span'); nr.className = 'nr'; nr.textContent = k.nr; s.appendChild(nr); }
+    s.appendChild(document.createTextNode(k.titel)); d.appendChild(s);
+    var inn = document.createElement('div'); inn.className = 'inhalt'; d.appendChild(inn);
+    var fertig = false;
+    function fuelle() { if (!fertig) { fertig = true; inn.innerHTML = setze(k.zeilen, k.id[0]); } }
+    d.addEventListener('toggle', function () { if (d.open) fuelle(); });
+    d.fuelle = fuelle;
+    return d;
+  }
+  function zeichneTeil(teil) {
+    offenerTeil = teil;
+    Array.prototype.forEach.call(document.querySelectorAll('.teile button'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-teil') === teil)); });
+    var ziel = $('buch-text'); ziel.textContent = '';
+    if (!BUCH[teil]) { ziel.innerHTML = '<p class="leise">Das Regelbuch lädt …</p>'; return; }
+    BUCH[teil].forEach(function (k) { ziel.appendChild(kapitelHtml(k)); });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.teile button'), function (b) {
+    b.addEventListener('click', function () { $('buch-suche').value = ''; zeigeTreffer(''); zeichneTeil(b.getAttribute('data-teil')); });
+  });
+  function oeffne(id) {
+    if (!BUCH.r) { wartet = id; ladeBuch(); return; }
+    var teil = id[0], kapNr = IDS[id];
+    if (kapNr === undefined) { zeichneTeil(teil === 'w' ? 'w' : 'r'); return; }
+    zeichneTeil(teil);
+    var d = $(anker(teil, kapNr));
+    if (!d) return;
+    d.fuelle(); d.open = true;
+    var z = id === d.id ? d : $(id);
+    if (z) {
+      var y = z.getBoundingClientRect().top + window.pageYOffset - 60;
+      window.scrollTo(0, Math.max(0, y));
+      var markiere = z.tagName === 'DETAILS' ? z.querySelector('summary') : z;
+      markiere.classList.add('ziel'); setTimeout(function () { markiere.classList.remove('ziel'); }, 1800);
+    }
+  }
+  function zeigeTreffer(q) {
+    var liste = $('buch-treffer'); liste.textContent = '';
+    q = q.trim();
+    if (q.length < 3 || !BUCH.r) { liste.hidden = true; return; }
+    var kl = q.toLowerCase(), funde = [];
+    ['r', 'w'].forEach(function (teil) {
+      BUCH[teil].forEach(function (k) {
+        var abschnitt = { id: k.id, titel: (teil === 'w' ? 'W ' : '') + (k.nr === '0' ? '' : k.nr + ' ') + k.titel, text: '' };
+        k.zeilen.concat(['### 99.99 Ende']).forEach(function (l) {
+          var u = /^### +(\d+\.\d+)\s*(.*)$/.exec(l);
+          if (u) {
+            var p = abschnitt.text.toLowerCase().indexOf(kl);
+            if (p >= 0) funde.push({ id: abschnitt.id, titel: abschnitt.titel, text: abschnitt.text, pos: p });
+            abschnitt = { id: anker(teil, u[1]), titel: (teil === 'w' ? 'W ' : '') + u[1] + ' ' + u[2], text: '' };
+          } else abschnitt.text += l + ' ';
+        });
+      });
+    });
+    liste.hidden = false;
+    if (!funde.length) { var leer = document.createElement('li'); leer.className = 'leise'; leer.textContent = 'Nichts gefunden.'; liste.appendChild(leer); return; }
+    funde.slice(0, 40).forEach(function (f) {
+      var li = document.createElement('li'), a = document.createElement('a'); a.href = '#' + f.id;
+      var b = document.createElement('b'); b.textContent = f.titel; a.appendChild(b);
+      var s = document.createElement('small'), anf = Math.max(0, f.pos - 60), roh = f.text.slice(anf, f.pos + q.length + 80).replace(/[*`#]/g, '');
+      var p2 = roh.toLowerCase().indexOf(kl);
+      if (p2 >= 0) {
+        s.appendChild(document.createTextNode((anf ? '… ' : '') + roh.slice(0, p2)));
+        var mk = document.createElement('mark'); mk.textContent = roh.slice(p2, p2 + q.length); s.appendChild(mk);
+        s.appendChild(document.createTextNode(roh.slice(p2 + q.length) + ' …'));
+      } else s.textContent = '… ' + roh + ' …';
+      a.appendChild(s); li.appendChild(a); liste.appendChild(li);
+    });
+  }
+  var suchUhr = null;
+  $('buch-suche').addEventListener('input', function (e) { clearTimeout(suchUhr); var v = e.target.value; suchUhr = setTimeout(function () { ladeBuch().then(function () { zeigeTreffer(v); }); }, 150); });
+
+  route();
+})();
+</script>

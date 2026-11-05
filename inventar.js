@@ -1,5 +1,5 @@
 /*
- * Wegwart-Gepäck – Inventar für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Gepäck – Inventar für die geteilte Welt „Oerik“
  * Version 3.0
  *
  * Aufruf in einem Visualizer-Widget:
@@ -39,13 +39,15 @@
     ['proviant', 'Proviant'], ['papiere', 'Papiere'], ['zeichen', 'Zeichen und Fundstücke'], ['sonstiges', 'Sonstiges']];
   var TRAEGERART = { figur: 'user', gefolge: 'user', lasttier: 'horse', reittier: 'horse', lager: 'home' };
   var MUENZEN = [
-    ['pm', 'Highlord', 'Highlords', '#9aa3ab', '#d9dee2'],
-    ['ga', 'Goldadmiral', 'Goldadmirale', '#a67c1a', '#e8c766'],
-    ['em', 'Bright Ship', 'Bright Ships', '#8f8450', '#d6cb8e'],
+    ['pm', 'Platin', 'Platin', '#9aa3ab', '#d9dee2'],
+    ['ga', 'Gold', 'Gold', '#a67c1a', '#e8c766'],
+    ['em', 'Elektrum', 'Elektrum', '#8f8450', '#d6cb8e'],
     ['sm', 'Silber', 'Silber', '#7d8085', '#cfd2d6'],
-    ['km', 'Common', 'Common', '#8a4b2a', '#d49a6a']
+    ['km', 'Kupfer', 'Kupfer', '#8a4b2a', '#d49a6a']
   ];
   var WERT = { pm: 10, ga: 1, em: 0.5, sm: 0.1, km: 0.01 };
+  // Ohne Angabe heißen die Münzen nach ihrem Metall; `muenzen` trägt die Namen des Landes (Regelwerk 7.5, 20.3): {ga: ['Goldadmiral', 'Goldadmirale'], …}
+  function muenzName(D, m, n) { var o = D && D.muenzen && D.muenzen[m[0]], e = o ? (Array.isArray(o) ? o : [o]) : [m[1], m[2]]; return n === 1 ? e[0] : (e[1] || e[0]); }
 
   /* ---------- Zeichen (seite/zeichen.js) ---------- */
 // ZEICHEN-ANFANG (gemeinsam für inventar.js und handel.js; ändern nur in seite/zeichen.js, dann node seite/zeichen.js --einbauen)
@@ -145,7 +147,7 @@
     [/tinte/i, 'tinte'], [/feder/i, 'feder'], [/wachs/i, 'wachs'], [/kohle|stift|kreide/i, 'kohle'],
     [/siegelbrief|urkunde/i, 'siegel'], [/zettel|notiz|streifen/i, 'zettel'], [/schriftrolle|rolle/i, 'rolle'], [/buch/i, 'buch', ['papier', 'wertsache', 'sonstiges', 'fund']],
     [/karte/i, 'karte'], [/schlüssel/i, 'schluessel'], [/kompass/i, 'kompass'], [/kette|fessel/i, 'kette'],
-    [/blaues band/i, 'band-blau'], [/band/i, 'band'], [/flagge|banner|wimpel/i, 'flagge'], [/\bring\b/i, 'ring'],
+    [/band/i, 'band'], [/flagge|banner|wimpel/i, 'flagge'], [/\bring\b/i, 'ring'],
     [/juwel|edelstein|rubin|smaragd|saphir/i, 'juwel'], [/perle/i, 'perle'], [/scheibe/i, 'scheibe'], [/seide|faser/i, 'seide'],
     [/münz|geldbeutel|beutel mit/i, 'beutel'], [/aal|fisch/i, 'fisch'], [/flasche/i, 'flasche'], [/trank|elixier/i, 'trank'],
     [/schlauch|wasser/i, 'schlauch'], [/schlamm|salbe|schale/i, 'schale'], [/kraut|kräuter/i, 'kraut'], [/tuch|leinen/i, 'tuch'],
@@ -205,7 +207,7 @@
     name: 'Inventar',
     wurzel: 'inventar',
     felder: {
-      inventar: { titel: 'text', stand: 'text', figur: 'text', geld: 'geld', esser: 'zahl', traeger: 'traeger[]' },
+      inventar: { titel: 'text', stand: 'text', figur: 'text', geld: 'geld', muenzen: 'muenznamen', esser: 'zahl', traeger: 'traeger[]' },
       geld: { pm: 'zahl', ga: 'zahl', em: 'zahl', sm: 'zahl', km: 'zahl' },
       traeger: { id: 'id', name: 'text', namen: 'text[]', art: 'traegerart', staerke: 'zahl', faktor: 'zahl', ort: 'text', dinge: 'ding[]' },
       ding: { name: 'text', namen: 'text[]', art: 'dingart', ikone: 'ikone', seltenheit: 'seltenheit', marke: 'marke', anzahl: 'zahl', kg: 'zahl',
@@ -319,10 +321,10 @@
       if (!muenzen.length) h += '<p class="gpLeer">leer</p>';
       muenzen.forEach(function (m) {
         var n = zahl(G[m[0]]);
-        h += '<div class="gpM">' + muenzenSvg(m[0], n) + '<span><b>' + n + '</b> ' + esc(n === 1 ? m[1] : m[2]) + '</span></div>';
+        h += '<div class="gpM">' + muenzenSvg(m[0], n) + '<span><b>' + n + '</b> ' + esc(muenzName(D, m, n)) + '</span></div>';
       });
       h += '</div>';
-      if (muenzen.length > 1) h += '<p class="gpKl">zusammen ' + String(Math.round(wert * 100) / 100).replace('.', ',') + ' Goldadmirale wert</p>';
+      if (muenzen.length > 1) h += '<p class="gpKl">zusammen ' + String(Math.round(wert * 100) / 100).replace('.', ',') + ' ' + esc(muenzName(D, MUENZEN[1], 2)) + ' wert</p>';
       h += '</div>';
     }
 
@@ -499,7 +501,8 @@
   // Zusatzprüfung für pruefen.js: Geld und Traglast mit dem Spielstand abgleichen (nur Hinweise)
   function zusatz(D, h) {
     var hinweise = [], fehler = [], zeilen = h.stand.split('\n');
-    var NAMEN = { pm: 'highlord|pm', ga: 'goldadmiral|ga', em: 'bright ship|em', sm: 'silber|sm', km: 'common|km' };
+    var NAMEN = { pm: 'highlord|platin|pm', ga: 'goldadmiral|gold|ga', em: 'bright ship|elektrum|em', sm: 'silber|sm', km: 'common|kupfer|km' };
+    Object.keys(D.muenzen || {}).forEach(function (k) { if (NAMEN[k]) [].concat(D.muenzen[k]).forEach(function (x) { NAMEN[k] += '|' + h.norm(String(x)); }); });
     Object.keys(D.geld || {}).forEach(function (k) {
       var n = D.geld[k];
       if (!n || !NAMEN[k]) return;

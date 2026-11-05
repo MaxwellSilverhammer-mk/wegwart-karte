@@ -1,11 +1,11 @@
 /*
- * Wegwart-Karte – Kampfkarte für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Karte – Kampfkarte für die geteilte Welt „Oerik“
  * Version 1.11
  *
  * Aufruf in einem Visualizer-Widget:
- *   <h2 class="sr-only">Kampfkarte: Keller des Siedehauses, Runde 2</h2>
+ *   <h2 class="sr-only">Kampfkarte: Keller der Alten Eiche, Runde 2</h2>
  *   <div id="kampf">Kampfkarte lädt … Falls nicht, frag nach der Lage als Text.</div>
- *   <script>var KAMPF={nr:3, titel:'Keller des Siedehauses', runde:2, figur:'f', boden:[…], hoehe:[…], wesen:[…]}</script>
+ *   <script>var KAMPF={nr:3, titel:'Keller der Alten Eiche', runde:2, figur:'f', boden:[…], hoehe:[…], wesen:[…]}</script>
  *   <script>var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/kampf.js';document.head.appendChild(s);</script>
  *
  * Raster: 36 × 12 Felder zu 1,5 m (Regelwerk 12.6), Spalten 1–36, Zeilen A–L. Die Karte zeigt nur, was die
@@ -48,7 +48,7 @@
  * zeichnet ein Wesen, das außer Sicht geriet, als Schatten dort, wo es zuletzt stand (bedroht nichts, versperrt nichts, kein Ziel).
  * Seit 1.8 (Stufe C): Aufstellung vor dem Initiativewurf (`aufstellung: [{x, y}]` als blaue Felder; die Figur und jedes Wesen mit
  * `aufstellen: true` lassen sich per Tipp dorthin setzen, die Karte zeigt dann nur die Aufstellung und einen breiten Knopf, der
- * „Aufstellung: Fürchtegott auf 12/D, Ksshar auf 13/D“ schickt); Formen neben Farben (Gegner Raute, Gefolge Kreis, Unbeteiligte
+ * „Aufstellung: Probefigur auf 12/D, Jost auf 13/D“ schickt); Formen neben Farben (Gegner Raute, Gefolge Kreis, Unbeteiligte
  * dünner Kreis, Tiere abgerundetes Quadrat, die Figur Kreis mit Ring; dieselben Formen in Reihenfolge und Legende); Aufgaben über
  * Runden (`notizen[].fortschritt: [2, 3]` als „Tür 2/3“ mit Balken am Schild); eine Hilfezeile je Knopf (ein Satz beim Halten des
  * Knopfs, etwa 400 ms, auch mit der Maus; kein stehender Erklärtext); Höhenschilder bleiben in ihrer Fläche; die drei Blässen sind
@@ -58,7 +58,7 @@
  * Taktikspiel: Ausgang und Satz der Spielleitung, die Gegner mit ihrem Stein (gefallen grau mit Kreuz, ergibt sich mit weißer Fahne,
  * geflohen gestrichelt) und ihren EP, die Summe zählt hoch, dazu Beute, Gefangene, Wunden als Balken, Verbrauch und Zeit als Plättchen,
  * Knöpfe, die das Nächste in den Chat schicken; weder Aktion noch Bonusaktion noch Zug.
- * Seit 1.10: die Karte im Browser (`kampf: 'fs-s19-1'`): Jede Karte eines Kampfes wird im Browser abgelegt, gezeigt wird, was sich aus
+ * Seit 1.10: die Karte im Browser (`kampf: 'pf-s19-1'`): Jede Karte eines Kampfes wird im Browser abgelegt, gezeigt wird, was sich aus
  * allen Karten des Kampfes bis zu ihrer Nummer ergibt. Nur die erste Karte braucht Boden und Figur; jede weitere nennt, was sich geändert
  * hat (`wesen` nach `id`, `weg: true` nimmt ein Wesen vom Feld, `null` löscht eine Angabe, `aendern` ändert Boden und Höhe). Wer sich bewegt
  * hat, bekommt seine Spur von selbst, wer dazukommt, seine Marke „neu“. Felder dürfen mit ihrem Namen stehen (`feld: '19/H'`), wie in der
@@ -1591,7 +1591,7 @@
     var STUFEN = [1, 1.8, 2.8, 4];
     // seit 1.8: die Aufstellung vor dem Initiativewurf. Solange `aufstellung` Felder nennt und die Figur da ist, zeigt die Karte weder
     // Aktion noch Bonusaktion noch den Kasten „Zug“, sondern nur die blauen Felder, die Steine, die sich setzen lassen (die Figur und
-    // alle mit `aufstellen: true`), und einen breiten Knopf, der „Aufstellung: Fürchtegott auf 12/D, Ksshar auf 13/D“ schickt
+    // alle mit `aufstellen: true`), und einen breiten Knopf, der „Aufstellung: Probefigur auf 12/D, Jost auf 13/D“ schickt
     var aufst = figur && K.aufstellen.length ? { stuecke: K.aufstellen, aktiv: 0 } : null;
     // seit 1.9: die Kampfbilanz nach dem Kampf; solange sie steht, gibt es weder Zug noch Aufstellung, die Karte darunter zeigt die Lage
     var Bz = bilanzLesen(D, K), vorbei = !!Bz;

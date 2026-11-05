@@ -333,7 +333,7 @@ if (require.main === module) {
       var B3 = lade(opt.karte), r3 = pruefe(B3), P = opt.profil ? lade(opt.profil) : null, fehler3 = r3.fehler.slice(), hin3 = r3.hinweise.slice();
       if (opt.weiter && (P || opt.wesen)) fehler3.push('--weiter schreibt nur den neuen Ausschnitt; Figur und Wesen stehen schon im Browser');
       else if (P) { var rp = profilPruefen(P); fehler3 = fehler3.concat(rp.fehler); }
-      if (!opt.kampf) fehler3.push('--kampf fehlt, etwa fs-s19-1');
+      if (!opt.kampf) fehler3.push('--kampf fehlt, etwa pf-s19-1');
       if (opt.nr == null || opt.nr === true) fehler3.push('--nr fehlt, die nächste Wurfnummer');
       var wesen3 = opt.wesen ? lade(opt.wesen) : [];
       var k3 = karte(B3, { weiter: !!opt.weiter, titel: typeof opt.titel === 'string' ? opt.titel : null, ausschnitt: opt.ausschnitt, offen: offenListe, profil: P, feld: opt.feld, tp: opt.tp, wesen: wesen3, kampf: opt.kampf, nr: +opt.nr, runde: opt.runde == null ? undefined : (isNaN(+opt.runde) ? opt.runde : +opt.runde), stand: opt.stand });

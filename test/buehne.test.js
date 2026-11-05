@@ -150,9 +150,9 @@ assert.ok(/weder Waffen noch Zauber/.test(buehne.profilPruefen(P3).fehler.join('
 ok('Profil');
 
 // Knappe Schreibweise, die sich wieder lesen lässt
-var knapp = buehne.kurz({ a: 1, 'b-c': "Pell's", d: [true, null], e: undefined, ä: 'x\ny' });
-assert.strictEqual(knapp, "{a:1,\"b-c\":'Pell\\'s',d:[true,null],ä:'x\\ny'}");
-assert.deepStrictEqual(new Function('return ' + knapp)(), { a: 1, 'b-c': "Pell's", d: [true, null], ä: 'x\ny' });
+var knapp = buehne.kurz({ a: 1, 'b-c': "Jost's", d: [true, null], e: undefined, ä: 'x\ny' });
+assert.strictEqual(knapp, "{a:1,\"b-c\":'Jost\\'s',d:[true,null],ä:'x\\ny'}");
+assert.deepStrictEqual(new Function('return ' + knapp)(), { a: 1, 'b-c': "Jost's", d: [true, null], ä: 'x\ny' });
 ok('knappe Schreibweise');
 
 // Die Befehle

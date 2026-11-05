@@ -1,0 +1,1008 @@
+<title>Chronik von Oerik</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IM+Fell+English+SC&display=swap">
+<style>
+/* Layout: das Arbeitsblatt der Spielleitungen im selben Atlas wie der Eingang. Text links, Zahlen und Welttage als Randvermerke in Monospace, Abschnitte durch Linien getrennt. */
+:root {
+  --paper: #ddd1b6;
+  --leaf: #f3ead4;
+  --ink: #2b1d10;
+  --muted: #5f4e35;
+  --rule: #bfa97f;
+  --brass: #7a4410;
+  --brass-wash: #e9d9b4;
+  --ok: #2f5568;
+  --warn: #8e3b22;
+  --focus: #2f5568;
+  --mond: #4f8f8c;
+  --font-display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --font-body: "EB Garamond", Garamond, Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #13100c;
+    --leaf: #1d1812;
+    --ink: #e8dfca;
+    --muted: #b4a486;
+    --rule: #41362a;
+    --brass: #e0b76a;
+    --brass-wash: #33291a;
+    --ok: #8fb6c9;
+    --warn: #d98a6a;
+    --focus: #8fb6c9;
+    --mond: #7fc4c0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #13100c;
+  --leaf: #1d1812;
+  --ink: #e8dfca;
+  --muted: #b4a486;
+  --rule: #41362a;
+  --brass: #e0b76a;
+  --brass-wash: #33291a;
+  --ok: #8fb6c9;
+  --warn: #d98a6a;
+  --focus: #8fb6c9;
+  --mond: #7fc4c0;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  font-variant-numeric: lining-nums;
+}
+.seite {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 3rem;
+  display: grid;
+  gap: 2.5rem;
+}
+.kopf { display: grid; gap: 0.75rem; }
+.vermerk {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 9vw, 3.75rem);
+  line-height: 1.02;
+  margin: 0;
+  text-wrap: balance;
+}
+.einleitung { margin: 0; max-width: 36rem; font-size: 1.25rem; }
+.monde { width: 1.5em; height: 1em; vertical-align: -0.12em; margin-right: 0.4em; }
+.siegel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.siegel strong { color: var(--brass); font-weight: 500; }
+
+section {
+  display: grid;
+  gap: 1rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+  min-width: 0;
+}
+h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  margin: 0;
+  text-wrap: balance;
+}
+p { margin: 0; }
+a { color: var(--brass); text-underline-offset: 2px; }
+.leise { color: var(--muted); }
+
+/* Bestandsliste mit Punktleitern */
+.bestand { display: grid; gap: 0.35rem; margin: 0; }
+.bestand div {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.bestand dt { margin: 0; }
+.bestand .leiter { border-bottom: 1px dotted var(--rule); transform: translateY(-0.3em); }
+.bestand dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  min-width: 2.5ch;
+  text-align: right;
+}
+.zustand {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.zustand[data-art="gut"] { color: var(--ok); }
+.zustand[data-art="warnung"] { color: var(--warn); }
+
+
+.knoepfe { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+button {
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+button:hover { border-color: var(--brass); }
+button.haupt { background: var(--brass-wash); border-color: var(--brass); }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+button:disabled { opacity: 0.55; cursor: default; }
+.meldung { font-size: 1.0625rem; color: var(--muted); min-height: 1.4em; }
+.meldung[data-art="gut"] { color: var(--ok); }
+.meldung[data-art="warnung"] { color: var(--warn); }
+.meldung a { color: inherit; overflow-wrap: anywhere; }
+
+.adresse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.adresse code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+  min-width: 0;
+}
+
+.ersatz { display: grid; gap: 0.5rem; }
+.ersatz textarea, textarea.block {
+  width: 100%;
+  min-height: 12rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink);
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.6rem;
+  box-sizing: border-box;
+}
+textarea.block { min-height: 7rem; background: var(--paper); }
+input[type="file"] { font: inherit; font-size: 1rem; color: var(--muted); max-width: 100%; }
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  margin: 0.75rem 0 0;
+  overflow-x: auto;
+}
+.rechner label select { max-width: 100%; }
+
+/* Kalender */
+.rechner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+}
+.rechner form {
+  display: grid;
+  gap: 0.6rem;
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 0;
+}
+.rechner h3 {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
+}
+.wahl { display: flex; gap: 0.4rem; align-items: baseline; }
+.feldreihe { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: end; }
+label { display: grid; gap: 0.25rem; font-size: 1rem; color: var(--muted); }
+input, select {
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  min-width: 0;
+}
+input[type="number"] { width: 7rem; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.ergebnis {
+  font-size: 1.0625rem;
+  min-height: 3em;
+}
+.ergebnis .datum { font-family: var(--font-display); font-size: 1.375rem; display: block; line-height: 1.2; }
+.ergebnis .mond { color: var(--muted); font-size: 1.0625rem; }
+
+details { border-top: 1px dotted var(--rule); padding-top: 0.75rem; }
+summary { cursor: pointer; color: var(--brass); font-weight: 500; }
+.tabelle { overflow-x: auto; margin-top: 0.75rem; }
+table { border-collapse: collapse; width: 100%; font-size: 1.0625rem; }
+th, td { text-align: left; padding: 0.3rem 0.75rem 0.3rem 0; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+td.zahl { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+tr.fest td:first-child { color: var(--brass); }
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  button { transition: border-color 120ms ease; }
+}
+</style>
+
+<main class="seite">
+  <header class="kopf">
+    <p class="vermerk"><svg class="monde" viewBox="0 0 30 20" aria-hidden="true"><circle cx="11" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="25" cy="5" r="3.6" fill="var(--mond)"/></svg>Geteilte Welt · Oerth · seit dem 1. Patchwall 576 CY</p>
+    <h1>Chronik von Oerik</h1>
+    <p class="einleitung">Hier laufen die Solo-Abenteuer auf dem Kontinent Oerik zusammen. Die Spielleitungen lesen und schreiben die Chronik. Spieler finden hier den Weltkalender und den Briefkasten; der Einstieg steht im <a href="https://claude.ai/artifact/TBdN725HV7U3bjcmiFHiQg" target="_blank" rel="noopener">Eingang nach Oerik</a>.</p>
+    <ul class="siegel">
+      <li>Regelwerk <strong id="version">–</strong></li>
+      <li>Weltenhüter <strong>Max</strong></li>
+      <li>Welttag 1 = <strong>1. Patchwall 576 CY</strong></li>
+    </ul>
+  </header>
+
+  <section id="stand" aria-labelledby="stand-titel">
+    <h2 id="stand-titel">Stand der Chronik</h2>
+    <dl class="bestand">
+      <div><dt>Figuren unterwegs</dt><span class="leiter"></span><dd id="z-figuren">–</dd></div>
+      <div><dt>Reviere</dt><span class="leiter"></span><dd id="z-reviere">–</dd></div>
+      <div><dt>Länder mit Eintrag</dt><span class="leiter"></span><dd id="z-laender">–</dd></div>
+      <div><dt>Ereignisse und Spuren</dt><span class="leiter"></span><dd id="z-chronik">–</dd></div>
+      <div><dt>Weltgeheimnisse</dt><span class="leiter"></span><dd id="z-geheimnisse">–</dd></div>
+      <div><dt>Briefe unterwegs</dt><span class="leiter"></span><dd id="z-post">–</dd></div>
+      <div><dt>Verabredete Treffen</dt><span class="leiter"></span><dd id="z-treffen">–</dd></div>
+    </dl>
+    <p class="zustand" id="zustand">Verbinde mit der Chronik …</p>
+    <p class="leise">Die Einträge selbst sind Wissen der Spielleitung und erscheinen hier nicht. Was deine Figur von der Welt erfährt, erfährt sie im Spiel.</p>
+  </section>
+
+  <section id="einstieg" aria-labelledby="einstieg-titel">
+    <h2 id="einstieg-titel">Mitspielen</h2>
+    <p>Wer neu ist, beginnt im <a href="https://claude.ai/artifact/TBdN725HV7U3bjcmiFHiQg" target="_blank" rel="noopener">Eingang nach Oerik</a>: Dort stehen der Einstieg, das Regelbuch, der Werkzeugkoffer, die Vorlage für die Projektanweisungen und alle Dateien. Hier brauchst du nur noch zwei Dinge.</p>
+    <p><strong>Die Adresse dieser Chronik</strong> gehört in deine Projektanweisungen. Die Vorlage im Eingang trägt sie schon.</p>
+    <div class="adresse" id="adresse-zeile">
+      <code id="adresse"></code>
+      <button type="button" id="kopiere-adresse">Adresse kopieren</button>
+    </div>
+    <p class="meldung" id="lade-meldung" aria-live="polite"></p>
+    <p><strong>Schreibrecht.</strong> Damit deine Spielleitung die Chronik führen kann, braucht dein Konto Schreibrecht. Max lädt dich dafür per E-Mail als Bearbeiter ein; über einen öffentlichen Link geht es nicht. Hat deine Spielleitung in ihrem Chat keinen Zugang zur Datenbank, führst du die Chronik über den Briefkasten unten; meldet die Seite auch angemeldet „nicht erreichbar“, läuft deine Post über Max.</p>
+    <div class="knoepfe"><button type="button" id="pruefe-zugang">Schreibrecht prüfen</button></div>
+    <p class="meldung" id="zugang-meldung" aria-live="polite"></p>
+  </section>
+
+  <section id="briefkasten" aria-labelledby="briefkasten-titel">
+    <h2 id="briefkasten-titel">Briefkasten</h2>
+    <p>Figuren schreiben in der Rast, wenn sie Schreibzeug tragen: Briefe an Leute, von denen sie gehört haben, und Zettel, die an einem Ort liegen bleiben. Was abgeschickt ist, reist so schnell wie Boten, Fuhrleute und Schiffe, und die Spielleitung des Empfängers stellt es zu. Diese Seite zeigt keine Briefe, sie zählt sie nur.</p>
+    <p class="leise">Die beiden Knöpfe sind für Spielleitungen, die die Datenbank nicht selbst lesen oder schreiben können (Werkstatt 22.1). Lies weder das Paket noch den Nachtrag: Beides ist Wissen der Spielleitung, wie die Spoilerdatei.</p>
+    <div class="rechner">
+      <form id="form-paket" novalidate>
+        <h3>Sitzungspaket speichern</h3>
+        <p class="leise">Alle Sammlungen als <code>01_chronik.md</code>. Leg die Datei ungelesen ins Projekt, an die Stelle der alten.</p>
+        <div class="feldreihe">
+          <label for="paket-ab">Chronik ab Welttag
+            <input type="number" id="paket-ab" inputmode="numeric" step="1" value="1">
+          </label>
+          <button type="submit" class="haupt" id="speichere-paket">Paket speichern</button>
+        </div>
+        <p class="meldung" id="paket-meldung" aria-live="polite"></p>
+        <div class="ersatz" id="paket-ersatz" hidden>
+          <p class="leise">Speichern geht in dieser Ansicht nicht. Kopier den Text und leg ihn selbst als Datei an.</p>
+          <textarea id="paket-text" readonly aria-label="Sitzungspaket zum Kopieren"></textarea>
+          <div class="knoepfe"><button type="button" id="kopiere-paket">Text kopieren</button></div>
+        </div>
+      </form>
+      <form id="form-nachtrag" novalidate>
+        <h3>Nachtrag einreichen</h3>
+        <p class="leise">Die Datei <code>chroniknachtrag.json</code> vom Sitzungsende, oder ihr Inhalt als Text.</p>
+        <label for="nachtrag-datei">Datei
+          <input type="file" id="nachtrag-datei" accept=".json,.txt,application/json,text/plain">
+        </label>
+        <label for="nachtrag-text">Oder als Text
+          <textarea class="block" id="nachtrag-text" spellcheck="false" placeholder='{"figur": "…", "stand": "…", "eintraege": [ … ]}'></textarea>
+        </label>
+        <div class="knoepfe"><button type="submit" class="haupt" id="reiche-ein">Einreichen</button></div>
+        <p class="meldung" id="nachtrag-meldung" aria-live="polite"></p>
+      </form>
+    </div>
+    <details>
+      <summary>Aufbau des Chroniknachtrags</summary>
+      <p class="leise" style="margin-top:0.75rem">Ein json-Objekt mit der Figur, dem Datum und einer Liste von Einträgen (das Beispiel ist erfunden). Jeder Eintrag nennt die Sammlung, die Id und die Felder. Gibt es das Dokument schon, werden nur die genannten Felder ergänzt; sonst wird es angelegt.</p>
+      <pre>{
+  "figur": "probefigur",
+  "stand": "21.10.2026",
+  "eintraege": [
+    { "sammlung": "chronik", "id": "wt0003-muehlfurt-brand",
+      "daten": { "welttag": 3, "datum": "3. Patchwall 576 CY", "ort": "Mühlfurt",
+                 "revier": "probe-revier", "figuren": ["Probefigur"],
+                 "art": "ereignis", "oeffentlich": "…", "verbreitung": "…",
+                 "geheim": "…", "quelle": "Spielername, Sitzung 2",
+                 "eingetragen": "2026-10-21" } },
+    { "sammlung": "post", "id": "wt3-probefigur-an-bodil",
+      "daten": { "von": "Probefigur", "an": "Wirtin Bodil, Mühlfurt",
+                 "abgeschickt": { "welttag": 3, "ort": "Rohrdorf" }, "weg": "Bote",
+                 "ankunft": { "welttag": 4, "ort": "Mühlfurt" }, "inhalt": "…",
+                 "siegel": "Wachs", "sprache": "Gemeinsprache", "zugestellt": false } },
+    { "sammlung": "figuren", "id": "probefigur",
+      "daten": { "stand": { "welttag": 3, "datum": "3. Patchwall 576 CY",
+                            "tageszeit": "Abend", "ort": "Rohrdorf" },
+                 "aktualisiert": "2026-10-21" } }
+  ]
+}</pre>
+    </details>
+  </section>
+
+  <section id="kalender" aria-labelledby="kalender-titel">
+    <h2 id="kalender-titel">Weltkalender</h2>
+    <p>Alle Figuren zählen in Welttagen. Monate haben 28 Tage, die vier Festwochen sieben. Luna ist an Welttag 11 voll und läuft streng im 28-Tage-Takt.</p>
+    <div class="rechner">
+      <form id="form-tag" novalidate>
+        <h3>Welttag zu Datum</h3>
+        <div class="feldreihe">
+          <label for="welttag">Welttag
+            <input type="number" id="welttag" inputmode="numeric" step="1" value="8">
+          </label>
+        </div>
+        <p class="ergebnis" id="ergebnis-tag" aria-live="polite"></p>
+      </form>
+      <form id="form-datum" novalidate>
+        <h3>Datum zu Welttag</h3>
+        <div class="feldreihe">
+          <label for="tag-im-monat">Tag
+            <input type="number" id="tag-im-monat" inputmode="numeric" min="1" max="28" step="1" value="1">
+          </label>
+          <label for="monat">Monat
+            <select id="monat"></select>
+          </label>
+        </div>
+        <p class="ergebnis" id="ergebnis-datum" aria-live="polite"></p>
+      </form>
+    </div>
+    <details>
+      <summary>Monate im ersten Jahr der Welt</summary>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Monat</th><th>Welttage</th><th>Vollmond</th><th>Dunkelmond</th></tr></thead>
+          <tbody id="monatstabelle"></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section id="laufzeit" aria-labelledby="laufzeit-titel">
+    <h2 id="laufzeit-titel">Laufzeit der Post</h2>
+    <p>Ein Brief braucht so viele Tage, wie der Rasterabstand der beiden Orte mal 1,3, geteilt durch die Tagesleistung des Trägers, aufgerundet ergibt, mindestens einen. Die Wartezeit auf den Träger kommt dazu (Regelwerk 17.5). Die Orte stammen aus der Chronik; eine Einheit ist eine Stunde zu Fuß.</p>
+    <div class="rechner">
+      <form id="form-laufzeit" novalidate>
+        <h3>Von Ort zu Ort</h3>
+        <div class="feldreihe">
+          <label for="post-von">Von
+            <select id="post-von"></select>
+          </label>
+          <label for="post-nach">Nach
+            <select id="post-nach"></select>
+          </label>
+        </div>
+        <div class="feldreihe">
+          <label for="post-weg">Träger
+            <select id="post-weg"></select>
+          </label>
+          <label for="post-tag">Abgeschickt am Welttag
+            <input type="number" id="post-tag" inputmode="numeric" step="1" value="9">
+          </label>
+        </div>
+        <label class="wahl" for="post-alle"><input type="checkbox" id="post-alle"> auch Orte aus Revieren zeigen (Wissen der Spielleitung, nennt fremde Orte)</label>
+        <p class="ergebnis" id="ergebnis-laufzeit" aria-live="polite">Die Orte laden, sobald die Chronik verbunden ist.</p>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <p>Regeln ändert nur der Weltenhüter. Weicht die Version oben von deinem <code>00_regelwerk.md</code> ab, hol Regelwerk und Werkstatt neu aus dem <a href="https://claude.ai/artifact/TBdN725HV7U3bjcmiFHiQg" target="_blank" rel="noopener">Eingang nach Oerik</a>.</p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // Adresse dieser Chronik auf claude.ai; wird beim Veröffentlichen eingetragen.
+  var CHRONIK_ADRESSE = "https://claude.ai/artifact/Nzt2tuArXkRunn9dQezv4U";
+
+  // ---------- Weltkalender ----------
+  // [Name, Länge in Tagen, Jahresversatz gegenüber 576 im ersten Zyklus]
+  var ABSCHNITTE = [
+    ["Patchwall", 28, 0], ["Ready'reat", 28, 0], ["Sunsebb", 28, 0],
+    ["Needfest", 7, 1], ["Fireseek", 28, 1], ["Readying", 28, 1], ["Coldeven", 28, 1],
+    ["Growfest", 7, 1], ["Planting", 28, 1], ["Flocktime", 28, 1], ["Wealsun", 28, 1],
+    ["Richfest", 7, 1], ["Reaping", 28, 1], ["Goodmonth", 28, 1], ["Harvester", 28, 1],
+    ["Brewfest", 7, 1]
+  ];
+  var JAHR = 364;
+
+  function zuDatum(w) {
+    var zyklus = Math.floor((w - 1) / JAHR);
+    var rest = ((w - 1) % JAHR + JAHR) % JAHR;
+    for (var i = 0; i < ABSCHNITTE.length; i++) {
+      var a = ABSCHNITTE[i];
+      if (rest < a[1]) {
+        return { tag: rest + 1, monat: a[0], jahr: 576 + zyklus + a[2], fest: a[1] === 7 };
+      }
+      rest -= a[1];
+    }
+    return null;
+  }
+
+  function zuWelttag(index, tag) {
+    var w = 1;
+    for (var i = 0; i < index; i++) w += ABSCHNITTE[i][1];
+    return w + tag - 1;
+  }
+
+  var PHASEN = [
+    [0, "🌕", "Vollmond"], [1, "🌖", "abnehmend"], [7, "🌗", "letztes Viertel"],
+    [8, "🌘", "abnehmende Sichel"], [14, "🌑", "Dunkelmond"], [15, "🌒", "zunehmende Sichel"],
+    [21, "🌓", "erstes Viertel"], [22, "🌔", "zunehmend"]
+  ];
+
+  function luna(w) {
+    var d = ((w - 11) % 28 + 28) % 28;
+    var phase = PHASEN[0];
+    for (var i = 0; i < PHASEN.length; i++) {
+      if (d >= PHASEN[i][0]) phase = PHASEN[i];
+    }
+    var bisVoll = (28 - d) % 28;
+    var bisDunkel = ((14 - d) % 28 + 28) % 28;
+    var hinweis = "";
+    if (d !== 0 && d !== 14) {
+      hinweis = bisVoll <= bisDunkel
+        ? "Vollmond in " + bisVoll + (bisVoll === 1 ? " Nacht" : " Nächten")
+        : "Dunkelmond in " + bisDunkel + (bisDunkel === 1 ? " Nacht" : " Nächten");
+    }
+    return { zeichen: phase[1], name: phase[2], hinweis: hinweis };
+  }
+
+  function datumText(d) {
+    return d.tag + ". " + d.monat + " " + d.jahr + " CY" + (d.fest ? " (Festwoche)" : "");
+  }
+
+  function zeigeDatum(el, w) {
+    el.textContent = "";
+    var d = zuDatum(w);
+    if (!d) return;
+    var l = luna(w);
+    var datum = document.createElement("span");
+    datum.className = "datum";
+    datum.textContent = datumText(d);
+    var mond = document.createElement("span");
+    mond.className = "mond";
+    mond.textContent = "Welttag " + w + " · Luna " + l.zeichen + " " + l.name + (l.hinweis ? ", " + l.hinweis : "");
+    el.appendChild(datum);
+    el.appendChild(mond);
+  }
+
+  var eingabeTag = document.getElementById("welttag");
+  var ergebnisTag = document.getElementById("ergebnis-tag");
+  function rechneTag() {
+    var w = parseInt(eingabeTag.value, 10);
+    if (isNaN(w)) { ergebnisTag.textContent = "Gib einen Welttag als ganze Zahl ein, auch negativ für die Zeit vor dem Start."; return; }
+    zeigeDatum(ergebnisTag, w);
+  }
+  eingabeTag.addEventListener("input", rechneTag);
+  document.getElementById("form-tag").addEventListener("submit", function (e) { e.preventDefault(); rechneTag(); });
+
+  var monatWahl = document.getElementById("monat");
+  var tagImMonat = document.getElementById("tag-im-monat");
+  var ergebnisDatum = document.getElementById("ergebnis-datum");
+  ABSCHNITTE.forEach(function (a, i) {
+    var o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = a[0] + " " + (576 + a[2]) + (a[1] === 7 ? " (Festwoche)" : "");
+    monatWahl.appendChild(o);
+  });
+  function rechneDatum() {
+    var i = parseInt(monatWahl.value, 10);
+    var laenge = ABSCHNITTE[i][1];
+    tagImMonat.max = String(laenge);
+    var t = parseInt(tagImMonat.value, 10);
+    if (isNaN(t) || t < 1 || t > laenge) {
+      ergebnisDatum.textContent = "Der " + ABSCHNITTE[i][0] + " hat " + laenge + " Tage. Gib einen Tag von 1 bis " + laenge + " ein.";
+      return;
+    }
+    zeigeDatum(ergebnisDatum, zuWelttag(i, t));
+  }
+  monatWahl.addEventListener("change", rechneDatum);
+  tagImMonat.addEventListener("input", rechneDatum);
+  document.getElementById("form-datum").addEventListener("submit", function (e) { e.preventDefault(); rechneDatum(); });
+
+  var tabelle = document.getElementById("monatstabelle");
+  ABSCHNITTE.forEach(function (a, i) {
+    var start = zuWelttag(i, 1);
+    var ende = start + a[1] - 1;
+    var voll = [], dunkel = [];
+    for (var w = start; w <= ende; w++) {
+      var d = ((w - 11) % 28 + 28) % 28;
+      if (d === 0) voll.push(zuDatum(w).tag + ".");
+      if (d === 14) dunkel.push(zuDatum(w).tag + ".");
+    }
+    var tr = document.createElement("tr");
+    if (a[1] === 7) tr.className = "fest";
+    [a[0] + " " + (576 + a[2]), start + "–" + ende, voll.join(", ") || "–", dunkel.join(", ") || "–"].forEach(function (text, k) {
+      var td = document.createElement("td");
+      if (k > 0) td.className = "zahl";
+      td.textContent = text;
+      tr.appendChild(td);
+    });
+    tabelle.appendChild(tr);
+  });
+
+  rechneTag();
+  rechneDatum();
+
+  // ---------- Kopieren und Speichern ----------
+  function kopiere(text, meldung, knopf) {
+    function zeige(t, art) { meldung.textContent = t; if (art) meldung.dataset.art = art; else delete meldung.dataset.art; }
+    try {
+      navigator.clipboard.writeText(text).then(function () {
+        zeige("Kopiert.", "gut");
+      }, function () {
+        zeige("Kopieren ging nicht. Markier den Text und kopier ihn selbst.", "warnung");
+      });
+    } catch (e) {
+      zeige("Kopieren ging nicht. Markier den Text und kopier ihn selbst.", "warnung");
+    }
+  }
+
+  var ladeMeldung = document.getElementById("lade-meldung");
+
+  function setzeMeldung(el, text, art) {
+    el.textContent = text;
+    if (art) el.dataset.art = art; else delete el.dataset.art;
+  }
+
+  if (CHRONIK_ADRESSE) {
+    document.getElementById("adresse").textContent = CHRONIK_ADRESSE;
+    document.getElementById("kopiere-adresse").addEventListener("click", function () {
+      kopiere(CHRONIK_ADRESSE, ladeMeldung);
+    });
+  }
+
+  // ---------- Chronik ----------
+  var zustand = document.getElementById("zustand");
+  function setzeZustand(text, art) {
+    zustand.textContent = text;
+    if (art) zustand.dataset.art = art; else delete zustand.dataset.art;
+  }
+  function setze(id, wert) { document.getElementById(id).textContent = String(wert); }
+
+  // Sammlungen der Chronik (Regelwerk 18), in dieser Reihenfolge auch im Sitzungspaket.
+  var SAMMLUNGEN = ["figuren", "reviere", "laender", "orte", "chronik", "ruf", "geheimnisse", "post", "treffen", "nachtraege"];
+  var dbPromise = window.claude ? window.claude.use("db") : Promise.resolve(null);
+  var dbBereit = null;
+  var letzterStand = "";
+
+  function docsVon(snap) {
+    return snap.docs.filter(function (d) { return d.exists && d.data(); }).map(function (d) {
+      return { id: d.id, daten: d.data() };
+    });
+  }
+
+  function ladeAlles(db) {
+    return Promise.all([db.doc("meta/welt").get()].concat(SAMMLUNGEN.map(function (s) {
+      return db.collection(s).get();
+    }))).then(function (r) {
+      var alles = { meta: r[0].exists ? r[0].data() : null };
+      SAMMLUNGEN.forEach(function (s, i) { alles[s] = docsVon(r[i + 1]); });
+      return alles;
+    });
+  }
+
+  // "Zuletzt geändert": das jüngste Datum aus meta, den Figuren und den Nachträgen.
+  function alsZeit(text) {
+    if (!text) return 0;
+    var m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})/.exec(String(text));
+    if (m) return Date.UTC(+m[3], +m[2] - 1, +m[1]);
+    var t = Date.parse(String(text));
+    return isNaN(t) ? 0 : t;
+  }
+  function alsDatum(zeit) {
+    var d = new Date(zeit);
+    function zwei(n) { return (n < 10 ? "0" : "") + n; }
+    return zwei(d.getUTCDate()) + "." + zwei(d.getUTCMonth() + 1) + "." + d.getUTCFullYear();
+  }
+  function standVon(alles) {
+    var zeiten = [alsZeit(alles.meta && alles.meta.aktualisiert)];
+    alles.figuren.forEach(function (f) { zeiten.push(alsZeit(f.daten.aktualisiert)); });
+    alles.nachtraege.forEach(function (n) { zeiten.push(alsZeit(n.daten.eingereicht)); });
+    var max = Math.max.apply(null, zeiten);
+    return max > 0 ? alsDatum(max) : "";
+  }
+
+  function zeigeZaehlungen(alles) {
+    var meta = alles.meta;
+    if (meta && meta.regelwerk_version) setze("version", meta.regelwerk_version);
+    setze("z-figuren", alles.figuren.filter(function (f) { return f.daten.status === "aktiv"; }).length);
+    setze("z-reviere", alles.reviere.length);
+    setze("z-laender", alles.laender.length);
+    setze("z-chronik", alles.chronik.length);
+    setze("z-geheimnisse", alles.geheimnisse.length);
+    setze("z-post", alles.post.filter(function (p) { return p.daten.zugestellt !== true && !(p.daten.zugestellt && p.daten.zugestellt.welttag); }).length);
+    setze("z-treffen", alles.treffen.filter(function (t) { return t.daten.status === "verabredet"; }).length);
+    letzterStand = standVon(alles);
+    var stand = letzterStand ? " Zuletzt geändert: " + letzterStand + "." : "";
+    setzeZustand(alles.figuren.length === 0 && alles.chronik.length === 0 ? "Verbunden. Die Chronik ist noch leer." : "Verbunden." + stand, "gut");
+    fuelleOrte(alles.orte);
+  }
+
+  function ladeUndZeige(db) {
+    return ladeAlles(db).then(function (alles) { zeigeZaehlungen(alles); return alles; });
+  }
+
+  dbPromise.then(function (db) {
+    if (!db) {
+      setzeZustand("Die Chronik ist in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet auf claude.ai.", "warnung");
+      ergebnisLaufzeit.textContent = "Die Orte sind in dieser Ansicht nicht erreichbar. Öffne die Seite angemeldet auf claude.ai.";
+      return;
+    }
+    dbBereit = db;
+    return ladeUndZeige(db);
+  }).catch(function (fehler) {
+    var code = fehler && fehler.code;
+    if (code === "unavailable") setzeZustand("Die Chronik antwortet gerade nicht. Lade die Seite gleich noch einmal.", "warnung");
+    else setzeZustand("Die Chronik ließ sich nicht lesen (" + (code || "Fehler") + ").", "warnung");
+  });
+
+  // ---------- Laufzeit der Post (Regelwerk 17.5) ----------
+  var TRAEGER = [
+    ["Bote zu Fuß", 8],
+    ["Berittener Bote", 12],
+    ["Schiff, Hafen zu Hafen", 16],
+    ["Reisende, Händler, Fuhrwerk", 6]
+  ];
+  var orte = [];
+  var postVon = document.getElementById("post-von");
+  var postNach = document.getElementById("post-nach");
+  var postWeg = document.getElementById("post-weg");
+  var postTag = document.getElementById("post-tag");
+  var ergebnisLaufzeit = document.getElementById("ergebnis-laufzeit");
+
+  TRAEGER.forEach(function (t, i) {
+    var o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = t[0] + " · " + t[1] + " Einheiten am Tag";
+    postWeg.appendChild(o);
+  });
+
+  var alleOrte = [];
+  document.getElementById("post-alle").addEventListener("change", function () { postVon.value = ""; postNach.value = ""; fuelleOrte(alleOrte); });
+  function fuelleOrte(liste) {
+    alleOrte = liste;
+    var alle = document.getElementById("post-alle").checked;
+    orte = liste.filter(function (o) {
+      return o.daten && typeof o.daten.x === "number" && typeof o.daten.y === "number" && o.daten.name && (alle || o.daten.kanon === true);
+    }).map(function (o) { return { id: o.id, name: String(o.daten.name), x: o.daten.x, y: o.daten.y }; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, "de"); });
+    [postVon, postNach].forEach(function (sel) {
+      var vorher = sel.value;
+      sel.textContent = "";
+      orte.forEach(function (o, i) {
+        var opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = o.name;
+        sel.appendChild(opt);
+      });
+      if (vorher !== "" && +vorher < orte.length) sel.value = vorher;
+    });
+    if (orte.length > 1 && postVon.value === postNach.value) postNach.value = "1";
+    rechneLaufzeit();
+  }
+
+  function rechneLaufzeit() {
+    if (!orte.length) {
+      if (dbBereit) ergebnisLaufzeit.textContent = "In der Chronik stehen noch keine Orte.";
+      return;
+    }
+    var a = orte[parseInt(postVon.value, 10)] || orte[0];
+    var b = orte[parseInt(postNach.value, 10)] || orte[0];
+    var traeger = TRAEGER[parseInt(postWeg.value, 10)] || TRAEGER[0];
+    var ab = parseInt(postTag.value, 10);
+    ergebnisLaufzeit.textContent = "";
+    if (a === b) {
+      ergebnisLaufzeit.textContent = "Derselbe Ort: Der Brief wartet dort, bis der Empfänger kommt oder jemand ihn mitnimmt.";
+      return;
+    }
+    var abstand = Math.hypot(a.x - b.x, a.y - b.y);
+    var strecke = abstand * 1.3;
+    var tage = Math.max(1, Math.ceil(strecke / traeger[1]));
+    var kopf = document.createElement("span");
+    kopf.className = "datum";
+    kopf.textContent = tage + (tage === 1 ? " Tag" : " Tage") + " mit " + traeger[0];
+    var rest = document.createElement("span");
+    rest.className = "mond";
+    var text = "Abstand " + abstand.toFixed(1).replace(".", ",") + " Einheiten, Weg etwa " + strecke.toFixed(1).replace(".", ",") + " Einheiten";
+    if (!isNaN(ab)) {
+      var d = zuDatum(ab + tage);
+      text += " · frühestens Welttag " + (ab + tage) + (d ? " (" + datumText(d) + ")" : "");
+    }
+    text += " · dazu die Wartezeit auf den Träger.";
+    rest.textContent = text;
+    ergebnisLaufzeit.appendChild(kopf);
+    ergebnisLaufzeit.appendChild(rest);
+  }
+  [postVon, postNach, postWeg].forEach(function (el) { el.addEventListener("change", rechneLaufzeit); });
+  postTag.addEventListener("input", rechneLaufzeit);
+  document.getElementById("form-laufzeit").addEventListener("submit", function (e) { e.preventDefault(); rechneLaufzeit(); });
+
+  // ---------- Sitzungspaket (Regelwerk 18, Werkstatt 22.1) ----------
+  var paketMeldung = document.getElementById("paket-meldung");
+  var paketAb = document.getElementById("paket-ab");
+  var paketKnopf = document.getElementById("speichere-paket");
+  var paketErsatz = document.getElementById("paket-ersatz");
+  var paketText = document.getElementById("paket-text");
+
+  function heuteISO() { return new Date().toISOString().slice(0, 10); }
+
+  function bauePaket(alles, abWelttag) {
+    var zeilen = [];
+    zeilen.push("# Chronik von Oerik – Sitzungspaket");
+    zeilen.push("");
+    zeilen.push("*Nur für die Spielleitung. Spieler: ungelesen als 01_chronik.md ins Projekt laden. Stand der Chronik: " + (standVon(alles) || "unbekannt") + " · gespeichert am " + heuteISO() + " · Regelwerk " + (alles.meta && alles.meta.regelwerk_version ? alles.meta.regelwerk_version : "?") + (abWelttag > 1 ? " · Chronik ab Welttag " + abWelttag : "") + "*");
+    zeilen.push("");
+    zeilen.push("Die Spielleitung liest dieses Paket statt der Datenbank (Regelwerk 18, Werkstatt 22.1): zu Beginn der Sitzung meta/welt, figuren, reviere, orte, geheimnisse, die Post an die eigene Figur, die eigenen Treffen und die Chronik bis zum Datum der eigenen Figur. Jeder Abschnitt ist eine Sammlung, jede Zeile ein Dokument mit seiner id. Was beim Sitzungsende neu ist, kommt als Chroniknachtrag zurück.");
+    zeilen.push("");
+    zeilen.push("## meta/welt");
+    zeilen.push("```json");
+    zeilen.push(JSON.stringify(alles.meta || {}));
+    zeilen.push("```");
+    SAMMLUNGEN.forEach(function (s) {
+      var docs = alles[s].slice();
+      if (s === "chronik") {
+        docs = docs.filter(function (d) { return typeof d.daten.welttag !== "number" || d.daten.welttag >= abWelttag; });
+        docs.sort(function (p, q) { return (p.daten.welttag || 0) - (q.daten.welttag || 0) || p.id.localeCompare(q.id); });
+      } else {
+        docs.sort(function (p, q) { return p.id.localeCompare(q.id); });
+      }
+      zeilen.push("");
+      zeilen.push("## " + s + " (" + docs.length + ")");
+      zeilen.push("```json");
+      docs.forEach(function (d) {
+        var o = { id: d.id };
+        Object.keys(d.daten).forEach(function (k) { o[k] = d.daten[k]; });
+        zeilen.push(JSON.stringify(o));
+      });
+      zeilen.push("```");
+    });
+    zeilen.push("");
+    return zeilen.join("\n");
+  }
+
+  document.getElementById("form-paket").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var ab = parseInt(paketAb.value, 10);
+    if (isNaN(ab)) ab = 1;
+    paketKnopf.disabled = true;
+    paketErsatz.hidden = true;
+    setzeMeldung(paketMeldung, "Lese die Chronik …");
+    dbPromise.then(function (db) {
+      if (!db) {
+        setzeMeldung(paketMeldung, "In dieser Ansicht nicht möglich. Öffne die Seite angemeldet auf claude.ai.", "warnung");
+        return;
+      }
+      return ladeUndZeige(db).then(function (alles) {
+        var text = bauePaket(alles, ab);
+        return (window.claude ? window.claude.use("downloads") : Promise.resolve(null)).then(function (downloads) {
+          if (!downloads) {
+            setzeMeldung(paketMeldung, "");
+            paketText.value = text;
+            paketErsatz.hidden = false;
+            return;
+          }
+          return downloads.save({ filename: "01_chronik.md", data: text }).then(function (res) {
+            setzeMeldung(paketMeldung, res && res.status === "saved" ? "01_chronik.md gespeichert. Ungelesen ins Projekt laden." : "", "gut");
+          }, function (fehler) {
+            var code = fehler && fehler.code;
+            if (code === "declined") setzeMeldung(paketMeldung, "Speichern abgebrochen.");
+            else if (code === "rate_limited") setzeMeldung(paketMeldung, "Es läuft schon ein Speichern. Versuch es gleich noch einmal.", "warnung");
+            else { setzeMeldung(paketMeldung, ""); paketText.value = text; paketErsatz.hidden = false; }
+          });
+        });
+      });
+    }).catch(function (fehler) {
+      var code = fehler && fehler.code;
+      setzeMeldung(paketMeldung, "Die Chronik ließ sich nicht lesen (" + (code || "Fehler") + "). Versuch es später noch einmal.", "warnung");
+    }).then(function () { paketKnopf.disabled = false; });
+  });
+  document.getElementById("kopiere-paket").addEventListener("click", function () {
+    kopiere(paketText.value, paketMeldung);
+  });
+
+  // ---------- Chroniknachtrag (Regelwerk 18) ----------
+  var nachtragMeldung = document.getElementById("nachtrag-meldung");
+  var nachtragDatei = document.getElementById("nachtrag-datei");
+  var nachtragText = document.getElementById("nachtrag-text");
+  var nachtragKnopf = document.getElementById("reiche-ein");
+  var SCHREIBBAR = ["figuren", "reviere", "laender", "orte", "chronik", "ruf", "geheimnisse", "post", "treffen"];
+  var ID_RE = /^(?!\.\.?$)[A-Za-z0-9_\-.~:@+]{1,200}$/;
+
+  function liesNachtrag() {
+    var datei = nachtragDatei.files && nachtragDatei.files[0];
+    if (datei) {
+      return new Promise(function (ok, nein) {
+        var leser = new FileReader();
+        leser.onload = function () { ok(String(leser.result || "")); };
+        leser.onerror = function () { nein(new Error("Die Datei ließ sich nicht lesen.")); };
+        leser.readAsText(datei);
+      });
+    }
+    return Promise.resolve(nachtragText.value);
+  }
+
+  function pruefeNachtrag(text) {
+    var roh = String(text || "").trim();
+    var anfang = roh.indexOf("{");
+    var ende = roh.lastIndexOf("}");
+    if (anfang < 0 || ende < anfang) throw new Error("Kein json-Objekt gefunden. Der Nachtrag beginnt mit { und endet mit }.");
+    var obj;
+    try { obj = JSON.parse(roh.slice(anfang, ende + 1)); }
+    catch (e) { throw new Error("Das json ist nicht lesbar: " + e.message); }
+    if (!obj || typeof obj !== "object" || !Array.isArray(obj.eintraege)) throw new Error("Dem Nachtrag fehlt die Liste eintraege.");
+    if (obj.eintraege.length === 0) throw new Error("Der Nachtrag enthält keine Einträge.");
+    if (obj.eintraege.length > 200) throw new Error("Höchstens 200 Einträge je Nachtrag.");
+    var gesehen = {};
+    obj.eintraege.forEach(function (e, i) {
+      var nr = "Eintrag " + (i + 1) + ": ";
+      if (!e || typeof e !== "object") throw new Error(nr + "kein Objekt.");
+      if (SCHREIBBAR.indexOf(e.sammlung) < 0) throw new Error(nr + "unbekannte Sammlung „" + e.sammlung + "“. Erlaubt: " + SCHREIBBAR.join(", ") + ".");
+      if (typeof e.id !== "string" || !ID_RE.test(e.id)) throw new Error(nr + "die id „" + e.id + "“ darf nur Buchstaben, Ziffern und _ - . ~ : @ + enthalten.");
+      if (!e.daten || typeof e.daten !== "object" || Array.isArray(e.daten)) throw new Error(nr + "daten muss ein Objekt sein.");
+      var pfad = e.sammlung + "/" + e.id;
+      if (gesehen[pfad]) throw new Error(nr + pfad + " kommt doppelt vor.");
+      gesehen[pfad] = true;
+    });
+    return obj;
+  }
+
+  function schreibeNachtrag(db, obj) {
+    var neu = 0, ergaenzt = 0;
+    var kette = Promise.resolve();
+    obj.eintraege.forEach(function (e) {
+      kette = kette.then(function () {
+        var ref = db.doc(e.sammlung + "/" + e.id);
+        return ref.get().then(function (snap) {
+          if (snap.exists) { ergaenzt++; return ref.update(e.daten); }
+          neu++;
+          return ref.set(e.daten);
+        });
+      });
+    });
+    return kette.then(function () {
+      var figur = typeof obj.figur === "string" && obj.figur ? obj.figur : "unbekannt";
+      var stempel = new Date().toISOString();
+      var id = stempel.replace(/[^0-9T]/g, "").slice(0, 15) + "-" + figur.replace(/[^A-Za-z0-9_\-.~:@+]/g, "-").slice(0, 60);
+      return db.doc("nachtraege/" + id).set({
+        figur: figur,
+        stand: typeof obj.stand === "string" ? obj.stand : "",
+        eingereicht: stempel,
+        anzahl: obj.eintraege.length,
+        neu: neu,
+        ergaenzt: ergaenzt
+      }).then(function () { return { neu: neu, ergaenzt: ergaenzt }; }, function () { return { neu: neu, ergaenzt: ergaenzt }; });
+    });
+  }
+
+  document.getElementById("form-nachtrag").addEventListener("submit", function (e) {
+    e.preventDefault();
+    nachtragKnopf.disabled = true;
+    setzeMeldung(nachtragMeldung, "Prüfe den Nachtrag …");
+    var obj;
+    liesNachtrag().then(function (text) {
+      obj = pruefeNachtrag(text);
+      return dbPromise;
+    }).then(function (db) {
+      if (!db) {
+        setzeMeldung(nachtragMeldung, "In dieser Ansicht nicht möglich. Öffne die Seite angemeldet auf claude.ai, oder schick den Nachtrag Max.", "warnung");
+        return;
+      }
+      setzeMeldung(nachtragMeldung, "Schreibe " + obj.eintraege.length + (obj.eintraege.length === 1 ? " Eintrag …" : " Einträge …"));
+      return schreibeNachtrag(db, obj).then(function (ergebnis) {
+        setzeMeldung(nachtragMeldung, "Eingetragen: " + ergebnis.neu + " neu, " + ergebnis.ergaenzt + " ergänzt. Danke, Bote.", "gut");
+        nachtragText.value = "";
+        nachtragDatei.value = "";
+        return ladeUndZeige(db);
+      });
+    }).catch(function (fehler) {
+      var code = fehler && fehler.code;
+      if (code === "invalid_argument") setzeMeldung(nachtragMeldung, "Kein Schreibrecht, oder ein Eintrag passt nicht in die Chronik. Bitte Max, dich per E-Mail als Bearbeiter einzuladen, oder schick ihm den Nachtrag.", "warnung");
+      else if (code === "quota_exceeded") setzeMeldung(nachtragMeldung, "Die Chronik ist voll. Sag Max Bescheid.", "warnung");
+      else if (code === "unavailable") setzeMeldung(nachtragMeldung, "Die Chronik antwortet gerade nicht. Versuch es gleich noch einmal; schon Geschriebenes bleibt.", "warnung");
+      else setzeMeldung(nachtragMeldung, (fehler && fehler.message) || "Das ging nicht. Versuch es noch einmal.", "warnung");
+    }).then(function () { nachtragKnopf.disabled = false; });
+  });
+
+  // ---------- Schreibrecht ----------
+  var zugangMeldung = document.getElementById("zugang-meldung");
+  var pruefKnopf = document.getElementById("pruefe-zugang");
+
+  pruefKnopf.addEventListener("click", function () {
+    pruefKnopf.disabled = true;
+    setzeMeldung(zugangMeldung, "Prüfe …");
+    dbPromise.then(function (db) {
+      if (!db) {
+        setzeMeldung(zugangMeldung, "In dieser Ansicht nicht prüfbar. Öffne die Seite angemeldet auf claude.ai.", "warnung");
+        return;
+      }
+      var probe = db.collection("zugangstest").doc();
+      return probe.set({ geprueft: new Date().toISOString() }).then(function () {
+        return probe.delete().then(function () {
+          setzeMeldung(zugangMeldung, "Schreibrecht vorhanden. Deine Spielleitung kann die Chronik führen.", "gut");
+        });
+      }, function (fehler) {
+        var code = fehler && fehler.code;
+        if (code === "invalid_argument") {
+          setzeMeldung(zugangMeldung, "Nur Lesen. Bitte Max, dich per E-Mail als Bearbeiter einzuladen.", "warnung");
+        } else {
+          setzeMeldung(zugangMeldung, "Gerade nicht prüfbar (" + (code || "Fehler") + "). Versuch es später noch einmal.", "warnung");
+        }
+      });
+    }).catch(function () {
+      setzeMeldung(zugangMeldung, "Gerade nicht prüfbar. Versuch es später noch einmal.", "warnung");
+    }).then(function () {
+      pruefKnopf.disabled = false;
+    });
+  });
+})();
+</script>

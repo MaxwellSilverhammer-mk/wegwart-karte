@@ -17,7 +17,7 @@ var SPIELSTAND = [
 ].join('\n');
 var SPOILER = [
   '# SPOILER',
-  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Ortwin.',
+  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Hilmar.',
   '- Rohrdorf – Schwarzer Weiher 2 Stunden mit dem Kanu. Kapellenhügel – Weiher 1 Stunde über den Geheimpfad.',
   '- Das Dorf Nesselbrook kennt die Figur noch nicht.'
 ].join('\n');
@@ -45,13 +45,13 @@ function daten() {
 
 var faelle = {
   'Ort, der nur in der Spoilerdatei steht': function (d) { d.orte.push({ id: 'nesselbrook', name: 'Nesselbrook', x: 12, y: 8, art: 'dorf', bekannt: 'karte' }); },
-  'Notiz mit Namen aus der Spoilerdatei': function (d) { d.notizen.push({ ort: 'weiher', text: 'Kultführer Ortwin' }); },
+  'Notiz mit Namen aus der Spoilerdatei': function (d) { d.notizen.push({ ort: 'weiher', text: 'Kultführer Hilmar' }); },
   'Reisezeit, die nur die Spielleitung kennt': function (d) { d.wege.push({ von: 'rohrdorf', nach: 'weiher', art: 'wasser', bekannt: 'gehoert', quelle: 'Grit', zeit: '2 h Kanu' }); },
   'Weg, den keine Spielstandzeile verbindet': function (d) { d.wege.push({ von: 'kapelle', nach: 'weiher', art: 'pfad', bekannt: 'karte' }); },
   'falsche Reisezeit': function (d) { d.wege[0].zeit = '7 h'; },
   'unbekanntes Feld mit Geheimtext': function (d) { d.orte[0].geheim = 'versunkene Kapelle'; },
   'Hörensagen ohne Quelle': function (d) { delete d.orte[4].quelle; },
-  'Quelle, die der Spielstand nicht kennt': function (d) { d.orte[4].quelle = 'Ortwin'; },
+  'Quelle, die der Spielstand nicht kennt': function (d) { d.orte[4].quelle = 'Hilmar'; },
   'Spoilername in der id': function (d) { d.orte.push({ id: 'nesselbrook-furt', name: 'Mühlfurt', x: 5, y: 1, art: 'furt', bekannt: 'karte' }); },
   'ungültige Herkunft': function (d) { d.orte[0].bekannt = 'spoiler'; },
   'Wort, das nirgends steht': function (d) { d.orte[1].notiz += ' Wirt Zebulon.'; },

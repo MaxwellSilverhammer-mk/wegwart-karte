@@ -1,5 +1,5 @@
 /*
- * Wegwart-Karte – Kartentisch für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Karte – Kartentisch für die geteilte Welt „Oerik“
  * Version 1.0
  *
  * Aufruf in einem Visualizer-Widget:
@@ -8,7 +8,7 @@
  *   <script>var KARTE={titel:'Rund um Rohrdorf', orte:[…], wege:[…]}</script>
  *   <script src="https://cdn.jsdelivr.net/gh/<konto>/wegwart-karte@<stand>/karte.js"></script>
  *
- * Weltraster: 1 Einheit = 1 Stunde zu Fuß (etwa 4,5 km). Monmurg liegt bei (0, 0),
+ * Weltraster: 1 Einheit = 1 Stunde zu Fuß (etwa 4,5 km). Nullpunkt (0, 0) ist Monmurg,
  * x wächst nach Osten, y nach Süden. Alle Felder stehen in der README.
  */
 (function () {

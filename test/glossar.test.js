@@ -28,9 +28,9 @@ var SPIELSTAND = [
 ].join('\n');
 var SPOILER = [
   '# SPOILER',
-  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Ortwin.',
+  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Hilmar.',
   '- Jost ist ein Spitzel des Kults und verrät die Probefigur an Tag 14.',
-  '- Die Lichter am Weiher sind Laternen der Kultisten. Jaro Brandt ist Ortwins Neffe ☠️.',
+  '- Die Lichter am Weiher sind Laternen der Kultisten. Jaro Brandt ist Hilmars Neffe ☠️.',
   '### Die Kapelle Sankt Nebel',
   '- Der Kult nennt sie **Sankt Nebel**; ihr Schatz ist der **Nebelkelch**.'
 ].join('\n');
@@ -117,8 +117,8 @@ ok(rA.ok, 'Auszug geht durch, auch mit Verweis nach draußen', rA.fehler.join(' 
 
 // Gesperrt
 var sperren = {
-  'Neuer Eintrag mit Namen aus der Spoilerdatei': TEXT.replace('### Orte', '- **Ortwin**\n  - Führer des Kults. (von Bodo, Tag 3)\n\n### Orte'),
-  'Name aus der Spoilerdatei als Quelle': nach(TEXT, 'Bodo', '  - Kennt den Weiher. (von Ortwin, Tag 3)'),
+  'Neuer Eintrag mit Namen aus der Spoilerdatei': TEXT.replace('### Orte', '- **Hilmar**\n  - Führer des Kults. (von Bodo, Tag 3)\n\n### Orte'),
+  'Name aus der Spoilerdatei als Quelle': nach(TEXT, 'Bodo', '  - Kennt den Weiher. (von Hilmar, Tag 3)'),
   'Quelle, die der Spielstand nicht kennt': nach(TEXT, 'Bodo', '  - Kennt den Weiher. (von Grete, Tag 3)'),
   'Gehörtes ohne Quelle': nach(TEXT, 'Bodo', '  - Kennt den Weiher. (gehört, Tag 3)'),
   'Posten ohne Herkunft': nach(TEXT, 'Bodo', '  - Kennt den Weiher.'),
@@ -159,9 +159,9 @@ var rO = pruefe(TEXT, { karte: undefined, inventar: undefined, questlog: undefin
 ok(rO.ok && rO.hinweise.some(function (x) { return /ungeprüft/.test(x); }), 'Ohne Karte, Gepäck, Logbuch und Figuren nur Hinweise, keine Sperre');
 
 // Laufzeitsperre und Zeichnen
-var D2 = glossar.ausText(TEXT + '- **Ortwin**\n  - Führer des Kults.\n').D;
+var D2 = glossar.ausText(TEXT + '- **Hilmar**\n  - Führer des Kults.\n').D;
 var html = glossar.zeichne(D2);
-ok(glossar.sichtbar(D2).length === 7 && html.indexOf('Ortwin') < 0, 'Laufzeitsperre: ein Eintrag ohne gültigen Posten wird nicht gezeichnet');
+ok(glossar.sichtbar(D2).length === 7 && html.indexOf('Hilmar') < 0, 'Laufzeitsperre: ein Eintrag ohne gültigen Posten wird nicht gezeichnet');
 ok(html.indexOf('🎭 Wenzel Hartlieb') >= 0 && html.indexOf('eingeschätzt auf Stufe 2') >= 0 && html.indexOf('Nachfragen') < 0 && html.indexOf('Brief an') < 0, 'Zeichnen: 🎭, Gefahr mit Stufe, keine Spielhandlungen im Tisch');
 ok(html.indexOf('data-prompt="Questlog"') >= 0 && html.indexOf('data-prompt="Karte"') >= 0 && html.indexOf('data-prompt="Inventar"') >= 0, 'Zeichnen: Knöpfe zu Logbuch, Karte und Gepäck');
 var hA = glossar.zeichne(PA.D);

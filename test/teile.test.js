@@ -15,7 +15,7 @@ var geschichte = schreib('02_geschichte.md', [
   '### Sitzung 1, Tag 1',
   '- Der Vogt gab der Probefigur einen versiegelten Brief für die Wirtin Bodil in Mühlfurt.'
 ].join('\n'));
-var spoiler = schreib('03_spoiler.md', '# SPOILER\n- Der Brief des Vogts ist gefälscht; Bodil ist die Schwester des Kultführers Ortwin.\n');
+var spoiler = schreib('03_spoiler.md', '# SPOILER\n- Der Brief des Vogts ist gefälscht; Bodil ist die Schwester des Kultführers Hilmar.\n');
 var daten = schreib('02_inventar.md', '```json\n' + JSON.stringify({
   titel: 'Gepäck', stand: 'Stand: Tag 3',
   traeger: [{ id: 'selbst', name: 'Probefigur', art: 'figur', dinge: [
@@ -35,7 +35,7 @@ function erwarte(name, args, frei) {
 erwarte('ohne Geschichte fehlt der Beleg', [daten, kern, spoiler], false);
 erwarte('mit Geschichte als weiterem Teil belegt', [daten, kern, spoiler, geschichte], true);
 // Eine weitere Datei mit Spoilerwörtern macht nichts frei, was nur die Spoilerdatei kennt
-var spoilerDaten = schreib('02_inventar_spoiler.md', fs.readFileSync(daten, 'utf8').replace('Versiegelter Brief für die Wirtin Bodil in Mühlfurt.', 'Gefälschter Brief, Bodil ist Ortwins Schwester.'));
+var spoilerDaten = schreib('02_inventar_spoiler.md', fs.readFileSync(daten, 'utf8').replace('Versiegelter Brief für die Wirtin Bodil in Mühlfurt.', 'Gefälschter Brief, Bodil ist Hilmars Schwester.'));
 erwarte('Spoiler bleibt gesperrt', [spoilerDaten, kern, spoiler, geschichte], false);
 // Die Spoilerdatei mit Wissensbuch wird als Wissensbuch erkannt, auch wenn sie einen json-Block hat
 var wbSpoiler = schreib('03_mit_json.md', '# SPOILER\n```json\n{"notiz": 1}\n```\n- Der Brief des Vogts ist gefälscht.\n## Wer weiß was\n*Stand: Tag 3 · Figur: Probefigur*\n### Bodil\n- Der Vogt gab der Probefigur einen versiegelten Brief. (Gerücht, Tag 2; vom Boten)\n');

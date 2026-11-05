@@ -13,7 +13,7 @@ module.exports = {
   ziel: 'Das Tor halten, bis Rolf den Hebel hat',
   uhren: [{ name: 'Nebel', rest: 2 }],
   lage: ['Abenddämmerung', 'die Planken sind nass'],
-  reihenfolge: ['sch', 'pf', 'ulf', 'hu', 't1', 'ro', 't2', 'tm'],
+  reihenfolge: ['sch', 'pf', 'goswin', 'hu', 't1', 'ro', 't2', 'tm'],
   //            123456789012345678901234567890123456
   boden: [
     'gggggggggggggg,~~~~,eegeeegggggggggg',
@@ -73,8 +73,8 @@ module.exports = {
       // seit 1.6: Aktionen ohne Ziel; Spurt und Rückzug kennt die Karte selbst
       aktionen: [{ name: 'Hilfe', wirkung: 'Vorteil für den Nächsten, der das Ziel angreift' }, { name: 'Ausweichen', wirkung: 'Angriffe gegen dich mit Nachteil, GES-Rettungswürfe mit Vorteil' }] },
     { id: 'ro', name: 'Rolf', kurz: 'RO', art: 'gefolge', x: 14, y: 9, tp: [5, 11], notiz: 'will zum Hebel am Westufer', vorher: [12, 10] },
-    { id: 'ulf', name: 'Ulf', kurz: 'U', art: 'gegner', x: 21, y: 8, reichweite: 3, notiz: 'der Schleusenwärter, Spieß' },
-    { id: 'hu', name: 'Hund', kurz: 'HU', art: 'gegner', x: 22, y: 9, notiz: 'Ulfs Rüde', vorher: [24, 10] },
+    { id: 'goswin', name: 'Goswin', kurz: 'U', art: 'gegner', x: 21, y: 8, reichweite: 3, notiz: 'der Schleusenwärter, Spieß' },
+    { id: 'hu', name: 'Hund', kurz: 'HU', art: 'gegner', x: 22, y: 9, notiz: 'Goswins Rüde', vorher: [24, 10] },
     { id: 'sch', name: 'Schütze', kurz: 'S', art: 'gegner', x: 25, y: 5, notiz: 'Armbrust, auf der Deichkrone', gesehen: false },
     { id: 't1', name: 'Torfstecher 1', kurz: 'T1', art: 'gegner', x: 12, y: 12, zustand: 'angeschlagen', notiz: 'Torfspaten' },
     { id: 't2', name: 'Torfstecher 2', kurz: 'T2', art: 'gegner', x: 9, y: 13, notiz: 'Torfspaten', neu: true },

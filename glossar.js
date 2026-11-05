@@ -1,5 +1,5 @@
 /*
- * Wegwart-Glossar – Glossar für die geteilte Welt „Hold der Seeprinzen“
+ * Wegwart-Glossar – Glossar für die geteilte Welt „Oerik“
  * Version 1.0 (Entwurf)
  *
  * Aufruf in einem Visualizer-Widget: Die Spielleitung kopiert den Text aus 02_glossar.md unverändert
@@ -498,7 +498,7 @@
       (e.namen || []).forEach(function (n) { if (typeof n === 'string' && !byName[stichwort(n)]) byName[stichwort(n)] = e; });
     });
     // Spoilerwörter: ein Wort, das die Spoilerdatei kennt und der übrige Spielstand nicht. Kurze Wörter zählen nur
-    // wörtlich (sonst sperrt „fern“ wegen „Ferne“), längere auch gebeugt („Ortwins“ zu „Ortwin“).
+    // wörtlich (sonst sperrt „fern“ wegen „Ferne“), längere auch gebeugt („Hilmars“ zu „Hilmar“).
     var wSpExakt = {}, wRest = typeof q.namenKorpus === 'string' && h.wortschatz ? h.wortschatz(q.namenKorpus) : null;
     if (typeof q.spoiler === 'string' && h.woerterVon) h.woerterVon(q.spoiler).forEach(function (x) { wSpExakt[x] = true; });
     function spoilerWort(w) { return !!(wRest && h.wSpoiler && (wSpExakt[w] || (w.length >= 6 && h.kennt(h.wSpoiler, w))) && !h.kennt(wRest, w)); }

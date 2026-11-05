@@ -31,7 +31,7 @@ var SPIELSTAND = [
 ].join('\n');
 var SPOILER = [
   '# SPOILER',
-  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Ortwin.',
+  '- Im Schwarzen Weiher liegt die versunkene Kapelle des Kults; der Kultführer heißt Hilmar.',
   '- Jost ist ein Spitzel des Kults und verrät die Probefigur an Tag 14.',
   '- Die Lichter am Weiher sind Laternen der Kultisten.'
 ].join('\n');
@@ -70,17 +70,18 @@ function pruefe(art, d, q) {
 
 var faelle = {
   inventar: {
-    'Ding, das nur in der Spoilerdatei steht': function (d) { d.traeger[0].dinge.push({ name: 'Kultführer Ortwins Siegel', art: 'wertsache' }); },
+    'Ding, das nur in der Spoilerdatei steht': function (d) { d.traeger[0].dinge.push({ name: 'Kultführer Hilmars Siegel', art: 'wertsache' }); },
     'Notiz mit Wort aus der Spoilerdatei': function (d) { d.traeger[0].dinge[0].notiz = 'Gefunden bei den Kultisten.'; },
     'Notiz, die verstreute Wörter neu zusammensetzt': function (d) { d.traeger[0].dinge[3].notiz = 'Bodo bringt den Brief nach Rohrdorf.'; },
     'Wortlaut, der so nirgends steht': function (d) { d.traeger[0].dinge[3].wortlaut = 'Wer dies trägt, zahlt in Rohrdorf keinen Zoll.'; },
     'Glossar-Stichwort, das es nicht gibt': function (d) { d.traeger[0].dinge[0].glossar = 'Kurzschwert'; },
-    'Quelle, die der Spielstand nicht kennt': function (d) { d.traeger[0].dinge[0].quelle = 'Ortwin'; },
+    'Quelle, die der Spielstand nicht kennt': function (d) { d.traeger[0].dinge[0].quelle = 'Hilmar'; },
     'unbekanntes Feld mit Geheimtext': function (d) { d.traeger[0].dinge[0].geheim = 'versunkene Kapelle'; },
     'ungültige Art': function (d) { d.traeger[0].dinge[0].art = 'zauberding'; },
     'Name, der nirgends steht': function (d) { d.traeger[0].dinge.push({ name: 'Goldene Sanduhr', art: 'wertsache' }); },
+    'Münznamen in falscher Form': function (d) { d.muenzen = { taler: 'Taler' }; },
     'Zahl, die nirgends steht': function (d) { d.traeger[0].dinge[0].notiz = 'Kostete 73 Goldadmirale.'; },
-    'Spoilername in der id': function (d) { d.traeger[0].id = 'ortwin'; },
+    'Spoilername in der id': function (d) { d.traeger[0].id = 'hilmar'; },
     'ohne Spoilerdatei': 'ohneSpoiler',
     'ohne Spielstand': 'ohneStand'
   },
@@ -94,7 +95,7 @@ var faelle = {
     'Erfahrung, die nicht im Spielstand steht': function (d) { d.ep = [500, 900, 3]; },
     'Stand passt nicht zu heute': function (d) { d.stand = 'Stand: Tag 10'; },
     'Frist, die nicht im Spielstand steht': function (d) { d.frist = 21; },
-    'Wort an jemanden, den es nicht gibt': function (d) { d.wort.push({ an: 'Ortwin', text: 'Ihn nicht zu verraten.', status: 'offen' }); },
+    'Wort an jemanden, den es nicht gibt': function (d) { d.wort.push({ an: 'Hilmar', text: 'Ihn nicht zu verraten.', status: 'offen' }); },
     'unbelegter Auftragstext': function (d) { d.auftraege[0].text = 'Jost bewacht die Brücke bei Rohrdorf für den Wirt.'; },
     'ungültiger Status': function (d) { d.auftraege[0].status = 'geheim'; },
     'Mond ohne Welttag': function (d) { delete d.welttag; },
@@ -103,6 +104,12 @@ var faelle = {
 };
 
 var fehlgeschlagen = 0;
+(function () {
+  var d = inv(); d.muenzen = { pm: ['Krone', 'Kronen'], ga: ['Löwe', 'Löwen'], sm: 'Silber' };
+  var r = pruefe('inventar', d);
+  console.log((r.ok ? 'ok  ' : 'FEHL') + ' inventar: Münznamen des Landes gehen durch' + (r.ok ? '' : ': ' + r.fehler.join(' | ')));
+  if (!r.ok) fehlgeschlagen++;
+})();
 ['inventar', 'questlog'].forEach(function (art) {
   var echt = pruefe(art, art === 'inventar' ? inv() : ql());
   console.log((echt.ok ? 'ok  ' : 'FEHL') + ' ' + art + ': saubere Daten gehen durch' + (echt.ok ? '' : ': ' + echt.fehler.join(' | ')));

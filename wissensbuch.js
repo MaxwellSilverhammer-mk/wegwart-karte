@@ -12,7 +12,7 @@
  *   *Stand: Tag 9 · Figur: Probefigur*
  *   ### Jost
  *   - Die Probefigur fragt nach den Lichtern am Weiher. (erlebt, Tag 4)
- *   ### Ortwin
+ *   ### Hilmar
  *   - Die Probefigur fragt nach den Lichtern am Weiher. (von Jost, Tag 6; Treffen in der Kapelle)
  *   - Ein neuer Wegwart reitet durch Rohrdorf. (Gerücht, Tag 7; die Fuhrleute reden darüber)
  *   (die erfundene Welt aus test/wissensbuch.test.js; Beispiele aus einem laufenden Revier gehören nicht hierher)
