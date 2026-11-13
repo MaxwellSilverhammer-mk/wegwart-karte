@@ -18,7 +18,7 @@ function claudeStub(anfang) {
       return {
         get: function () { return Promise.resolve(schnappschuss(p)); },
         set: function (d) { S[p] = JSON.parse(JSON.stringify(d)); return Promise.resolve(); },
-        update: function (d) { if (!S[p]) return Promise.reject({ code: 'not_found' }); Object.keys(d).forEach(function (k) { S[p][k] = JSON.parse(JSON.stringify(d[k])); }); return Promise.resolve(); },
+        update: function (d) { if (window.__sperre && p.indexOf('meta/') === 0) return Promise.reject({ code: 'invalid_argument' }); if (!S[p]) return Promise.reject({ code: 'not_found' }); Object.keys(d).forEach(function (k) { S[p][k] = JSON.parse(JSON.stringify(d[k])); }); return Promise.resolve(); },
         delete: function () { delete S[p]; return Promise.resolve(); }
       };
     },
@@ -103,6 +103,27 @@ var ANFANG = {
     r = await reiche({ figur: 'probefigur', eintraege: [{ sammlung: 'figuren', id: 'probefigur', anhaengen: { ruf: '   ' } }] });
     assert.ok(/muss ein Text sein/.test(r.meldung), r.meldung);
     ok('fehlerhafte Einträge werden vor dem Schreiben abgelehnt');
+
+    // der Weltnachtrag: meta/welt allein und nur mit daten
+    r = await reiche({ figur: 'weltenhueter', eintraege: [{ sammlung: 'meta', id: 'welt', daten: { regelwerk_version: '4.3', tische_stand: 'abc123' } }] });
+    assert.ok(/Eingetragen: 0 neu, 1 ergänzt/.test(r.meldung), r.meldung);
+    assert.deepStrictEqual(r.db['meta/welt'], { regelwerk_version: '4.3', aktualisiert: '2026-11-13', weltenhueter: 'Max', tische_stand: 'abc123' });
+    r = await reiche({ figur: 'probefigur', eintraege: [{ sammlung: 'meta', id: 'welt', daten: { regelwerk_version: '9' } }, { sammlung: 'figuren', id: 'probefigur', daten: { treue: 4 } }] });
+    assert.ok(/meta ändert nur der Weltenhüter/.test(r.meldung), r.meldung);
+    r = await reiche({ figur: 'probefigur', eintraege: [{ sammlung: 'meta', id: 'geheim', daten: { x: 1 } }] });
+    assert.ok(/meta ändert nur der Weltenhüter/.test(r.meldung), r.meldung);
+    r = await reiche({ figur: 'probefigur', eintraege: [{ sammlung: 'meta', id: 'welt', anhaengen: { regelwerk_version: '9' } }] });
+    assert.ok(/meta ändert nur der Weltenhüter/.test(r.meldung), r.meldung);
+    assert.strictEqual(r.db['meta/welt'].regelwerk_version, '4.3');
+    assert.strictEqual(r.db['figuren/probefigur'].treue, 3);
+    ok('Weltnachtrag: meta/welt geht allein und nur mit daten');
+    // ohne Schreibrecht auf meta sagt die Seite, wer es darf
+    await pg.evaluate(function () { window.__sperre = true; });
+    r = await reiche({ figur: 'probefigur', eintraege: [{ sammlung: 'meta', id: 'welt', daten: { regelwerk_version: '9' } }] });
+    assert.ok(/schreibt nur der Weltenhüter/.test(r.meldung), r.meldung);
+    assert.strictEqual(r.db['meta/welt'].regelwerk_version, '4.3');
+    await pg.evaluate(function () { window.__sperre = false; });
+    ok('Weltnachtrag ohne Schreibrecht: klare Meldung, nichts geändert');
 
     // die Seite führt Buch über jeden Nachtrag
     assert.strictEqual(Object.keys(r.db).filter(function (k) { return k.indexOf('nachtraege/') === 0; }).length >= 1, true);

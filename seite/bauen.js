@@ -387,7 +387,7 @@ function ablage(args) {
     'Ablage: ' + z.geaendert.length + ' geändert' + (z.geaendert.length ? ' (' + z.geaendert.join(', ') + ')' : '') + ', ' + z.neu.length + ' neu' + (z.neu.length ? ' (' + z.neu.join(', ') + ')' : '') +
     ', ' + r.remove.length + ' entfernt' + (r.remove.length ? ' (' + r.remove.join(', ') + ')' : '') + ', ' + z.gleich + ' unverändert, ' + z.nichtGeholt + ' nicht geholt. ' +
     'Die Zeile auf stdout trägt files und remove für publish_files (slug der Ablage, base_version, mode patch). ' +
-    'Was du nicht in dieser Sitzung selbst geschrieben hast, muss vor dem Veröffentlichen einmal ganz gelesen sein (Werkstatt 21.3).');
+    'Was nicht aus dieser Ablage geholt ist (ein Umzugspaket, eine hochgeladene Datei) oder beim Holen seiner Prüfsumme nicht glich, wird vor dem Veröffentlichen ganz gelesen (Werkstatt 4.7).');
 }
 
 /* ---------- Umzug: Buch und Ablage aus der Datenbank von vor 4.2 ---------- */
