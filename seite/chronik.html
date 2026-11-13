@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chronik von Oerik</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -283,6 +288,8 @@ footer {
   button { transition: border-color 120ms ease; }
 }
 </style>
+</head>
+<body>
 
 <main class="seite">
   <header class="kopf">
@@ -361,7 +368,7 @@ footer {
     </div>
     <details>
       <summary>Aufbau des Chroniknachtrags</summary>
-      <p class="leise" style="margin-top:0.75rem">Ein json-Objekt mit der Figur, dem Datum und einer Liste von Einträgen (das Beispiel ist erfunden). Jeder Eintrag nennt die Sammlung, die Id und die Felder. Gibt es das Dokument schon, werden nur die genannten Felder ergänzt; sonst wird es angelegt.</p>
+      <p class="leise" style="margin-top:0.75rem">Ein json-Objekt mit der Figur, dem Datum und einer Liste von Einträgen (das Beispiel ist erfunden). Jeder Eintrag nennt die Sammlung, die Id und die Felder. Gibt es das Dokument schon, ersetzt <code>daten</code> die genannten Felder ganz und lässt die übrigen stehen; sonst wird es angelegt. Was wachsen soll, etwa der Ruf einer Figur, steht unter <code>anhaengen</code>: Die Seite hängt den Satz an das an, was im Feld schon steht, und überschreibt nichts. Ein Satz, der dort schon steht, kommt nicht doppelt hinein.</p>
       <pre>{
   "figur": "probefigur",
   "stand": "21.10.2026",
@@ -380,7 +387,8 @@ footer {
     { "sammlung": "figuren", "id": "probefigur",
       "daten": { "stand": { "welttag": 3, "datum": "3. Patchwall 576 CY",
                             "tageszeit": "Abend", "ort": "Rohrdorf" },
-                 "aktualisiert": "2026-10-21" } }
+                 "aktualisiert": "2026-10-21" },
+      "anhaengen": { "ruf": "In Rohrdorf heißt es, sie habe den Brand gelöscht." } }
   ]
 }</pre>
     </details>
@@ -908,7 +916,16 @@ footer {
       if (!e || typeof e !== "object") throw new Error(nr + "kein Objekt.");
       if (SCHREIBBAR.indexOf(e.sammlung) < 0) throw new Error(nr + "unbekannte Sammlung „" + e.sammlung + "“. Erlaubt: " + SCHREIBBAR.join(", ") + ".");
       if (typeof e.id !== "string" || !ID_RE.test(e.id)) throw new Error(nr + "die id „" + e.id + "“ darf nur Buchstaben, Ziffern und _ - . ~ : @ + enthalten.");
-      if (!e.daten || typeof e.daten !== "object" || Array.isArray(e.daten)) throw new Error(nr + "daten muss ein Objekt sein.");
+      var hatDaten = e.daten !== undefined, hatAnhang = e.anhaengen !== undefined;
+      if (!hatDaten && !hatAnhang) throw new Error(nr + "daten oder anhaengen fehlt.");
+      if (hatDaten && (!e.daten || typeof e.daten !== "object" || Array.isArray(e.daten))) throw new Error(nr + "daten muss ein Objekt sein.");
+      if (hatAnhang) {
+        if (!e.anhaengen || typeof e.anhaengen !== "object" || Array.isArray(e.anhaengen) || Object.keys(e.anhaengen).length === 0) throw new Error(nr + "anhaengen muss ein Objekt mit Feldern sein.");
+        Object.keys(e.anhaengen).forEach(function (f) {
+          if (typeof e.anhaengen[f] !== "string" || !e.anhaengen[f].trim()) throw new Error(nr + "anhaengen." + f + " muss ein Text sein.");
+          if (hatDaten && Object.prototype.hasOwnProperty.call(e.daten, f)) throw new Error(nr + "das Feld „" + f + "“ steht in daten und in anhaengen. Eines von beiden.");
+        });
+      }
       var pfad = e.sammlung + "/" + e.id;
       if (gesehen[pfad]) throw new Error(nr + pfad + " kommt doppelt vor.");
       gesehen[pfad] = true;
@@ -923,9 +940,19 @@ footer {
       kette = kette.then(function () {
         var ref = db.doc(e.sammlung + "/" + e.id);
         return ref.get().then(function (snap) {
-          if (snap.exists) { ergaenzt++; return ref.update(e.daten); }
+          var daten = {}, bisher = snap.exists ? (snap.data() || {}) : {};
+          Object.keys(e.daten || {}).forEach(function (k) { daten[k] = e.daten[k]; });
+          // anhaengen (Regelwerk 4.2): ans Ende dessen, was im Feld steht, ohne es zu ersetzen; nie doppelt
+          Object.keys(e.anhaengen || {}).forEach(function (k) {
+            var satz = e.anhaengen[k].trim(), alt = bisher[k];
+            if (Array.isArray(alt)) { if (alt.indexOf(satz) < 0) daten[k] = alt.concat([satz]); }
+            else if (typeof alt === "string" && alt.trim()) { if (alt.indexOf(satz) < 0) daten[k] = alt.replace(/\s+$/, "") + " " + satz; }
+            else if (alt === undefined || alt === null || alt === "") daten[k] = satz;
+            else throw new Error(e.sammlung + "/" + e.id + ": An das Feld „" + k + "“ lässt sich nichts anhängen; es ist weder Text noch Liste.");
+          });
+          if (snap.exists) { ergaenzt++; return Object.keys(daten).length ? ref.update(daten) : null; }
           neu++;
-          return ref.set(e.daten);
+          return ref.set(daten);
         });
       });
     });
@@ -1006,3 +1033,5 @@ footer {
   });
 })();
 </script>
+</body>
+</html>

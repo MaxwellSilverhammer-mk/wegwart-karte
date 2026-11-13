@@ -104,5 +104,19 @@ ok(rT.ok && !rT.hinweise.some(function (h) { return /Mutter Bodo/.test(h) && /da
 var rS = pruefe(SPOILER.replace('*Stand: Tag 9 · Figur: Probefigur*\n', ''));
 ok(rS.hinweise.some(function (h) { return /ungeprüft/.test(h); }), 'Hinweis: ohne Stand bleiben die Tage ungeprüft');
 
+// Wissensbuch als eigene Datei (Regelwerk 4.2): Die Standzeile darf vor der Überschrift stehen, wenn die Datei damit beginnt
+var EIGEN = SPOILER.split('\n').slice(SPOILER.split('\n').indexOf('## Wer weiß was'), SPOILER.split('\n').indexOf('## Geheimnisse'));
+var REST = SPOILER.split('\n').filter(function (z) { return EIGEN.indexOf(z) < 0; }).join('\n');
+var vorn = ['*Stand: Tag 9 · Figur: Probefigur*', '', EIGEN[0]].concat(EIGEN.slice(2)).join('\n');
+var Bv = wb.ausText(vorn);
+ok(Bv.heute === 9 && Bv.figur === 'Probefigur' && Bv.figuren.length === 3, 'Eigene Datei: Standzeile am Dateianfang zählt', JSON.stringify([Bv.heute, Bv.figur]));
+var rV = wb.pruefe(Bv, { spielstand: SPIELSTAND, spoiler: REST, glossar: glossar.ausText(GLOSSAR).D });
+ok(rV.ok && !rV.hinweise.some(function (h) { return /ungeprüft/.test(h); }), 'Eigene Datei: geht durch, die Tage sind geprüft', rV.fehler.join(' | ') + rV.hinweise.join(' | '));
+var rVT = wb.pruefe(wb.ausText(vorn.replace('(erlebt, Tag 4)', '(erlebt, Tag 12)')), { spielstand: SPIELSTAND, spoiler: REST, glossar: glossar.ausText(GLOSSAR).D });
+ok(!rVT.ok && rVT.fehler.some(function (f) { return /nach dem Stand/.test(f); }), 'Eigene Datei: ein Tag nach dem Stand ist gesperrt', rVT.fehler.join(' | '));
+var innen = ['*Stand: Tag 3 · Figur: Falsch*', '', EIGEN[0], '*Stand: Tag 9 · Figur: Probefigur*'].concat(EIGEN.slice(2)).join('\n');
+ok(wb.ausText(innen).heute === 9 && wb.ausText(innen).figur === 'Probefigur', 'Eigene Datei: die Standzeile im Abschnitt gilt vor der am Dateianfang');
+ok(wb.ausText('# SPOILER\n*Stand: Tag 3*\n' + EIGEN[0] + '\n' + EIGEN.slice(2).join('\n')).heute === undefined, 'Spoilerdatei: eine Standzeile nach ihrer Überschrift ist nicht die des Wissensbuchs');
+
 console.log(fehlgeschlagen ? fehlgeschlagen + ' Prüfung(en) fehlgeschlagen' : 'Alle Prüfungen bestanden');
 process.exit(fehlgeschlagen ? 1 : 0);

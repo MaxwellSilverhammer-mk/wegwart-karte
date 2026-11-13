@@ -29,13 +29,23 @@
 'use strict';
 var w = require('./wissen.js');
 
-var VERSION = '1.0';
+var VERSION = '1.1';
 
 function ausText(text) {
-  var B = { figuren: [], probleme: [] }, zeilen = String(text || '').replace(/\r/g, '').split('\n'), drin = false, fig = null;
+  var B = { figuren: [], probleme: [] }, zeilen = String(text || '').replace(/\r/g, '').split('\n'), drin = false, fig = null, amAnfang = true;
   zeilen.forEach(function (z, i) {
     var m, nr = i + 1;
-    if (/^##\s+Wer weiß was/i.test(z) || /^##\s+Wer weiss was/i.test(z)) { drin = true; return; }
+    if (/^##\s+Wer weiß was/i.test(z) || /^##\s+Wer weiss was/i.test(z)) { drin = true; amAnfang = false; return; }
+    // Als eigene Datei (seit Regelwerk 4.2) darf das Wissensbuch mit der Standzeile beginnen, noch vor der ersten Überschrift;
+    // eine Standzeile im Abschnitt selbst gilt vor ihr (seit Wissensbuch 1.1)
+    if (!drin && amAnfang) {
+      if (/^#/.test(z)) amAnfang = false;
+      else if ((m = /^\*?\s*Stand:\s*Tag\s+(\d+)/i.exec(z))) {
+        B.heute = +m[1];
+        var fk = /Figur:\s*([^·*]+)/i.exec(z);
+        if (fk) B.figur = fk[1].trim();
+      }
+    }
     if (!drin) return;
     if (/^##\s/.test(z) && !/^###/.test(z)) { drin = false; return; }
     if (!z.trim()) return;

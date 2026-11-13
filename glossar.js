@@ -20,8 +20,8 @@
  * ganze Glossar (alle Einträge, ein Tipp klappt einen auf). Jeder Posten trägt seine Herkunft (selbst
  * gesehen, von wem gehört, gelesen, laut Karte, Gerücht) und den Welttag. Die Datei ist der Glossar-
  * Abschnitt des Spielstands in eigener Datei; sie wird vorher mit pruefen.js geprüft (README).
- * Dieselbe Datei füllt das Spielerbuch (seite/buch.html, Artefakt mit Datenbank): node glossar.js --db oder
- * node seite/bauen.js --db schreibt die Dokumente, die die Spielleitung beim Sitzungsende mit ArtifactData einspielt.
+ * Dieselbe Datei füllt das Spielerbuch (seite/buch.html, Artefakt aus Dateien, seit Spielerbuch 2.0):
+ * node seite/bauen.js --dateien schreibt daten/glossar.json, das die Spielleitung beim Sitzungsende mit dem Buch veröffentlicht.
  */
 (function () {
   'use strict';
@@ -647,7 +647,8 @@
     // Aufruf: node glossar.js --auszug <Name> 02_glossar.md   (Text des Auszugs)
     //         node glossar.js --json 02_glossar.md            (das gelesene Objekt, zum Nachsehen)
     //         node glossar.js --text daten.json               (Objekt → Text, etwa beim Umstellen)
-    //         node glossar.js --db <ordner> 02_glossar.md     (Dokumente für die Glossar-Seite: <ordner>/glossar/<id>.json, <ordner>/meta/glossar.json)
+    //         node glossar.js --db <ordner> 02_glossar.md     (je Eintrag eine Datei zum Nachsehen: <ordner>/glossar/<id>.json, <ordner>/meta/glossar.json;
+    //                                                          das Spielerbuch füllt seit 2.0 node seite/bauen.js --dateien)
     //         node glossar.js --liste 02_glossar.md           (Stichwortliste für den Spielstand: je Eintrag Name, Haltung, Zeichen und Kurzzeile)
     //         Die Seite mit dem Glossar ist das Spielerbuch: node seite/bauen.js --seite
     if (typeof require !== 'undefined' && require.main === module) {
@@ -686,7 +687,7 @@
           fs.writeFileSync(path.join(dir, d.id + '.json'), JSON.stringify(d.daten, null, 1) + '\n');
         });
         process.stdout.write(docs.map(function (d) { return d.sammlung + '/' + d.id; }).join('\n') + '\n');
-        console.error(docs.length + ' Dokumente in ' + ordner + ' (' + (docs.length - 1) + ' Einträge, 1 meta). Einspielen: ArtifactData batch, je Dokument set mit file_path; bestehende Dokumente mit if_version aus einem list davor.');
+        console.error(docs.length + ' Dokumente in ' + ordner + ' (' + (docs.length - 1) + ' Einträge, 1 meta). Das Spielerbuch füllt seit 2.0 node seite/bauen.js --dateien; dieser Ordner dient nur zum Nachsehen.');
       }
       else { console.error('Aufruf: node glossar.js --auszug <Name>|--json|--text|--liste|--db <ordner> <02_glossar.md>'); process.exit(2); }
     }

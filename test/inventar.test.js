@@ -90,9 +90,9 @@ ok('Anzahl als Zahl am Plättchen; Rationen oben als Reihe', function () {
   assert(/<b class="wgAnz">3<\/b>/.test(h));
   assert.strictEqual((h.match(/class="gpBr"/g) || []).length, 3);
 });
-ok('Die Sammlung: 69 Zeichen, jedes aus Pfaden im Raster 24', function () {
+ok('Die Sammlung: 70 Zeichen, jedes aus Pfaden im Raster 24', function () {
   var namen = Object.keys(inv.ZEICHEN);
-  assert.strictEqual(namen.length, 69);
+  assert.strictEqual(namen.length, 70);
   namen.forEach(function (k) {
     assert(Array.isArray(inv.ZEICHEN[k]) && inv.ZEICHEN[k].length, k);
     inv.ZEICHEN[k].forEach(function (p) {
