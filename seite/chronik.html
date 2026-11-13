@@ -368,7 +368,7 @@ footer {
     </div>
     <details>
       <summary>Aufbau des Chroniknachtrags</summary>
-      <p class="leise" style="margin-top:0.75rem">Ein json-Objekt mit der Figur, dem Datum und einer Liste von Einträgen (das Beispiel ist erfunden). Jeder Eintrag nennt die Sammlung, die Id und die Felder. Gibt es das Dokument schon, ersetzt <code>daten</code> die genannten Felder ganz und lässt die übrigen stehen; sonst wird es angelegt. Was wachsen soll, etwa der Ruf einer Figur, steht unter <code>anhaengen</code>: Die Seite hängt den Satz an das an, was im Feld schon steht, und überschreibt nichts. Ein Satz, der dort schon steht, kommt nicht doppelt hinein.</p>
+      <p class="leise" style="margin-top:0.75rem">Ein json-Objekt mit der Figur, dem Datum und einer Liste von Einträgen (das Beispiel ist erfunden). Jeder Eintrag nennt die Sammlung, die Id und die Felder. Gibt es das Dokument schon, ersetzt <code>daten</code> die genannten Felder ganz und lässt die übrigen stehen; sonst wird es angelegt. Was wachsen soll, etwa der Ruf einer Figur, steht unter <code>anhaengen</code>: Die Seite hängt den Satz an das an, was im Feld schon steht, und überschreibt nichts. Ein Satz, der dort schon steht, kommt nicht doppelt hinein. Nur für den Weltenhüter: <code>meta/welt</code> (Fassung des Regelwerks, Stand der Tische) lässt sich so ändern, als einziger Eintrag eines Nachtrags und nur mit <code>daten</code>.</p>
       <pre>{
   "figur": "probefigur",
   "stand": "21.10.2026",
@@ -914,7 +914,11 @@ footer {
     obj.eintraege.forEach(function (e, i) {
       var nr = "Eintrag " + (i + 1) + ": ";
       if (!e || typeof e !== "object") throw new Error(nr + "kein Objekt.");
-      if (SCHREIBBAR.indexOf(e.sammlung) < 0) throw new Error(nr + "unbekannte Sammlung „" + e.sammlung + "“. Erlaubt: " + SCHREIBBAR.join(", ") + ".");
+      // der Weltnachtrag (Regelwerk 4.2, Werkstatt 24): meta/welt allein und nur mit daten; die Datenbank lässt ihn nur dem Weltenhüter durch
+      if (e.sammlung === "meta") {
+        if (e.id !== "welt" || obj.eintraege.length !== 1 || e.anhaengen !== undefined) throw new Error(nr + "meta ändert nur der Weltenhüter: meta/welt als einziger Eintrag, nur mit daten.");
+      }
+      else if (SCHREIBBAR.indexOf(e.sammlung) < 0) throw new Error(nr + "unbekannte Sammlung „" + e.sammlung + "“. Erlaubt: " + SCHREIBBAR.join(", ") + ".");
       if (typeof e.id !== "string" || !ID_RE.test(e.id)) throw new Error(nr + "die id „" + e.id + "“ darf nur Buchstaben, Ziffern und _ - . ~ : @ + enthalten.");
       var hatDaten = e.daten !== undefined, hatAnhang = e.anhaengen !== undefined;
       if (!hatDaten && !hatAnhang) throw new Error(nr + "daten oder anhaengen fehlt.");
@@ -993,7 +997,8 @@ footer {
       });
     }).catch(function (fehler) {
       var code = fehler && fehler.code;
-      if (code === "invalid_argument") setzeMeldung(nachtragMeldung, "Kein Schreibrecht, oder ein Eintrag passt nicht in die Chronik. Bitte Max, dich per E-Mail als Bearbeiter einzuladen, oder schick ihm den Nachtrag.", "warnung");
+      if (code === "invalid_argument" && obj && obj.eintraege[0] && obj.eintraege[0].sammlung === "meta") setzeMeldung(nachtragMeldung, "meta/welt schreibt nur der Weltenhüter mit seinem Konto.", "warnung");
+      else if (code === "invalid_argument") setzeMeldung(nachtragMeldung, "Kein Schreibrecht, oder ein Eintrag passt nicht in die Chronik. Bitte Max, dich per E-Mail als Bearbeiter einzuladen, oder schick ihm den Nachtrag.", "warnung");
       else if (code === "quota_exceeded") setzeMeldung(nachtragMeldung, "Die Chronik ist voll. Sag Max Bescheid.", "warnung");
       else if (code === "unavailable") setzeMeldung(nachtragMeldung, "Die Chronik antwortet gerade nicht. Versuch es gleich noch einmal; schon Geschriebenes bleibt.", "warnung");
       else setzeMeldung(nachtragMeldung, (fehler && fehler.message) || "Das ging nicht. Versuch es noch einmal.", "warnung");
