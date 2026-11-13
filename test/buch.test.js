@@ -1,10 +1,15 @@
-// Spielerbuch: Dokumente hin (--db) und zurück (--zurueck) ändern nichts; die Seite baut und enthält alle Tische.
+// Spielerbuch 2.0 (Regelwerk 4.2): Buch und Ablage als Dateien. Dateien hin (--dateien) und zurück (--zurueck) ändern nichts;
+// die Seiten bauen; die Ablage ordnet geholte Dateien über stand.json ein und nennt, was zu veröffentlichen ist; der Umzug
+// aus der Datenbank von vor 4.2 (Ordner oder zip) ergibt dasselbe Buch und dieselbe Ablage.
 // Erfundene Mini-Welt, keine privaten Dateien.
 'use strict';
-var fs = require('fs'), os = require('os'), path = require('path'), cp = require('child_process');
+var fs = require('fs'), os = require('os'), path = require('path'), cp = require('child_process'), zlib = require('zlib'), crypto = require('crypto');
 var bauen = path.join(__dirname, '..', 'seite', 'bauen.js'), glossar = require(path.join(__dirname, '..', 'glossar.js'));
 var dir = fs.mkdtempSync(path.join(os.tmpdir(), 'buch-'));
-function schreib(name, text) { var p = path.join(dir, name); fs.writeFileSync(p, text); return p; }
+function schreib(name, text) { var p = path.join(dir, name); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); return p; }
+function lese(p) { return fs.readFileSync(p, 'utf8'); }
+function lauf(args) { return cp.spawnSync(process.execPath, [bauen].concat(args), { encoding: 'utf8', maxBuffer: 1 << 26 }); }
+function sha(p) { return crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'); }
 var ok = 0, fehl = 0;
 function pruef(name, bed, info) { if (bed) ok++; else { fehl++; console.log('FEHL ' + name + (info ? '\n' + info : '')); } }
 
@@ -20,155 +25,222 @@ var gl = schreib('02_glossar.md', ['# Glossar Probefigur',
   '  - Drei Stunden von Mühlfurt über den Damm. (gesehen, Tag 2)', ''
 ].join('\n'));
 var karte = schreib('02_karte.json', JSON.stringify({ titel: 'Probekarte', stand: 'Stand: Tag 3', orte: [{ id: 'eiche', name: 'Zur Alten Eiche', x: 7, y: 2, art: 'gasthaus', bekannt: 'gesehen' }], wege: [] }));
+var gepaeck = schreib('02_inventar.json', JSON.stringify({ titel: 'Gepäck', stand: 'Stand: Tag 3', traeger: [{ id: 'selbst', name: 'Probefigur', art: 'figur', dinge: [{ name: 'Wanderstab', art: 'werkzeug', kg: 1 }] }] }));
+var logbuch = schreib('02_questlog.json', JSON.stringify({ titel: 'Logbuch', stand: 'Stand: Tag 3', auftraege: [{ id: 'brief', titel: 'Der Brief des Vogts', status: 'offen' }] }));
 var ges = schreib('02_geschichte.md', '# Was bisher geschah\n\n### Sitzung 1, Tag 1\n- Aufbruch in der Hafenstadt.\n  > *Ein Brief: „Komm bald.“*\n\n### Sitzung 2, Tag 2\n- Bodo schenkt Bier aus.\n');
-var sl = schreib('03_archiv.md', '# Archiv\n\n## Würfelprotokoll Sitzung 1\nWahrnehmung 13.\n');
-var db = path.join(dir, 'db'), zur = path.join(dir, 'zurueck');
-var r = cp.spawnSync(process.execPath, [bauen, '--db', db, gl, karte, ges, '--sl', sl, '--stufe', '1'], { encoding: 'utf8' });
-pruef('--db läuft', r.status === 0, r.stderr);
-['glossar/bodo.json', 'glossar/zur-alten-eiche.json', 'meta/glossar.json', 'meta/buch.json', 'tische/karte.json', 'geschichte/sitzung-1-tag-1.json', 'geschichte/sitzung-2-tag-2.json', 'sl/wuerfelprotokoll-sitzung-1.json'].forEach(function (f) {
-  pruef('Dokument ' + f, fs.existsSync(path.join(db, f)));
-});
-var meta = JSON.parse(fs.readFileSync(path.join(db, 'meta/buch.json'), 'utf8'));
-pruef('meta/buch', meta.titel === 'Probefigurs Buch' && meta.stufe === 1 && meta.stand === 'Stand: Tag 3', JSON.stringify(meta));
-r = cp.spawnSync(process.execPath, [bauen, '--zurueck', db, zur], { encoding: 'utf8' });
+
+/* ---------- Buch: hin und zurück ---------- */
+var aus = path.join(dir, 'buch'), zur = path.join(dir, 'zurueck');
+var r = lauf(['--dateien', aus, gl, karte, gepaeck, logbuch, ges, '--stufe', '1']);
+pruef('--dateien läuft', r.status === 0, r.stderr);
+['meta', 'glossar', 'tische', 'geschichte'].forEach(function (k) { pruef('Datei daten/' + k + '.json', fs.existsSync(path.join(aus, 'daten', k + '.json'))); });
+var liste = r.status === 0 ? JSON.parse(r.stdout.trim()) : [];
+pruef('stdout ist files für publish_files: as und absoluter Pfad', liste.length === 4 && liste.every(function (x) { return /^daten\/[a-z]+\.json$/.test(x.as) && path.isAbsolute(x.path) && fs.existsSync(x.path); }), r.stdout);
+var meta = JSON.parse(lese(path.join(aus, 'daten', 'meta.json')));
+pruef('meta: buch und glossar', meta.buch && meta.buch.titel === 'Probefigurs Buch' && meta.buch.stufe === 1 && meta.buch.stand === 'Stand: Tag 3' && meta.buch.figur === 'Probefigur' && !!meta.glossar, JSON.stringify(meta));
+var gB = JSON.parse(lese(path.join(aus, 'daten', 'glossar.json')));
+pruef('glossar: Liste {id, daten} in der Reihenfolge des Textes', Array.isArray(gB) && gB.length === 2 && gB[0].id === 'bodo' && gB[1].id === 'zur-alten-eiche' && gB[0].daten.name === 'Bodo', JSON.stringify(gB).slice(0, 300));
+var tB = JSON.parse(lese(path.join(aus, 'daten', 'tische.json')));
+pruef('tische: Karte, Gepäck, Logbuch', !!(tB.karte && tB.karte.orte && tB.gepaeck && tB.gepaeck.traeger && tB.logbuch && tB.logbuch.auftraege));
+var geB = JSON.parse(lese(path.join(aus, 'daten', 'geschichte.json')));
+pruef('geschichte: Abschnitte in Reihenfolge', geB.length === 2 && geB[0].titel === 'Sitzung 1, Tag 1' && geB[0].reihe === 0 && geB[1].reihe === 1 && /Komm bald/.test(geB[0].text));
+r = lauf(['--zurueck', aus, zur]);
 pruef('--zurueck läuft', r.status === 0, r.stderr);
-pruef('Glossar hin und zurück gleich', JSON.stringify(glossar.ausText(fs.readFileSync(gl, 'utf8')).D) === JSON.stringify(glossar.ausText(fs.readFileSync(path.join(zur, '02_glossar.md'), 'utf8')).D));
-pruef('Karte hin und zurück gleich', JSON.stringify(JSON.parse(fs.readFileSync(karte, 'utf8'))) === JSON.stringify(JSON.parse(fs.readFileSync(path.join(zur, '02_karte.json'), 'utf8'))));
-var g2 = fs.readFileSync(path.join(zur, '02_geschichte.md'), 'utf8');
-pruef('Geschichte hin und zurück gleich', g2.indexOf('### Sitzung 1, Tag 1\n- Aufbruch in der Hafenstadt.\n  > *Ein Brief: „Komm bald.“*') >= 0 && g2.indexOf('### Sitzung 2, Tag 2\n- Bodo schenkt Bier aus.') >= 0, g2);
-var seite = cp.spawnSync(process.execPath, [bauen, '--seite'], { encoding: 'utf8', maxBuffer: 1 << 26 });
-pruef('Seite baut', seite.status === 0 && /<title>[^<]+<\/title>/.test(seite.stdout), seite.stderr);
+function gleichesBuch(z, name) {
+  pruef(name + ': Glossar gleich', JSON.stringify(glossar.ausText(lese(gl)).D) === JSON.stringify(glossar.ausText(lese(path.join(z, '02_glossar.md'))).D));
+  pruef(name + ': Karte gleich', JSON.stringify(JSON.parse(lese(karte))) === JSON.stringify(JSON.parse(lese(path.join(z, '02_karte.json')))));
+  pruef(name + ': Gepäck und Logbuch gleich', JSON.stringify(JSON.parse(lese(gepaeck))) === JSON.stringify(JSON.parse(lese(path.join(z, '02_inventar.json')))) && JSON.stringify(JSON.parse(lese(logbuch))) === JSON.stringify(JSON.parse(lese(path.join(z, '02_questlog.json')))));
+  var g2 = lese(path.join(z, '02_geschichte.md'));
+  pruef(name + ': Geschichte gleich', g2.indexOf('### Sitzung 1, Tag 1\n- Aufbruch in der Hafenstadt.\n  > *Ein Brief: „Komm bald.“*') >= 0 && g2.indexOf('### Sitzung 2, Tag 2\n- Bodo schenkt Bier aus.') >= 0, g2);
+}
+gleichesBuch(zur, 'hin und zurück');
+// noch einmal hin: dieselben Dateien, Byte für Byte
+var aus2 = path.join(dir, 'buch2');
+r = lauf(['--dateien', aus2, path.join(zur, '02_glossar.md'), path.join(zur, '02_karte.json'), path.join(zur, '02_inventar.json'), path.join(zur, '02_questlog.json'), path.join(zur, '02_geschichte.md'), '--stufe', '1']);
+pruef('hin, zurück, hin: dieselben Dateien', r.status === 0 && ['meta', 'glossar', 'tische', 'geschichte'].every(function (k) { return sha(path.join(aus, 'daten', k + '.json')) === sha(path.join(aus2, 'daten', k + '.json')); }), r.stderr);
+// read_file mit paths speichert unter Namen, die der Client vergibt: erkannt wird am Inhalt
+var geholt = path.join(dir, 'geholt');
+fs.mkdirSync(geholt);
+['meta', 'glossar', 'tische', 'geschichte'].forEach(function (k, i) { fs.copyFileSync(path.join(aus, 'daten', k + '.json'), path.join(geholt, 'mcp-claude-artifacts-blob-17945' + i + '-x' + i + '.json')); });
+fs.writeFileSync(path.join(geholt, 'fremd.json'), '{"irgendwas": 1}');
+r = lauf(['--zurueck', geholt, path.join(dir, 'zurueck-geholt')]);
+pruef('--zurueck erkennt die Dateien am Inhalt', r.status === 0, r.stderr);
+gleichesBuch(path.join(dir, 'zurueck-geholt'), 'unter fremden Namen');
+// alter Aufbau <sammlung>/<id>.json, wie out_dir ihn schrieb
+var db = path.join(dir, 'db');
+function alsAltbestand(ziel) {
+  Object.keys(meta).forEach(function (id) { schreib(path.relative(dir, path.join(ziel, 'meta', id + '.json')), JSON.stringify(meta[id])); });
+  gB.forEach(function (d) { schreib(path.relative(dir, path.join(ziel, 'glossar', d.id + '.json')), JSON.stringify(d.daten)); });
+  Object.keys(tB).forEach(function (id) { schreib(path.relative(dir, path.join(ziel, 'tische', id + '.json')), JSON.stringify(tB[id])); });
+  geB.forEach(function (d) { schreib(path.relative(dir, path.join(ziel, 'geschichte', d.id + '.json')), JSON.stringify({ reihe: d.reihe, titel: d.titel, text: d.text })); });
+}
+alsAltbestand(db);
+r = lauf(['--zurueck', db, path.join(dir, 'zurueck-alt')]);
+pruef('--zurueck liest den alten Aufbau', r.status === 0 && /alter Aufbau/.test(r.stderr), r.stderr);
+gleichesBuch(path.join(dir, 'zurueck-alt'), 'alter Aufbau');
+// tische.json ersetzt alle Tische: fehlt einer, sagt es die Meldung
+r = lauf(['--dateien', path.join(dir, 'buch-halb'), karte]);
+pruef('Warnung, wenn Tische fehlen', r.status === 0 && /es fehlen gepaeck, logbuch/.test(r.stderr), r.stderr);
+// zwei Abschnitte mit derselben Überschrift behalten beide ihren Platz
+var doppelt = schreib('doppelt/02_geschichte.md', '# Was bisher geschah\n\n### Sitzung 1, Tag 1\n- Erster Teil.\n\n### Sitzung 1, Tag 1\n- Zweiter Teil.\n');
+r = lauf(['--dateien', path.join(dir, 'buch-doppelt'), doppelt]);
+var gD = r.status === 0 ? JSON.parse(lese(path.join(dir, 'buch-doppelt', 'daten', 'geschichte.json'))) : [];
+pruef('gleiche Überschrift: zwei Abschnitte, zwei ids', gD.length === 2 && gD[0].id !== gD[1].id && /Zweiter Teil/.test(gD[1].text), JSON.stringify(gD));
+
+/* ---------- Seiten ---------- */
+var seite = lauf(['--seite']);
+pruef('Seite baut als ganzes Dokument', seite.status === 0 && /^<!DOCTYPE html>/.test(seite.stdout) && /<title>[^<]+<\/title>/.test(seite.stdout) && /<\/html>\s*$/.test(seite.stdout), seite.stderr);
 ['GLOSSAR_JS', 'KARTE_JS', 'INVENTAR_JS', 'QUESTLOG_JS', 'SPRITE'].forEach(function (k) { pruef('Platzhalter ' + k + ' ersetzt', seite.stdout.indexOf(k === 'SPRITE' ? '<!--SPRITE-->' : '/*' + k + '*/') < 0); });
 pruef('kein </script> in eingebauten Tischen', (seite.stdout.match(/<\/script>/g) || []).length === 5);
 pruef('Klasse sr-only und Textfarben der Widget-Umgebung definiert', /\.sr-only\{[^}]*clip:rect\(0,0,0,0\)/.test(seite.stdout) && /--text-primary:/.test(seite.stdout) && /--text-secondary:/.test(seite.stdout));
 pruef('Vorlage ohne Namen einer Figur', /<title>Spielerbuch<\/title>/.test(seite.stdout) && seite.stdout.indexOf('<h1 id="titel">Spielerbuch</h1>') >= 0);
-var seite2 = cp.spawnSync(process.execPath, [bauen, '--seite', '--titel', 'Probefigurs <Buch>'], { encoding: 'utf8', maxBuffer: 1 << 26 });
+pruef('Seite liest ihre Dateien und kennt den Umzug', seite.stdout.indexOf("holeJson('daten/meta.json')") >= 0 && seite.stdout.indexOf('spielerbuch-umzug.zip') >= 0);
+// die eingebauten Tische stehen als Text in <script type="text/plain">; ihre Beispiele laden nichts
+var ohneTische = seite.stdout.replace(/<script type="text\/plain"[\s\S]*?<\/script>/g, '');
+pruef('Seite lädt nichts von fremden Adressen außer den Schriften', (ohneTische.match(/(?:src|href)="https?:\/\/[^"]+"/g) || []).every(function (x) { return /fonts\.googleapis\.com/.test(x); }));
+var seite2 = lauf(['--seite', '--titel', 'Probefigurs <Buch>']);
 pruef('--titel setzt Titel und Überschrift', seite2.status === 0 && seite2.stdout.indexOf('<title>Probefigurs &lt;Buch&gt;</title>') >= 0 && seite2.stdout.indexOf('<h1 id="titel">Probefigurs &lt;Buch&gt;</h1>') >= 0, seite2.stderr);
+var ablSeite = lauf(['--ablage-seite', '--titel', 'Probefigurs Ablage']);
+pruef('Ablage-Seite baut, nennt keinen Dateinamen', ablSeite.status === 0 && /^<!DOCTYPE html>/.test(ablSeite.stdout) && ablSeite.stdout.indexOf('<title>Probefigurs Ablage</title>') >= 0 && ablSeite.stdout.indexOf("fetch('stand.json'") >= 0 && !/03_spielleitung|buehnen\//.test(ablSeite.stdout), ablSeite.stderr);
 
-// Spielleitungswissen landet nie in einer Sammlung, die das Buch zeigt
-var falsch = schreib('03_spielleitung_SPOILER.md', '# SPOILER\n### Geheim\n- Der Wirt ist der Kultführer.\n');
-r = cp.spawnSync(process.execPath, [bauen, '--db', path.join(dir, 'db-falsch'), gl, falsch], { encoding: 'utf8' });
-pruef('Spoilerdatei als Geschichte abgelehnt', r.status === 1 && !fs.existsSync(path.join(dir, 'db-falsch', 'geschichte')), r.stderr);
-var archivOhneSl = schreib('archiv-kopie.md', '# Archiv der Spielleitung\n\n### SG der Probe\nWahrnehmung SG 15.\n');
-r = cp.spawnSync(process.execPath, [bauen, '--db', path.join(dir, 'db-falsch2'), gl, archivOhneSl], { encoding: 'utf8' });
-pruef('Archiv ohne --sl abgelehnt', r.status === 1, r.stderr);
+/* ---------- Spielleitungswissen landet nie in einer Datei, die das Buch zeigt ---------- */
+var spoil = schreib('03_spielleitung_SPOILER.md', '# Spoiler\n\n## Wahrheit\nDer Wirt lügt. Äöüß ✦\n### Geheim\n- Der Wirt ist der Kultführer.\n');
+r = lauf(['--dateien', path.join(dir, 'buch-falsch'), gl, spoil]);
+pruef('Spoilerdatei abgelehnt, nichts geschrieben', r.status === 1 && !fs.existsSync(path.join(dir, 'buch-falsch')), r.stderr);
+var archivKopie = schreib('archiv-kopie.md', '# Archiv der Spielleitung\n\n### SG der Probe\nWahrnehmung SG 15.\n');
+r = lauf(['--dateien', path.join(dir, 'buch-falsch2'), gl, archivKopie]);
+pruef('Archiv abgelehnt', r.status === 1, r.stderr);
+var wb = schreib('wissensbuch.md', '*Stand: Tag 3 · Figur: Probefigur*\n\n## Wer weiß was\n\n### Bodo\n- Der Damm ist unterspült. (erlebt, Tag 2)\n');
+r = lauf(['--dateien', path.join(dir, 'buch-falsch3'), wb]);
+pruef('Wissensbuch abgelehnt', r.status === 1, r.stderr);
 var keineGeschichte = schreib('notizen.md', '# Notizen\n### Einkauf\n- Brot.\n');
-r = cp.spawnSync(process.execPath, [bauen, '--db', path.join(dir, 'db-falsch3'), keineGeschichte], { encoding: 'utf8' });
+r = lauf(['--dateien', path.join(dir, 'buch-falsch4'), keineGeschichte]);
 pruef('Fremde Datei nicht als Geschichte', r.status === 1, r.stderr);
 
-// Batches: Versionen aus dem Text eines list-Ergebnisses, unveränderte weglassen, gestrichene löschen
-var neu = path.join(dir, 'db-neu');
-var gl2 = schreib('02_glossar_neu.md', fs.readFileSync(gl, 'utf8').replace('  Gasthaus am Damm.', '  Gasthaus am Damm, mit Kegelbahn.'));
-r = cp.spawnSync(process.execPath, [bauen, '--db', neu, gl2, karte, ges, '--sl', sl, '--stufe', '1'], { encoding: 'utf8' });
-var liste = schreib('versionen.txt', [
-  '30 documents from collection "glossar" saved as JSON files under "/x/glossar":',
-  '- "bodo"  750 bytes  version 3  "' + path.join(db, 'glossar', 'bodo.json') + '"',
-  '- "zur-alten-eiche"  700 bytes  version 2  "' + path.join(db, 'glossar', 'zur-alten-eiche.json') + '"',
-  '- "gestrichen"  500 bytes  version 5  "' + path.join(db, 'glossar', 'gestrichen.json') + '"',
-  'meta/glossar 1', 'meta/buch: 4', 'tische/karte 7'
-].join('\n'));
-r = cp.spawnSync(process.execPath, [bauen, '--batches', neu, '--alt', db, liste], { encoding: 'utf8' });
-var b = r.stdout.trim().split('\n').filter(Boolean).map(JSON.parse), w = [].concat.apply([], b);
-function finde(c, id) { return w.filter(function (x) { return x.collection === c && x.doc_id === id; })[0]; }
-pruef('--batches läuft', r.status === 0 && b.length === 1, r.stderr);
-pruef('geänderter Eintrag mit if_version', finde('glossar', 'zur-alten-eiche') && finde('glossar', 'zur-alten-eiche').if_version === 2 && finde('glossar', 'zur-alten-eiche').op === 'set', JSON.stringify(w));
-pruef('unveränderte weggelassen', !finde('glossar', 'bodo') && !finde('tische', 'karte') && !finde('geschichte', 'sitzung-1-tag-1'), JSON.stringify(w));
-pruef('gestrichener Eintrag gelöscht', finde('glossar', 'gestrichen') && finde('glossar', 'gestrichen').op === 'delete' && finde('glossar', 'gestrichen').if_version === 5, JSON.stringify(w));
-pruef('file_path absolut und vorhanden', w.filter(function (x) { return x.op === 'set'; }).every(function (x) { return path.isAbsolute(x.file_path) && fs.existsSync(x.file_path); }));
-// Die Datenbank liefert Dokumente mit sortierten Schlüsseln (out_dir); unverändert bleibt unverändert
-function sortiert(o) { if (Array.isArray(o)) return o.map(sortiert); if (o && typeof o === 'object') { var r = {}; Object.keys(o).sort().forEach(function (k) { r[k] = sortiert(o[k]); }); return r; } return o; }
-var dbS = path.join(dir, 'db-sortiert');
-fs.readdirSync(db).forEach(function (c) {
-  fs.mkdirSync(path.join(dbS, c), { recursive: true });
-  fs.readdirSync(path.join(db, c)).forEach(function (f) { fs.writeFileSync(path.join(dbS, c, f), JSON.stringify(sortiert(JSON.parse(fs.readFileSync(path.join(db, c, f), 'utf8'))), null, 2)); });
-});
-r = cp.spawnSync(process.execPath, [bauen, '--batches', neu, '--alt', dbS, liste], { encoding: 'utf8' });
-var wS = [].concat.apply([], r.stdout.trim().split('\n').filter(Boolean).map(JSON.parse));
-pruef('--alt mit sortierten Schlüsseln: nur das Geänderte', r.status === 0 && wS.some(function (x) { return x.doc_id === 'zur-alten-eiche'; }) && !wS.some(function (x) { return x.doc_id === 'bodo' || x.doc_id === 'karte'; }), JSON.stringify(wS.map(function (x) { return x.collection + '/' + x.doc_id; })));
-r = cp.spawnSync(process.execPath, [bauen, '--batches', neu], { encoding: 'utf8' });
-var alle = [].concat.apply([], r.stdout.trim().split('\n').map(JSON.parse));
-pruef('ohne --alt alle Dokumente, je Batch höchstens 50', alle.length === fs.readdirSync(neu).reduce(function (n, c) { return n + fs.readdirSync(path.join(neu, c)).length; }, 0) && r.stdout.trim().split('\n').every(function (z) { return JSON.parse(z).length <= 50; }), r.stderr);
-
-// Ablage (Regelwerk 3.5): Kopien und Übergabe unter sl/_…, nie im Archiv, nie von --batches angefasst
-function lauf(args) { return cp.spawnSync(process.execPath, [bauen].concat(args), { encoding: 'utf8' }); }
-function lese(p) { return fs.readFileSync(p, 'utf8'); }
-var stand = schreib('02_spielstand.md', '# Spielstand Probefigur\n\n## Jetzt\nTag 3, Abend, in der Alten Eiche.\n\n## Klang\n- Weg: https://example.org/weg\n');
-var spoil = schreib('03_spielleitung_SPOILER.md', '# Spoiler\n\n## Wahrheit\nDer Wirt lügt. Äöüß ✦\n');
+/* ---------- Ablage ---------- */
 var abl = path.join(dir, 'ablage');
-r = lauf(['--kopie', abl, '--projekt', '1234', '--sitzung', 'Sitzung 2', stand, spoil]);
-var wk = r.status === 0 ? JSON.parse(r.stdout.trim()) : [];
-pruef('--kopie läuft: zwei set ohne if_version', r.status === 0 && wk.length === 2 && wk.every(function (x) { return x.op === 'set' && x.collection === 'sl' && !x.if_version && path.isAbsolute(x.file_path) && fs.existsSync(x.file_path); }), r.stderr + r.stdout);
-var ks = JSON.parse(lese(path.join(abl, 'sl', '_spielstand.json')));
-pruef('Kopie trägt Datei, Text, Zeichen, Prüfsumme, Projektgröße, Sitzung, Datum', ks.datei === '02_spielstand.md' && ks.text === lese(stand) && ks.zeichen === Array.from(ks.text).length && /^[0-9a-f]{64}$/.test(ks.sha256) && ks.projekt === 1234 && ks.sitzung === 'Sitzung 2' && /^\d{4}-\d{2}-\d{2}$/.test(ks.geschrieben), JSON.stringify(ks).slice(0, 400));
-var ueb = schreib('uebergabe.md', '# Übergabe, Sitzung 2, Teil 1\n\n## Letzter Spieltisch\n📅 Tag 3 · Abend\n');
-r = lauf(['--uebergabe', abl, ueb]);
-var wu = r.status === 0 ? JSON.parse(r.stdout.trim()) : [];
-pruef('--uebergabe läuft', r.status === 0 && wu.length === 1 && wu[0].doc_id === '_uebergabe' && wu[0].op === 'set' && !wu[0].if_version && JSON.parse(lese(wu[0].file_path)).text === lese(ueb), r.stderr);
-var dbA = path.join(dir, 'db-ablage');
-fs.readdirSync(db).forEach(function (c) { fs.mkdirSync(path.join(dbA, c), { recursive: true }); fs.readdirSync(path.join(db, c)).forEach(function (f) { fs.copyFileSync(path.join(db, c, f), path.join(dbA, c, f)); }); });
-fs.readdirSync(path.join(abl, 'sl')).forEach(function (f) { fs.copyFileSync(path.join(abl, 'sl', f), path.join(dbA, 'sl', f)); });
-var zurA = path.join(dir, 'zurueck-ablage');
-r = lauf(['--zurueck', dbA, zurA]);
-pruef('--zurueck legt die Ablage als Dateien daneben', r.status === 0 && lese(path.join(zurA, '02_spielstand.md')) === lese(stand) && lese(path.join(zurA, '03_spielleitung_SPOILER.md')) === lese(spoil) && lese(path.join(zurA, 'uebergabe.md')) === lese(ueb) && (r.stderr.match(/Prüfsumme stimmt/g) || []).length === 3 && /Sitzung 2/.test(r.stderr) && /Projektgröße 1\.234/.test(r.stderr), r.stderr);
-var arch = lese(path.join(zurA, '03_archiv.md'));
-pruef('Ablage nicht im Archiv', arch.indexOf('Der Wirt lügt') < 0 && arch.indexOf('Alten Eiche') < 0 && arch.indexOf('Übergabe') < 0 && arch.indexOf('Würfelprotokoll Sitzung 1') >= 0, arch);
-var falschK = JSON.parse(lese(path.join(dbA, 'sl', '_spoiler.json'))); falschK.text += 'nachträglich';
-fs.writeFileSync(path.join(dbA, 'sl', '_spoiler.json'), JSON.stringify(falschK));
-r = lauf(['--zurueck', dbA, path.join(dir, 'zurueck-falsch')]);
-pruef('veränderte Kopie fällt auf', r.status === 0 && /03_spielleitung_SPOILER\.md aus sl\/_spoiler \([^)]*STIMMT NICHT\)/.test(r.stderr) && !/02_spielstand\.md aus sl\/_spielstand \([^)]*STIMMT NICHT\)/.test(r.stderr), r.stderr);
-var listeA = schreib('versionen-ablage.txt', [
-  '4 documents from collection "sl" saved as JSON files under "' + path.join(dbA, 'sl') + '":',
-  '- "wuerfelprotokoll-sitzung-1"  300 bytes  version 2  "' + path.join(dbA, 'sl', 'wuerfelprotokoll-sitzung-1.json') + '"',
-  '- "_spielstand"  900 bytes  version 4  "' + path.join(dbA, 'sl', '_spielstand.json') + '"',
-  '- "_spoiler"  500 bytes  version 6  "' + path.join(dbA, 'sl', '_spoiler.json') + '"',
-  '- "_uebergabe"  200 bytes  version 1  "' + path.join(dbA, 'sl', '_uebergabe.json') + '"'
-].join('\n'));
-fs.copyFileSync(path.join(abl, 'sl', '_uebergabe.json'), path.join(neu, 'sl', '_uebergabe.json'));
-r = lauf(['--batches', neu, '--alt', dbA, liste, listeA]);
-var wb = r.status === 0 ? [].concat.apply([], r.stdout.trim().split('\n').filter(Boolean).map(JSON.parse)) : [];
-pruef('--batches lässt die Ablage in Ruhe', r.status === 0 && !wb.some(function (x) { return /^_/.test(x.doc_id); }) && wb.some(function (x) { return x.doc_id === 'zur-alten-eiche'; }), JSON.stringify(wb));
-fs.unlinkSync(path.join(neu, 'sl', '_uebergabe.json'));
-r = lauf(['--kopie', abl, '--projekt', '1.300', '--sitzung', 'Sitzung 3', '--sitzungsende', stand, spoil, listeA]);
-var we = r.status === 0 ? JSON.parse(r.stdout.trim()) : [];
-function in_(id) { return we.filter(function (x) { return x.doc_id === id; })[0] || {}; }
-pruef('--kopie --sitzungsende pinnt auf die Versionen und löscht die Übergabe', r.status === 0 && in_('_spielstand').if_version === 4 && in_('_spoiler').if_version === 6 && in_('_uebergabe').op === 'delete' && in_('_uebergabe').if_version === 1 && we.length === 3, JSON.stringify(we) + r.stderr);
-pruef('Projektgröße mit Tausenderpunkt gelesen', JSON.parse(lese(path.join(abl, 'sl', '_spielstand.json'))).projekt === 1300);
-r = lauf(['--kopie', abl, '--projekt', '1300', stand, listeA]);
-pruef('ohne --sitzungsende bleibt die Übergabe', r.status === 0 && JSON.parse(r.stdout.trim()).length === 1, r.stdout);
-r = lauf(['--kopie', abl, stand]);
-pruef('ohne --projekt abgelehnt', r.status === 2, r.stderr);
-var riesig = schreib('03_riesig.md', '# Spoiler\n' + 'Sumpf '.repeat(45000));
-r = lauf(['--kopie', path.join(dir, 'ablage-gross'), '--projekt', '5', riesig]);
-pruef('zu große Kopie abgelehnt, nichts geschrieben', r.status === 1 && !fs.existsSync(path.join(dir, 'ablage-gross')) && /zu groß/.test(r.stderr), r.stderr);
-r = lauf(['--kopie', abl, '--projekt', '5', schreib('notizen-x.md', 'x')]);
-pruef('fremde Datei nicht als Kopie', r.status === 1, r.stderr);
+var stand = schreib('ablage/02_spielstand.md', '# Spielstand Probefigur\n\n## Jetzt\nTag 3, Abend, in der Alten Eiche.\n');
+fs.copyFileSync(spoil, path.join(abl, '03_spielleitung_SPOILER.md'));
+fs.copyFileSync(wb, path.join(abl, 'wissensbuch.md'));
+schreib('ablage/buehnen/keller.json', JSON.stringify({ id: 'keller', art: 'buehne', ort: 'eiche', gelaende: 'gewoelbe', boden: ['....'] }));
+schreib('ablage/archiv/001-wuerfelprotokoll-sitzung-1.md', '## Würfelprotokoll Sitzung 1\n\nWahrnehmung 13.\n');
+schreib('ablage/index.html', '<!DOCTYPE html><title>Deckblatt</title>');
+r = lauf(['--ablage', abl, '--sitzung', 'Sitzung 2']);
+var a1 = r.status === 0 ? JSON.parse(r.stdout.trim()) : { files: [], remove: [] };
+var st = fs.existsSync(path.join(abl, 'stand.json')) ? JSON.parse(lese(path.join(abl, 'stand.json'))) : {};
+pruef('--ablage läuft: alles neu, dazu stand.json, nichts zu entfernen', r.status === 0 && a1.files.length === 6 && a1.remove.length === 0 && a1.files[a1.files.length - 1].as === 'stand.json' && a1.files.every(function (x) { return path.isAbsolute(x.path) && fs.existsSync(x.path); }), r.stderr + r.stdout);
+pruef('das Deckblatt gehört nicht zur Ablage', !a1.files.some(function (x) { return x.as === 'index.html'; }) && !(st.dateien || {})['index.html']);
+pruef('stand.json: Format, Sitzung, Datum, sha256 und Zeichen je Datei', st.format === 'ablage-stand' && st.sitzung === 'Sitzung 2' && /^\d{4}-\d\d-\d\d$/.test(st.geschrieben) && st.dateien['02_spielstand.md'].sha256 === sha(stand) && st.dateien['03_spielleitung_SPOILER.md'].zeichen === Array.from(lese(spoil)).length && !!st.dateien['buehnen/keller.json'], JSON.stringify(st));
+pruef('Meldung nennt keinen Inhalt', r.stderr.indexOf('Der Wirt lügt') < 0 && r.stderr.indexOf('unterspült') < 0, r.stderr);
+r = lauf(['--ablage', abl]);
+pruef('unverändert: nichts zu veröffentlichen', r.status === 0 && JSON.parse(r.stdout.trim()).files.length === 0 && /Nichts zu veröffentlichen/.test(r.stderr), r.stderr);
+fs.appendFileSync(path.join(abl, 'wissensbuch.md'), '- Bodo weiß vom Brief. (von Probefigur, Tag 3; am Tresen)\n');
+fs.writeFileSync(path.join(abl, 'uebergabe.md'), '# Übergabe, Sitzung 3, Teil 1\n');
+r = lauf(['--ablage', abl, '--sitzung', 'Sitzung 3']);
+var a2 = r.status === 0 ? JSON.parse(r.stdout.trim()) : { files: [], remove: [] };
+pruef('nur Geändertes und Neues, dazu stand.json', r.status === 0 && a2.files.map(function (x) { return x.as; }).sort().join(',') === 'stand.json,uebergabe.md,wissensbuch.md' && /1 geändert \(wissensbuch\.md\), 1 neu \(uebergabe\.md\)/.test(r.stderr), r.stderr);
 
-// Regelwerk 3.16: gekürzte list-Ergebnisse, nur neue Abschnitte einspielen, Dokumentliste in der Kopie
-var bauenModul = require(bauen);
-var vk = bauenModul.versionenAus([
-  '222 documents from collection "glossar" saved as JSON files under "/x/buch/glossar":',
-  '- "muehlgraben"  686 bytes  version 11  "/x/buch/glossar/muehlgraben.json"',
-  '[172 more saved documents, at <that directory>/<doc_id>.json each (id, version): "bodos-letzter-brief" 11, "bodos-notizblatt" 3, "zur-alten-eiche" 1]',
-  '3 documents from collection "tische" saved as JSON files under "/x/buch/tische":',
-  '- "karte"  29549 bytes  version 12  "/x/buch/tische/karte.json"'
-].join('\n'));
-pruef('versionenAus liest die gekürzte Schlusszeile je Sammlung', vk['glossar/muehlgraben'] === 11 && vk['glossar/bodos-letzter-brief'] === 11 && vk['glossar/bodos-notizblatt'] === 3 && vk['glossar/zur-alten-eiche'] === 1 && vk['tische/karte'] === 12 && Object.keys(vk).length === 5, JSON.stringify(vk));
-var nurNeu = schreib('02_geschichte-neu.md', '### Sitzung 3, Tag 4\n- Der Damm hält.\n');
-var nurSl = schreib('wuerfelprotokoll-3.md', '## Würfelprotokoll Sitzung 3\nAthletik 9.\n');
-var dbN = path.join(dir, 'db-nur-neu');
-r = lauf(['--db', dbN, '--reihe-ab', '2', '--sl-reihe-ab', '7', nurNeu, '--sl', nurSl]);
-var gN = r.status === 0 ? JSON.parse(lese(path.join(dbN, 'geschichte', 'sitzung-3-tag-4.json'))) : {};
-var sN = r.status === 0 ? JSON.parse(lese(path.join(dbN, 'sl', 'wuerfelprotokoll-sitzung-3.json'))) : {};
-pruef('--reihe-ab und --sl-reihe-ab setzen die Reihe neuer Abschnitte', r.status === 0 && gN.reihe === 2 && gN.titel === 'Sitzung 3, Tag 4' && sN.reihe === 7, r.stderr + JSON.stringify([gN, sN]));
-pruef('nur neue Abschnitte: meta/buch bleibt unberührt', !fs.existsSync(path.join(dbN, 'meta', 'buch.json')));
-var dokListe = schreib('projekt-dokumente.txt', '00_regelwerk.md\n02_spielstand.md\n\n03_spielleitung_SPOILER.md\n');
-var ablD = path.join(dir, 'ablage-dok');
-r = lauf(['--kopie', ablD, '--projekt', '2000', '--dokumente', dokListe, '--sitzung', 'Weltenhüter', stand, spoil]);
-var kD = r.status === 0 ? JSON.parse(lese(path.join(ablD, 'sl', '_spielstand.json'))) : {};
-pruef('--dokumente kommt als Liste in die Kopie', r.status === 0 && JSON.stringify(kD.dokumente) === JSON.stringify(['00_regelwerk.md', '02_spielstand.md', '03_spielleitung_SPOILER.md']) && /3 Projektdokumente/.test(r.stderr), r.stderr);
-var zurD = path.join(dir, 'zurueck-dok');
-r = lauf(['--zurueck', ablD, zurD]);
-pruef('--zurueck legt projekt-dokumente.txt daneben', r.status === 0 && lese(path.join(zurD, 'projekt-dokumente.txt')) === '00_regelwerk.md\n02_spielstand.md\n03_spielleitung_SPOILER.md\n' && /3 Projektdokumente zur Zeit der Kopie/.test(r.stderr), r.stderr);
+// Holen: read_file speichert unter fremden Namen; stand.json sagt über die Prüfsumme, was wohin gehört
+var blobs = path.join(dir, 'blobs'), neuAbl = path.join(dir, 'ablage-geholt');
+fs.mkdirSync(blobs);
+['stand.json', '02_spielstand.md', '03_spielleitung_SPOILER.md', 'wissensbuch.md', 'uebergabe.md'].forEach(function (f, i) { fs.copyFileSync(path.join(abl, f), path.join(blobs, 'blob-' + i + (f === 'stand.json' ? '.json' : '.md'))); });
+r = lauf(['--einordnen', neuAbl].concat(fs.readdirSync(blobs).map(function (f) { return path.join(blobs, f); })));
+pruef('--einordnen legt jede Datei unter ihren Pfad', r.status === 0 && ['stand.json', '02_spielstand.md', '03_spielleitung_SPOILER.md', 'wissensbuch.md', 'uebergabe.md'].every(function (f) { return sha(path.join(neuAbl, f)) === sha(path.join(abl, f)); }), r.stderr);
+pruef('--einordnen meldet Stand, Prüfsummen und was nicht geholt ist', /Stand der Ablage: Sitzung 3/.test(r.stderr) && (r.stderr.match(/Prüfsumme stimmt/g) || []).length === 4 && /Nicht geholt: 2 Dateien/.test(r.stderr), r.stderr);
+// nicht Geholtes bleibt, wie es liegt: weder neu veröffentlicht noch entfernt
+fs.appendFileSync(path.join(neuAbl, '02_spielstand.md'), '\n## Karte\nMühlfurt, drei Stunden.\n');
+r = lauf(['--ablage', neuAbl, '--sitzung', 'Sitzung 3', '--sitzungsende']);
+var a3 = r.status === 0 ? JSON.parse(r.stdout.trim()) : { files: [], remove: [] };
+var st3 = JSON.parse(lese(path.join(neuAbl, 'stand.json')));
+pruef('--sitzungsende: Spielstand und Stand hinaus, Übergabe entfernt', r.status === 0 && a3.files.map(function (x) { return x.as; }).sort().join(',') === '02_spielstand.md,stand.json' && a3.remove.join(',') === 'uebergabe.md' && !fs.existsSync(path.join(neuAbl, 'uebergabe.md')), r.stderr + r.stdout);
+pruef('nicht Geholtes bleibt im Stand, die Übergabe nicht', !!st3.dateien['buehnen/keller.json'] && !!st3.dateien['archiv/001-wuerfelprotokoll-sitzung-1.md'] && st3.dateien['buehnen/keller.json'].sha256 === st.dateien['buehnen/keller.json'].sha256 && !st3.dateien['uebergabe.md'] && /2 nicht geholt/.test(r.stderr), JSON.stringify(st3) + r.stderr);
+// eine veränderte Datei fällt beim Einordnen auf
+var blobs2 = path.join(dir, 'blobs2'); fs.mkdirSync(blobs2);
+fs.copyFileSync(path.join(abl, 'stand.json'), path.join(blobs2, 'a.json'));
+fs.writeFileSync(path.join(blobs2, 'b.md'), lese(path.join(abl, '03_spielleitung_SPOILER.md')) + 'nachträglich');
+r = lauf(['--einordnen', path.join(dir, 'ablage-falsch'), path.join(blobs2, 'a.json'), path.join(blobs2, 'b.md')]);
+pruef('veränderte Datei wird nicht eingeordnet', r.status === 1 && /keine Datei des Stands hat diese Prüfsumme/.test(r.stderr) && !fs.existsSync(path.join(dir, 'ablage-falsch', '03_spielleitung_SPOILER.md')), r.stderr);
+r = lauf(['--einordnen', path.join(dir, 'ablage-genannt'), path.join(blobs2, 'a.json'), '03_spielleitung_SPOILER.md=' + path.join(blobs2, 'b.md')]);
+pruef('pfad=datei ordnet ein, meldet aber die falsche Prüfsumme', r.status === 1 && /PRÜFSUMME STIMMT NICHT/.test(r.stderr) && fs.existsSync(path.join(dir, 'ablage-genannt', '03_spielleitung_SPOILER.md')), r.stderr);
+r = lauf(['--einordnen', path.join(dir, 'ablage-ohne'), path.join(blobs2, 'b.md')]);
+pruef('ohne stand.json nicht zuzuordnen', r.status === 1 && /ohne stand\.json/.test(r.stderr), r.stderr);
+r = lauf(['--einordnen', path.join(dir, 'ablage-raus'), path.join(blobs2, 'a.json'), '../draussen.md=' + path.join(blobs2, 'b.md')]);
+pruef('kein Pfad aus der Ablage hinaus', r.status === 1 && !fs.existsSync(path.join(dir, 'draussen.md')), r.stderr);
+r = lauf(['--ablage', neuAbl, '--entfernen', 'wissensbuch.md']);
+var a4 = r.status === 0 ? JSON.parse(r.stdout.trim()) : { files: [], remove: [] };
+pruef('--entfernen nimmt eine Datei aus Ablage und Stand', r.status === 0 && a4.remove.join(',') === 'wissensbuch.md' && !JSON.parse(lese(path.join(neuAbl, 'stand.json'))).dateien['wissensbuch.md'], r.stderr);
+['--db', '--batches', '--kopie', '--uebergabe'].forEach(function (alt) {
+  r = lauf([alt, abl, stand]);
+  pruef(alt + ' gibt es nicht mehr, mit Hinweis', r.status === 2 && /seit Regelwerk 4\.2 nicht mehr/.test(r.stderr), r.stderr);
+});
+
+/* ---------- Umzug aus der Datenbank von vor 4.2 ---------- */
+var alt = path.join(dir, 'altbestand');
+alsAltbestand(alt);
+function kopieDok(datei, text, extra) { var d = { datei: datei, text: text, zeichen: Array.from(text).length, sha256: crypto.createHash('sha256').update(text, 'utf8').digest('hex'), geschrieben: '2026-11-01' }; Object.keys(extra || {}).forEach(function (k) { d[k] = extra[k]; }); return JSON.stringify(d); }
+var standText = lese(stand), spoilText = lese(spoil), wbText = lese(wb);
+schreib('altbestand/sl/_spielstand.json', kopieDok('02_spielstand.md', standText, { projekt: 1234, sitzung: 'Sitzung 2' }));
+schreib('altbestand/sl/_spoiler.json', kopieDok('03_spielleitung_SPOILER.md', spoilText, { projekt: 1234, sitzung: 'Sitzung 2' }));
+schreib('altbestand/sl/_wissensbuch.json', kopieDok('wissensbuch.md', wbText));
+schreib('altbestand/sl/_werkstatt-kacheln.json', kopieDok('02_uebergabe_kacheln.md', '# Übergabe Kacheln\nZehn Sets.\n', { art: 'werkstatt', titel: 'Übergabe: Kacheln' }));
+schreib('altbestand/sl/_buehne-keller.json', JSON.stringify({ id: 'keller', art: 'buehne', ort: 'eiche', gelaende: 'gewoelbe', boden: ['....'] }));
+schreib('altbestand/sl/_profil-probefigur.json', JSON.stringify({ art: 'profil', figur: 'Probefigur', bewegung: 9 }));
+schreib('altbestand/sl/_pruefsummen.json', JSON.stringify({ datei: 'pruefsummen', spielstand: { sha256: 'x' } }));
+schreib('altbestand/sl/wuerfelprotokoll-sitzung-1.json', JSON.stringify({ reihe: 101, titel: 'Würfelprotokoll Sitzung 1', text: 'Wahrnehmung 13.' }));
+schreib('altbestand/sl/wuerfelprotokoll-sitzung-2.json', JSON.stringify({ reihe: 102, titel: 'Würfelprotokoll Sitzung 2', text: 'Athletik 9.' }));
+var um = path.join(dir, 'umzug');
+r = lauf(['--umzug', alt, um]);
+pruef('--umzug läuft', r.status === 0, r.stderr);
+gleichesBuchAus(path.join(um, 'buch'), 'Umzug aus dem Ordner');
+function gleichesBuchAus(buchOrdner, name) {
+  var z = path.join(dir, 'zurueck-' + name.replace(/\W+/g, '-'));
+  var rr = lauf(['--zurueck', buchOrdner, z]);
+  pruef(name + ': --zurueck läuft', rr.status === 0, rr.stderr);
+  gleichesBuch(z, name);
+}
+var ua = path.join(um, 'ablage');
+pruef('Umzug: Spielstand, Spoilerdatei und Wissensbuch Zeichen für Zeichen', lese(path.join(ua, '02_spielstand.md')) === standText && lese(path.join(ua, '03_spielleitung_SPOILER.md')) === spoilText && lese(path.join(ua, 'wissensbuch.md')) === wbText);
+pruef('Umzug: Bühne, Profil, Werkstatt-Übergabe, Archiv an ihrem Platz', JSON.parse(lese(path.join(ua, 'buehnen', 'keller.json'))).gelaende === 'gewoelbe' && JSON.parse(lese(path.join(ua, 'profile', 'probefigur.json'))).bewegung === 9 && /Zehn Sets/.test(lese(path.join(ua, 'werkstatt', '02_uebergabe_kacheln.md'))) &&
+  lese(path.join(ua, 'archiv', '001-wuerfelprotokoll-sitzung-1.md')) === '## Würfelprotokoll Sitzung 1\n\nWahrnehmung 13.\n' && fs.existsSync(path.join(ua, 'archiv', '002-wuerfelprotokoll-sitzung-2.md')));
+var stU = JSON.parse(lese(path.join(ua, 'stand.json')));
+pruef('Umzug: stand.json kennt jede Datei, die alten Prüfsummen sind nicht dabei', stU.sitzung === 'Umzug' && Object.keys(stU.dateien).length === 8 && stU.dateien['02_spielstand.md'].sha256 === crypto.createHash('sha256').update(standText, 'utf8').digest('hex') && !fs.existsSync(path.join(ua, 'sonstiges')), JSON.stringify(Object.keys(stU.dateien)));
+pruef('Umzug meldet Prüfsummen und Zahlen, keinen Inhalt und keine Bühnennamen', /02_spielstand\.md \(Prüfsumme stimmt\)/.test(r.stderr) && /2 Abschnitte Archiv, 1 Bühnen, 1 Profile, 1 Werkstatt-Übergaben/.test(r.stderr) && r.stderr.indexOf('Der Wirt lügt') < 0 && r.stderr.indexOf('keller') < 0 && r.stderr.indexOf('Wahrnehmung') < 0, r.stderr);
+// ein veränderter Text fällt auf
+var faul = path.join(dir, 'altbestand-faul');
+cp.spawnSync('cp', ['-r', alt, faul]);
+var fk = JSON.parse(lese(path.join(faul, 'sl', '_spoiler.json'))); fk.text += 'nachträglich'; fs.writeFileSync(path.join(faul, 'sl', '_spoiler.json'), JSON.stringify(fk));
+r = lauf(['--umzug', faul, path.join(dir, 'umzug-faul')]);
+pruef('Umzug: veränderter Text fällt auf', r.status === 1 && /03_spielleitung_SPOILER\.md \(Prüfsumme STIMMT NICHT\)/.test(r.stderr) && !/02_spielstand\.md \(Prüfsumme STIMMT NICHT\)/.test(r.stderr), r.stderr);
+
+// dasselbe aus dem Umzugspaket der Seite: ein zip, gespeichert wie von der Seite oder gepackt wie von anderen Werkzeugen
+function crc32(buf) { var c = ~0, i, k; for (i = 0; i < buf.length; i++) { c ^= buf[i]; for (k = 0; k < 8; k++) c = c & 1 ? (c >>> 1) ^ 0xEDB88320 : c >>> 1; } return (~c) >>> 0; }
+function zip(eintraege, packen) {
+  var teile = [], verz = [], ort = 0;
+  eintraege.forEach(function (e) {
+    var name = Buffer.from(e.name, 'utf8'), roh = packen ? zlib.deflateRawSync(e.daten) : e.daten, art = packen ? 8 : 0, crc = crc32(e.daten);
+    var l = Buffer.alloc(30); l.writeUInt32LE(0x04034b50, 0); l.writeUInt16LE(20, 4); l.writeUInt16LE(0x0800, 6); l.writeUInt16LE(art, 8); l.writeUInt32LE(crc, 14); l.writeUInt32LE(roh.length, 18); l.writeUInt32LE(e.daten.length, 22); l.writeUInt16LE(name.length, 26);
+    var z = Buffer.alloc(46); z.writeUInt32LE(0x02014b50, 0); z.writeUInt16LE(20, 4); z.writeUInt16LE(20, 6); z.writeUInt16LE(0x0800, 8); z.writeUInt16LE(art, 10); z.writeUInt32LE(crc, 16); z.writeUInt32LE(roh.length, 20); z.writeUInt32LE(e.daten.length, 24); z.writeUInt16LE(name.length, 28); z.writeUInt32LE(ort, 42);
+    teile.push(l, name, roh); verz.push(z, name); ort += 30 + name.length + roh.length;
+  });
+  var v = Buffer.concat(verz), ende = Buffer.alloc(22); ende.writeUInt32LE(0x06054b50, 0); ende.writeUInt16LE(eintraege.length, 8); ende.writeUInt16LE(eintraege.length, 10); ende.writeUInt32LE(v.length, 12); ende.writeUInt32LE(ort, 16);
+  return Buffer.concat(teile.concat([v, ende]));
+}
+function eintraegeAus(ordner) {
+  var aus = [{ name: 'umzug.json', daten: Buffer.from(JSON.stringify({ format: 'spielerbuch-umzug', version: 1 })) }];
+  fs.readdirSync(ordner).forEach(function (s) { fs.readdirSync(path.join(ordner, s)).forEach(function (f) { aus.push({ name: s + '/' + f, daten: fs.readFileSync(path.join(ordner, s, f)) }); }); });
+  return aus;
+}
+[false, true].forEach(function (packen) {
+  var name = packen ? 'gepackt' : 'gespeichert', paket = schreib('paket-' + name + '.zip', zip(eintraegeAus(alt), packen)), z = path.join(dir, 'umzug-zip-' + name);
+  r = lauf(['--umzug', paket, z]);
+  pruef('Umzug aus dem zip (' + name + ') läuft', r.status === 0, r.stderr);
+  pruef('Umzug aus dem zip (' + name + '): dieselben Dateien wie aus dem Ordner', ['buch/daten/meta.json', 'buch/daten/glossar.json', 'buch/daten/tische.json', 'buch/daten/geschichte.json', 'ablage/02_spielstand.md', 'ablage/03_spielleitung_SPOILER.md', 'ablage/wissensbuch.md', 'ablage/buehnen/keller.json', 'ablage/archiv/002-wuerfelprotokoll-sitzung-2.md'].every(function (f) { return sha(path.join(z, f)) === sha(path.join(um, f)); }));
+});
+var fremdPaket = schreib('paket-fremd.zip', zip(eintraegeAus(alt).concat([{ name: '../draussen.json', daten: Buffer.from('{}') }, { name: 'sl/unter/ordner.json', daten: Buffer.from('{}') }]), false));
+r = lauf(['--umzug', fremdPaket, path.join(dir, 'umzug-fremd')]);
+pruef('Umzug: fremde Namen im Paket werden gemeldet, nichts landet außerhalb', r.status === 1 && /2 Einträge des Pakets/.test(r.stderr) && !fs.existsSync(path.join(dir, 'draussen.json')), r.stderr);
+r = lauf(['--umzug', schreib('kein.zip', 'kein Archiv'), path.join(dir, 'umzug-kein')]);
+pruef('Umzug: kein zip, klare Absage', r.status !== 0 && /kein zip-Archiv/.test(r.stderr), r.stderr);
 
 console.log((fehl ? 'FEHLER' : 'ok') + ' · buch.test.js: ' + ok + ' bestanden, ' + fehl + ' fehlgeschlagen');
 process.exit(fehl ? 1 : 0);

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ablage der Spielleitung</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English:ital@0;1&display=swap">
+<style>
+/* Ablage (Regelwerk 4.2, 21.1; Werkstatt 21.5): das Deckblatt des Artefakts, in dem die Dateien der Spielleitung liegen.
+   Die Seite zeigt keinen Inhalt und keine Dateinamen, nur von wann der Stand ist. Vorlage für node seite/bauen.js --ablage-seite. */
+:root{--tisch:#d9cfb9;--tischText:#3b3028;--tischMuted:#6b5c4c;--pg:#efe2c3;--pgRand:#b79d6e}
+@media (prefers-color-scheme:dark){:root{--tisch:#241f1b;--tischText:#e8dfca;--tischMuted:#b9aa90;--pg:#d8c9a3;--pgRand:#8a7650;color-scheme:dark}}
+body{margin:0;background:var(--tisch);color:var(--tischText);font-family:"EB Garamond",Garamond,Georgia,serif;padding:0 16px 40px;box-sizing:border-box}
+main{max-width:640px;margin:0 auto}
+h1{font-family:"IM Fell English",Georgia,serif;font-weight:400;font-size:30px;line-height:1.1;margin:18px 0 10px}
+.blatt{background:var(--pg);color:#2f2519;border:1px solid var(--pgRand);border-radius:6px;padding:6px 18px;font-size:19px;line-height:1.5}
+.blatt p{margin:10px 0}
+.kopf{margin:12px 0 0;color:var(--tischMuted);font-style:italic;font-size:17px}
+</style>
+</head>
+<body>
+<main>
+  <h1 id="titel">Ablage der Spielleitung</h1>
+  <div class="blatt">
+    <p><strong>Nicht für Spieleraugen.</strong> Hier liegt, was nur die Spielleitung liest: der Spielstand in seiner Hauptfassung, die Spoilerdatei, das Wissensbuch, Bühnen und das Archiv.</p>
+    <p>Es gilt dasselbe wie für die Spoilerdatei: nicht öffnen, nicht teilen. Deine Spielleitung holt und schreibt die Dateien selbst.</p>
+  </div>
+  <p class="kopf" id="stand">Der Stand wird geholt …</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var el = document.getElementById('stand');
+  fetch('stand.json', { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('http ' + r.status);
+    return r.json();
+  }).then(function (s) {
+    var n = s && s.dateien ? Object.keys(s.dateien).length : 0;
+    el.textContent = 'Stand: ' + [s.sitzung, s.geschrieben].filter(Boolean).join(', ') + ' · ' + n + (n === 1 ? ' Datei' : ' Dateien');
+  }).catch(function () { el.textContent = 'Noch kein Stand: Die Spielleitung legt ihn beim Sitzungsende an.'; });
+})();
+</script>
+</body>
+</html>
