@@ -193,7 +193,7 @@ footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); p
     <h3>Wie die Welt zusammenhängt</h3>
     <div class="bau" role="group" aria-label="Aufbau: zwei Spielerprojekte und die gemeinsame Chronik">
       <div><b>Dein Projekt</b>
-        <ul><li>deine Spielleitung</li><li>Regelwerk, Werkstatt</li><li>Spielstand, Bogen</li><li>Spoilerdatei deines Reviers (liest du nicht)</li><li>dein Spielerbuch (liest du jederzeit)</li></ul>
+        <ul><li>deine Spielleitung</li><li>Regelwerk, Werkstatt</li><li>Spielstand, Bogen</li><li>Spoilerdatei deines Reviers (liest du nicht)</li><li>dein Spielerbuch (liest du jederzeit)</li><li>die Ablage deiner Spielleitung (öffnest du nicht)</li></ul>
         <span class="pfeil">schreibt Spuren, Post und Orte in die Chronik und liest, was bis zu dir gelangt</span></div>
       <div class="mitte"><b>Chronik von Oerik</b>
         <ul><li>Orte und Länder</li><li>Figuren und Reviere</li><li>Ereignisse und Spuren</li><li>Briefe und Treffen</li><li>Weltgeheimnisse</li></ul>
@@ -256,14 +256,14 @@ footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); p
     <li><div>
       <h3>Beim Weltenhüter melden</h3>
       <p>Den Link zu dieser Seite hast du von Max. Schick ihm auf demselben Weg die E-Mail-Adresse deines Claude-Kontos. Er lädt dich als Bearbeiter in die <a href="https://claude.ai/artifact/Nzt2tuArXkRunn9dQezv4U" target="_blank" rel="noopener">Chronik von Oerik</a> ein, damit deine Spielleitung Spuren schreiben kann, und schickt dir den Link zu seiner D&amp;D-Beyond-Kampagne. Auf der Chronikseite prüfst du mit „Schreibrecht prüfen“, ob es klappt.</p>
-      <p class="klein leise">Hat deine Spielleitung in ihrem Chat keinen Zugang zur Datenbank, führst du die Chronik über den Briefkasten der Seite. Meldet die Seite auch angemeldet „nicht erreichbar“, läuft sie über Max (<a href="#w-22-1">Werkstatt 22.1</a>).</p>
+      <p class="klein leise">Kann deine Spielleitung in ihrem Chat nicht in die Chronik schreiben, reichst du ihren Nachtrag über den Briefkasten der Seite ein. Meldet die Seite auch angemeldet „nicht erreichbar“, läuft sie über Max (<a href="#w-22-1">Werkstatt 22.1</a>).</p>
       <label class="merker"><input type="checkbox" data-merker="3"> erledigt</label>
     </div></li>
     <li><div>
       <h3>Figur bauen</h3>
       <p>Tritt der D&amp;D-Beyond-Kampagne bei und bau deine Figur auf Stufe 1, mit den Quellen „2014 Core Rules“, „2014 Expanded Rules“ und „Core Rules“ (<a href="#r-7-2">Regelwerk 7.2</a>).</p>
       <ul>
-        <li>Klasse, Unterklasse, Volk, Hintergrund und Talente nur aus 2014. „Core Rules“ ist nur für die neuen Zauberfassungen eingeschaltet.</li>
+        <li>Klasse, Unterklasse, Volk, Hintergrund und Talente nur aus 2014. „Core Rules“ ist nur für die neuen Zauberfassungen eingeschaltet. Zauber dürfen aus allen Büchern von Wizards of the Coast kommen (<a href="#r-7-3">Regelwerk 7.3</a>).</li>
         <li>Attribute per Punktekauf (27) oder Standardreihe (15, 14, 13, 12, 10, 8), nicht gewürfelt.</li>
         <li>Startausrüstung statt Startgeld, keine Waffenmeisterschaften.</li>
         <li>Trag Persönlichkeit, Ideal, Bindung, Makel und Vorgeschichte gleich ein. An ihnen hängen Heldenmut und Einfälle.</li>
@@ -286,7 +286,7 @@ footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); p
       <label for="erst-text">Erste Nachricht <textarea id="erst-text" readonly></textarea></label>
       <div class="knoepfe"><button type="button" class="knopf haupt" id="kopiere-erst">Nachricht kopieren</button></div>
       <p class="meldung" id="erst-meldung" aria-live="polite"></p>
-      <p class="warnung">Die Spielleitung nennt dir den Startort und was die Ferne kostet. Beim Anlegen fragt die App mehrmals um Freigabe: Seiten veröffentlichen, in dein Spielerbuch und dein Projekt schreiben, in die Chronik schreiben. Das ist so gewollt. Klapp dabei Gedanken und Werkzeugaufrufe nicht auf und öffne die Spoilerdatei nicht, sonst liest du die Geheimnisse deines Reviers. Verlangt eine Anfrage etwas anderes, lehn sie ab und frag Max.</p>
+      <p class="warnung">Die Spielleitung nennt dir den Startort und was die Ferne kostet. Beim Anlegen fragt die App mehrmals um Freigabe: Seiten veröffentlichen, in dein Spielerbuch und dein Projekt schreiben, in die Chronik schreiben. Das ist so gewollt. Klapp dabei Gedanken und Werkzeugaufrufe nicht auf und öffne weder die Spoilerdatei noch die Ablage, sonst liest du die Geheimnisse deines Reviers. Verlangt eine Anfrage etwas anderes, lehn sie ab und frag Max.</p>
       <label class="merker"><input type="checkbox" data-merker="5"> erledigt</label>
     </div></li>
     <li><div>
@@ -388,7 +388,8 @@ footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); p
       <tbody>
         <tr><td>Eingang nach Oerik</td><td>diese Seite: Einstieg, Regelbuch, Werkzeugkoffer, Dateien</td><td>alle, auch mit fremdem Konto</td></tr>
         <tr><td>Chronik von Oerik</td><td>Zählungen, Kalender, Postrechner, Briefkasten; die Einträge selbst nur für Spielleitungen</td><td>eingeladene Konten</td></tr>
-        <tr><td>Spielerbuch</td><td>eines je Figur: Glossar, Logbuch, Gepäck, Karte, „Was bisher geschah“</td><td>du; teilen kannst du es</td></tr>
+        <tr><td>Spielerbuch</td><td>eines je Figur: Glossar, Logbuch, Gepäck, Karte, „Was bisher geschah“</td><td>du; einzelnen Konten kannst du es zum Lesen teilen</td></tr>
+        <tr><td>Ablage</td><td>eine je Figur: die Unterlagen deiner Spielleitung; die Seite zeigt nur ein Deckblatt</td><td>nur deine Spielleitung; du öffnest ihre Dateien nicht und teilst sie nie</td></tr>
         <tr><td>Bildersaal</td><td>Ortsgemälde deiner Figur, freiwillig</td><td>du</td></tr>
       </tbody>
     </table></div>
@@ -402,7 +403,7 @@ footer { max-width: 46rem; margin: 0 auto; border-top: 1px solid var(--linie); p
         <tr><td>Spoilerprüfung <code>pruefen.js</code>, <code>wissen.js</code>, <code>wissensbuch.js</code></td><td>sperrt, was die Figur nicht wissen kann, und Wissen ohne Weg</td><td><a href="#w-4-8">W 4.8</a></td></tr>
         <tr><td>Glossar-Auszug <code>glossar.js</code></td><td>ein Eintrag für den Chat, Stichwortliste für den Spielstand</td><td><a href="#r-4-6">4.6</a></td></tr>
         <tr><td>Bühnen und Profile <code>buehne.js</code></td><td>feste Karten, Kampfdaten, die erste Karte eines Kampfes</td><td><a href="#w-12-6">W 12.6</a></td></tr>
-        <tr><td>Buchbinder <code>seite/bauen.js</code></td><td>Spielerbuch bauen, Daten hin und zurück, Übergabe und Kopien</td><td><a href="#w-4-7">W 4.7</a></td></tr>
+        <tr><td>Buchbinder <code>seite/bauen.js</code></td><td>Spielerbuch und Ablage bauen, Dateien hin und zurück, Umzug</td><td><a href="#w-4-7">W 4.7</a></td></tr>
       </tbody>
     </table></div>
   </section>
