@@ -36,6 +36,18 @@
 //       Umzug eines Buchs von vor Regelwerk 4.2: liest das Umzugspaket der Seite (oder einen Ordner
 //       <sammlung>/<id>.json) und schreibt <zielordner>/buch/daten/ und <zielordner>/ablage/ samt stand.json.
 //       Meldet nur Zahlen und Prüfsummen, keinen Inhalt.
+//   node seite/bauen.js --kern messen <02_spielstand.md> [--richtwert n]
+//       misst den Kern (Regelwerk 21.1): Zeichen je Abschnitt „## …“ und im Ganzen, ohne die Stichwortliste, gegen den
+//       Richtwert (50.000). Misst ebenso Spoilerdatei und Wissensbuch (Richtwert 100.000); dort nennt es Nummern statt Überschriften.
+//   node seite/bauen.js --kern kapitel <alt.md> <neu.md> <02_geschichte.md> --titel "Stand der Dinge nach Sitzung N (Welttag T)"
+//                       [--ohne werkbank.md] [--ohne einstellungen.md] <abschnitt> [<abschnitt> …]
+//       Kehraus: schreibt, was die genannten Abschnitte des Kerns verlassen hat (jede Zeile der alten Fassung, die in der
+//       neuen nicht mehr wörtlich steht), als Kapitel vor die erste Sitzung von 02_geschichte.md, Überschriften ab „####“.
+//       Abschnitte nennt man mit dem Anfang ihrer Überschrift. Was in einer Datei hinter --ohne steht, hat seinen Ort schon.
+//   node seite/bauen.js --kern verlust <alt.md> <neu.md> [teile …]
+//       Verlustprobe: Jede Zeile der alten Fassung muss wörtlich in der neuen oder in einem der Teile stehen (02_geschichte.md
+//       oder geschichte.json, werkbank.md, einstellungen.md, Dateien des Archivs); Überschriftenzeichen zählen nicht.
+//       Rückgabe 1, wenn eine fehlt. Bei Spoilerdatei, Wissensbuch und Archiv nennt sie nur Zeilennummern.
 'use strict';
 var fs = require('fs'), path = require('path'), crypto = require('crypto'), zlib = require('zlib');
 var WURZEL = path.join(__dirname, '..');
@@ -238,8 +250,16 @@ function liesBuch(ordner) {
   });
   return { B: B, uebergangen: uebergangen, alt: false };
 }
+// In 02_geschichte.md trennt „### “ die Abschnitte. Eine Überschrift im Text eines Abschnitts steht darum tiefer (ab „####“),
+// sonst zerfiele der Abschnitt beim nächsten --dateien in mehrere.
+function tiefer(text) {
+  var min = 7, z = String(text).split('\n');
+  z.forEach(function (x) { var m = x.match(/^(#{1,6})\s/); if (m && m[1].length < min) min = m[1].length; });
+  if (min >= 4) return String(text);
+  return z.map(function (x) { var m = x.match(/^(#{1,6})(\s.*)$/); return m ? '#'.repeat(Math.min(6, m[1].length + 4 - min)) + m[2] : x; }).join('\n');
+}
 function alsMd(liste, kopf, ebene) {
-  return kopf + '\n\n' + liste.map(function (x) { return ebene + ' ' + x.titel + '\n' + x.text + '\n'; }).join('\n');
+  return kopf + '\n\n' + liste.map(function (x) { return ebene + ' ' + x.titel + '\n' + tiefer(x.text) + '\n'; }).join('\n');
 }
 function schreibeArbeitsdateien(B, ziel) {
   var aus = [];
@@ -256,7 +276,8 @@ function schreibeArbeitsdateien(B, ziel) {
   });
   if (B.geschichte && B.geschichte.length) {
     schreib(path.join(ziel, '02_geschichte.md'), alsMd(B.geschichte, '# Was bisher geschah', '###'));
-    aus.push('02_geschichte.md (' + B.geschichte.length + ' Abschnitte)');
+    var gesenkt = B.geschichte.filter(function (x) { return tiefer(x.text) !== String(x.text); }).length;
+    aus.push('02_geschichte.md (' + B.geschichte.length + ' Abschnitte' + (gesenkt ? '; in ' + gesenkt + ' stehen Überschriften jetzt ab „####“, damit der Abschnitt ganz bleibt' : '') + ')');
   }
   return aus;
 }
@@ -470,6 +491,134 @@ function umzug(quelle, ziel) {
   if (warn.length) process.exit(1);
 }
 
+/* ---------- Kern pflegen (Regelwerk 21.1, Werkstatt 21.7): messen, Kapitel „Stand der Dinge“, Verlustprobe ---------- */
+
+var LISTE = '\n## Stichwortliste', STAND_DER_DINGE = /^Stand der Dinge(?![A-Za-zÄÖÜäöüß])/;
+function ohneListe(t) { var i = t.indexOf(LISTE); return i < 0 ? t : t.slice(0, i); }
+function laenge(t) { return Array.from(t).length; }
+function zeilenzahl(n) { return n + (n === 1 ? ' Zeile' : ' Zeilen'); }
+// Eine Zeile zum Vergleichen: ohne Rand und ohne Überschriftenzeichen, denn im Kapitel der Geschichte stehen Überschriften tiefer
+function schluessel(z) { return z.trim().replace(/^#{1,6}\s+/, ''); }
+// Spielleitungswissen zeigt kein Werkzeug im Wortlaut: Spoilerdatei, Wissensbuch und Archiv nennt es nur mit Zeilennummern
+function istSpielleitung(datei, text) { return /^03_/.test(path.basename(datei)) || /^##\s+Wer wei(ß|ss) was/m.test(text) || /^#\s+Archiv der Spielleitung/m.test(text); }
+function zeilenVon(datei) {
+  var text = lies(datei), aus = [];
+  if (!/\.json$/i.test(datei)) return text.split('\n');
+  (function geh(o) {
+    if (typeof o === 'string') o.split('\n').forEach(function (z) { aus.push(z); });
+    else if (Array.isArray(o)) o.forEach(geh);
+    else if (o && typeof o === 'object') Object.keys(o).forEach(function (k) { geh(o[k]); });
+  })(JSON.parse(text));
+  return aus;
+}
+// Kopf (bis zur ersten Überschrift „## “) und Abschnitte; jede Zeile gehört zu genau einem
+function kernAbschnitte(text) {
+  return text.split(/\n(?=## )/).map(function (x, i) {
+    var z = x.split('\n'), kopf = !/^## /.test(z[0]);
+    return { nr: i, kopf: kopf, titel: kopf ? '' : z[0].replace(/^##\s+/, '').trim(), zeilen: z, text: x };
+  });
+}
+function kernMessen(a) {
+  var richt = null, i = a.indexOf('--richtwert');
+  if (i >= 0) { richt = parseInt(a[i + 1], 10); a.splice(i, 2); if (!(richt > 0)) return false; }
+  if (a.length !== 1) return false;
+  var ganz = lies(a[0]), t = ohneListe(ganz), ges = laenge(t), still = istSpielleitung(a[0], ganz), zeile = 1;
+  // Richtwerte aus Regelwerk 21.1 und 5.1: der Kern 50.000, Spoilerdatei und Wissensbuch 100.000
+  if (richt === null) richt = still ? 100000 : 50000;
+  kernAbschnitte(t).forEach(function (x) {
+    var n = laenge(x.text) + (x.nr ? 1 : 0);
+    console.log(zahl(n).padStart(9) + String(Math.round(100 * n / ges)).padStart(5) + ' %  ' + (still ? 'Abschnitt ' + (x.nr + 1) + ' ab Zeile ' + zeile : x.zeilen[0].slice(0, 70)));
+    zeile += x.zeilen.length;
+  });
+  console.log(zahl(ges).padStart(9) + '         ' + (t.length < ganz.length ? 'ohne die Stichwortliste' : 'im Ganzen') + ' · Richtwert ' + zahl(richt) +
+    (ges > richt ? ' · ' + zahl(ges - richt) + ' darüber' : ' · ' + zahl(richt - ges) + ' frei'));
+  return true;
+}
+function kernKapitel(a) {
+  var titel = '', ohne = [], i = a.indexOf('--titel');
+  if (i >= 0) { titel = String(a[i + 1] || '').trim(); a.splice(i, 2); }
+  while ((i = a.indexOf('--ohne')) >= 0) { if (a[i + 1]) ohne.push(a[i + 1]); a.splice(i, 2); }
+  if (a.length < 4 || !titel) return false;
+  function ab(s) { console.error(s); process.exit(1); }
+  if (!STAND_DER_DINGE.test(titel)) ab('Der Titel beginnt mit „Stand der Dinge“, etwa „Stand der Dinge nach Sitzung 18 (Welttag 61)“: Daran erkennt das Buch das Kapitel.');
+  var altText = lies(a[0]);
+  if (istSpielleitung(a[0], altText)) ab(a[0] + ': Spielleitungswissen. In die Geschichte geht nur, was den Kern (02_spielstand.md) verlässt; Abgeschlossenes der Spoilerdatei wandert ins Archiv der Ablage.');
+  var alt = kernAbschnitte(ohneListe(altText)), neu = Object.create(null), gesDatei = a[2];
+  ohneListe(lies(a[1])).split('\n').forEach(function (z) { neu[schluessel(z)] = true; });
+  // Was schon in der Werkbank oder den Einstellungen steht, hat seinen Ort und geht nicht ins Buch
+  ohne.forEach(function (p) { zeilenVon(p).forEach(function (z) { neu[schluessel(z)] = true; }); });
+  // Die genannten Abschnitte: am Anfang ihrer Überschrift erkannt, Groß und Klein gleich
+  var gewaehlt = [], probleme = [];
+  a.slice(3).forEach(function (n) {
+    var treffer = alt.filter(function (x) { return !x.kopf && x.titel.toLowerCase().indexOf(n.toLowerCase()) === 0; });
+    if (treffer.length !== 1) probleme.push('„' + n + '“ ' + (treffer.length ? 'passt auf ' + treffer.length + ' Abschnitte' : 'gibt es nicht'));
+    else if (gewaehlt.indexOf(treffer[0]) < 0) gewaehlt.push(treffer[0]);
+  });
+  if (probleme.length) ab(probleme.join('; ') + '. Abschnitte der alten Fassung: ' + alt.filter(function (x) { return !x.kopf; }).map(function (x) { return x.titel; }).join(' · '));
+  gewaehlt.sort(function (x, y) { return x.nr - y.nr; });
+  // Das Buch liest auch, wem der Spieler es teilt: Notizen für die Spielleitung gehören in die Werkbank
+  var fuerSl = gewaehlt.filter(function (x) { return /Spielleitung/i.test(x.titel); });
+  if (fuerSl.length) ab('„' + fuerSl[0].titel + '“ ist für die Spielleitung geschrieben: Was diesen Abschnitt verlässt, gehört in die Werkbank (werkbank.md) oder nach einstellungen.md, nicht in die Geschichte.');
+  // Was einen Abschnitt verlassen hat: jede Zeile der alten Fassung, die in der neuen nicht mehr wörtlich steht
+  function verlassen(x) {
+    var aus = [], unter = '', n = 0;
+    x.zeilen.slice(x.kopf ? 0 : 1).forEach(function (z) {
+      if (!z.trim()) return;
+      var m = z.match(/^(#{1,6})\s+(.*)$/), weg = !neu[schluessel(z)];
+      if (m) { unter = '#'.repeat(Math.min(6, m[1].length + 2)) + ' ' + m[2].trim(); if (weg) { aus.push(unter); unter = ''; n++; } return; }
+      if (!weg) return;
+      if (unter) { aus.push(unter); unter = ''; }
+      aus.push(z.replace(/\s+$/, '')); n++;
+    });
+    return { zeilen: aus, zahl: n, titelWeg: !x.kopf && !neu[schluessel(x.zeilen[0])] };
+  }
+  var text = [], meld = [], summe = 0;
+  gewaehlt.forEach(function (x) {
+    var v = verlassen(x);
+    if (!v.zahl && !v.titelWeg) { meld.push('  ' + x.titel + ': nichts hat den Kern verlassen'); return; }
+    text.push('#### ' + x.titel); text = text.concat(v.zeilen); text.push('');
+    summe += v.zahl + (v.titelWeg ? 1 : 0);
+    meld.push('  ' + x.titel + ': ' + zeilenzahl(v.zahl + (v.titelWeg ? 1 : 0)));
+  });
+  var uebrig = [];
+  alt.forEach(function (x) {
+    if (gewaehlt.indexOf(x) >= 0) return;
+    var v = verlassen(x), n = v.zahl + (v.titelWeg ? 1 : 0);
+    if (n) uebrig.push('  ' + (x.kopf ? 'Kopf' : x.titel) + ': ' + zeilenzahl(n));
+  });
+  if (!summe) ab('Aus den genannten Abschnitten hat nichts den Kern verlassen; die Geschichte bleibt, wie sie ist.' + (uebrig.length ? '\nNicht genannt, aber gekürzt:\n' + uebrig.join('\n') : ''));
+  var gText = lies(gesDatei), g = gText.split('\n'), pos = -1;
+  // Geschrieben wird nur in die Geschichte: Eine vertauschte Datei (der Kern, die Werkbank) bleibt, wie sie ist
+  if (istSpielleitung(gesDatei, gText) || (!/^#\s+Was bisher geschah/m.test(gText) && !/^###\s+Sitzung\b/m.test(gText))) ab(gesDatei + ' ist keine Geschichte (Überschrift „# Was bisher geschah“ oder Abschnitte „### Sitzung …“). Reihenfolge: <alt.md> <neu.md> <02_geschichte.md>.');
+  if (g.some(function (z) { return z.trim() === '### ' + titel; })) ab('Ein Kapitel „' + titel + '“ gibt es in ' + gesDatei + ' schon.');
+  // vor die erste Sitzung: Die Kapitel zum Nachschlagen stehen vor der Erzählung, das älteste zuerst
+  for (var n = 0; n < g.length; n++) { var m = g[n].match(/^###\s+(.+)$/); if (m && !STAND_DER_DINGE.test(m[1].trim())) { pos = n; break; } }
+  var kap = ['### ' + titel].concat(text.join('\n').replace(/\s+$/, '').split('\n')).concat(['']);
+  if (pos < 0) { while (g.length && !g[g.length - 1].trim()) g.pop(); g = g.concat([''], kap); } else g.splice.apply(g, [pos, 0].concat(kap));
+  fs.writeFileSync(gesDatei, g.join('\n'));
+  console.log('Kapitel „' + titel + '“ steht in ' + gesDatei + ': ' + zeilenzahl(summe) + ', ' + zahl(laenge(kap.join('\n'))) + ' Zeichen.\n' + meld.join('\n') +
+    (uebrig.length ? '\nNicht ins Kapitel genommen, weil nicht genannt (Notizen der Spielleitung gehören in die Werkbank, feste Einstellungen nach einstellungen.md):\n' + uebrig.join('\n') : '') +
+    '\nWeiter: node seite/bauen.js --kern verlust ' + a[0] + ' ' + a[1] + ' ' + gesDatei + (ohne.length ? ' ' + ohne.join(' ') : ' [werkbank.md einstellungen.md]'));
+  return true;
+}
+function kernVerlust(a) {
+  var nurZeilen = false, i = a.indexOf('--nur-zeilen');
+  if (i >= 0) { nurZeilen = true; a.splice(i, 1); }
+  if (a.length < 2) return false;
+  var ganz = lies(a[0]), altText = ohneListe(ganz), wo = Object.create(null), zeilen = 0, fehlt = [];
+  if (istSpielleitung(a[0], ganz)) nurZeilen = true;
+  a.slice(1).forEach(function (p, n) { (n === 0 ? ohneListe(lies(p)).split('\n') : zeilenVon(p)).forEach(function (z) { wo[schluessel(z)] = true; }); });
+  altText.split('\n').forEach(function (z, n) {
+    if (!z.trim()) return;
+    zeilen++;
+    if (!wo[schluessel(z)]) fehlt.push('FEHLT: Zeile ' + (n + 1) + (nurZeilen ? '' : ' · ' + z.trim().slice(0, 140)));
+  });
+  fehlt.forEach(function (f) { console.log(f); });
+  console.log(fehlt.length ? fehlt.length + ' von ' + zeilen + ' Zeilen der alten Fassung ' + (fehlt.length === 1 ? 'steht' : 'stehen') + ' nirgends mehr.'
+    : 'NICHTS VERLOREN: Jede der ' + zeilen + ' Zeilen der alten Fassung steht wörtlich in der neuen oder in einem der Teile.');
+  process.exit(fehlt.length ? 1 : 0);
+}
+
 if (require.main === module) {
   var a = process.argv.slice(2), was = a.shift();
   if ((was === '--seite' || was === '--ablage-seite') && (a.length === 0 || (a.length === 2 && a[0] === '--titel'))) process.stdout.write(was === '--seite' ? seite(a[1]) : ablageSeite(a[1]));
@@ -478,12 +627,16 @@ if (require.main === module) {
   else if (was === '--einordnen' && a.length >= 2) einordnen(a);
   else if (was === '--ablage' && a.length >= 1) ablage(a);
   else if (was === '--umzug' && a.length === 2) umzug(a[0], a[1]);
+  else if (was === '--kern' && a[0] === 'messen' && kernMessen(a.slice(1))) { /* gemessen */ }
+  else if (was === '--kern' && a[0] === 'kapitel' && kernKapitel(a.slice(1))) { /* geschrieben */ }
+  else if (was === '--kern' && a[0] === 'verlust' && kernVerlust(a.slice(1))) { /* endet selbst */ }
   else {
     console.error('Aufruf: node seite/bauen.js --seite [--titel …] | --ablage-seite [--titel …] | --dateien <ordner> [--stand …] [--stufe n] [--titel …] <dateien …> | --zurueck <ordner> <zielordner> | ' +
-      '--einordnen <ablage-ordner> <geholte dateien …> | --ablage <ablage-ordner> [--sitzung …] [--sitzungsende] [--entfernen <pfad>] | --umzug <paket.zip|db-ordner> <zielordner>' +
+      '--einordnen <ablage-ordner> <geholte dateien …> | --ablage <ablage-ordner> [--sitzung …] [--sitzungsende] [--entfernen <pfad>] | --umzug <paket.zip|db-ordner> <zielordner> | ' +
+      '--kern messen <datei.md> [--richtwert n] | --kern kapitel <alt.md> <neu.md> <02_geschichte.md> --titel "Stand der Dinge nach Sitzung N (Welttag T)" [--ohne <datei>] <abschnitt …> | --kern verlust <alt.md> <neu.md> [teile …]' +
       (/^--(db|batches|kopie|uebergabe)$/.test(was || '') ? '\n' + was + ' gibt es seit Regelwerk 4.2 nicht mehr: Buch und Ablage liegen als Dateien vor (Werkstatt 4.7, 21.3, 21.4).' : ''));
     process.exit(2);
   }
 }
 module.exports = { seite: seite, ablageSeite: ablageSeite, abschnitte: abschnitte, slug: slug, zurueck: zurueck, buendel: buendel, liesBuch: liesBuch, artVon: artVon, entpacke: entpacke,
-  ablageStand: ablageStand, istAblage: istAblage, pruefsumme: pruefsumme };
+  ablageStand: ablageStand, istAblage: istAblage, pruefsumme: pruefsumme, tiefer: tiefer, schluessel: schluessel, kernAbschnitte: kernAbschnitte, ohneListe: ohneListe };

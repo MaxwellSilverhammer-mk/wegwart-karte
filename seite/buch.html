@@ -42,6 +42,11 @@ section[hidden]{display:none!important}
 .ge summary{cursor:pointer;font-family:"IM Fell English",Georgia,serif;font-size:20px;color:#5a2e16}
 .ge ul{margin:6px 0 0;padding-left:20px}
 .ge li{margin:4px 0}
+.ge h4,.ge h5{margin:12px 0 2px;font-family:"IM Fell English",Georgia,serif;font-size:18px;font-weight:normal;color:#5a2e16}
+.ge h5{margin-top:8px;font-size:17px;font-style:italic}
+.ge .geN{border-bottom:1px solid #c9b48c;padding:14px 0 8px}
+.ge .geN h3{margin:0;font-family:"IM Fell English",Georgia,serif;font-size:16px;font-weight:normal;letter-spacing:.08em;text-transform:uppercase;color:#6b5a41}
+.ge .geN p{margin:2px 0 0;font-size:15px;color:#5e4f38}
 .ge blockquote{margin:6px 0 6px 4px;padding-left:12px;border-left:3px solid #c9b48c;font-style:italic}
 .hinweis{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);max-width:min(560px,calc(100% - 32px));background:var(--tischText);color:var(--tisch);padding:10px 14px;border-radius:8px;font-size:16px;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 #karte-teil button{font:inherit;font-size:16px;color:#2f2519;background:var(--pg);border:1px solid var(--pgRand);border-radius:6px;padding:3px 12px;cursor:pointer}
@@ -190,6 +195,9 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
         if (tiefe > 0 && /<\/li>$/.test(html)) html = html.replace(/<\/li>$/, zitat + '</li>'); else html += zitat;
         return;
       }
+      // Eine Überschrift im Text (ab „####“, Werkstatt 21.7): als Zwischenzeile
+      var u = z.match(/^\s*(#{1,6})\s+(.*)$/);
+      if (u) { var hx = u[1].length <= 4 ? 'h4' : 'h5'; while (tiefe > 0) { html += '</ul>'; tiefe--; } html += '<' + hx + '>' + inline(u[2].trim()) + '</' + hx + '>'; return; }
       var m = z.match(/^(\s*)[-*]\s+(.*)$/);
       if (m) {
         var t = Math.floor(m[1].length / 2) + 1;
@@ -209,12 +217,23 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
     if (!g) return;
     if (!g.length) { leer('geschichte', 'Noch nichts erzählt.'); return; }
     var el = $('geschichte'); el.innerHTML = '';
-    g.forEach(function (d, i) {
-      var det = document.createElement('details'); if (i === g.length - 1) det.open = true;
+    // Kapitel „Stand der Dinge …“ sind zum Nachschlagen (Regelwerk 21.1): eine eigene Gruppe nach der Erzählung, nie von selbst offen
+    var nach = g.filter(function (d) { return /^Stand der Dinge(?![A-Za-zÄÖÜäöüß])/.test(String(d.titel || '')); });
+    var erz = g.filter(function (d) { return nach.indexOf(d) < 0; });
+    function kapitel(d, offen) {
+      var det = document.createElement('details'); if (offen) det.open = true;
       var s = document.createElement('summary'); s.textContent = d.titel || d.id;
       var div = document.createElement('div'); div.innerHTML = absatz(String(d.text || ''));
       det.appendChild(s); det.appendChild(div); el.appendChild(det);
-    });
+    }
+    erz.forEach(function (d, i) { kapitel(d, i === erz.length - 1); });
+    if (nach.length) {
+      var gruppe = document.createElement('div'); gruppe.className = 'geN'; gruppe.id = 'nachschlagen';
+      var h = document.createElement('h3'); h.textContent = 'Nachschlagen';
+      var p = document.createElement('p'); p.textContent = 'Der Stand der Dinge an einem Tag: was die Figur damals wusste, hatte und vorhatte. Es gilt für seinen Tag.';
+      gruppe.appendChild(h); gruppe.appendChild(p); el.appendChild(gruppe);
+      nach.forEach(function (d) { kapitel(d, false); });
+    }
   }
 
   function aktiv() { var t = TEILE.filter(function (x) { return !$(x + '-teil').hidden; })[0]; return t || 'glossar'; }

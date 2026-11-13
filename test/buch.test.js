@@ -1,6 +1,7 @@
 // Spielerbuch 2.0 (Regelwerk 4.2): Buch und Ablage als Dateien. Dateien hin (--dateien) und zurück (--zurueck) ändern nichts;
 // die Seiten bauen; die Ablage ordnet geholte Dateien über stand.json ein und nennt, was zu veröffentlichen ist; der Umzug
-// aus der Datenbank von vor 4.2 (Ordner oder zip) ergibt dasselbe Buch und dieselbe Ablage.
+// aus der Datenbank von vor 4.2 (Ordner oder zip) ergibt dasselbe Buch und dieselbe Ablage. Dazu der Kern (Regelwerk 21.1):
+// messen, das Kapitel „Stand der Dinge“ schreiben und die Verlustprobe.
 // Erfundene Mini-Welt, keine privaten Dateien.
 'use strict';
 var fs = require('fs'), os = require('os'), path = require('path'), cp = require('child_process'), zlib = require('zlib'), crypto = require('crypto');
@@ -241,6 +242,98 @@ r = lauf(['--umzug', fremdPaket, path.join(dir, 'umzug-fremd')]);
 pruef('Umzug: fremde Namen im Paket werden gemeldet, nichts landet außerhalb', r.status === 1 && /2 Einträge des Pakets/.test(r.stderr) && !fs.existsSync(path.join(dir, 'draussen.json')), r.stderr);
 r = lauf(['--umzug', schreib('kein.zip', 'kein Archiv'), path.join(dir, 'umzug-kein')]);
 pruef('Umzug: kein zip, klare Absage', r.status !== 0 && /kein zip-Archiv/.test(r.stderr), r.stderr);
+
+/* ---------- Kern pflegen (Regelwerk 21.1, Werkstatt 21.7): messen, Kapitel „Stand der Dinge“, Verlustprobe ---------- */
+var kAlt = schreib('kern/alt.md', ['# Spielstand der Probefigur · nach Sitzung 3',
+  '*Stand: Tag 3*', '',
+  '## Jetzt', '- In Mühlfurt, Tag 3, abends.', '',
+  '## Für die Spielleitung', '- Würfe der Spielleitung: offen.', '- Kehraus zuletzt nach Sitzung 1.', '',
+  '## Karte', '- Mühlfurt: drei Stunden über den Damm zur Alten Eiche.', '- Die Furt führt im Frühjahr Hochwasser; Bodo riet zum Umweg.', '',
+  '## Questlog', '### Offene Aufträge', '- **Der Brief des Vogts:** nach Mühlfurt bringen.', '  - Bodo kennt den Empfänger nicht.', '  - Der Vogt zahlt bei Rückkehr.',
+  '### Gegebenes Wort', '- Dem Vogt: Schweigen über den Brief.', '',
+  '## Stichwortliste', '- Bodo · Wirt', ''].join('\n'));
+var kNeu = schreib('kern/neu.md', ['# Spielstand der Probefigur · nach Sitzung 3',
+  '*Stand: Tag 3*', '',
+  '## Jetzt', '- In Mühlfurt, Tag 3, abends.', '',
+  '## Für die Spielleitung', '- Würfe der Spielleitung: offen.', '',
+  '## Karte', '- Mühlfurt: drei Stunden über den Damm zur Alten Eiche.', '',
+  '## Questlog', '### Offene Aufträge', '- **Der Brief des Vogts:** nach Mühlfurt bringen. Stand: unterwegs.',
+  '### Gegebenes Wort', '- Dem Vogt: Schweigen über den Brief.', '',
+  '## Stichwortliste', '- Bodo · Wirt', '- Vogt · Auftraggeber', ''].join('\n'));
+var kWerkbank = schreib('kern/werkbank.md', '# Werkbank der Probefigur\n\n## Kürzen\n- Kehraus zuletzt nach Sitzung 1.\n');
+var kGes = schreib('kern/02_geschichte.md', '# Was bisher geschah\n\n### Sitzung 1, Tag 1\n- Aufbruch in der Hafenstadt.\n\n### Sitzung 2, Tag 2\n- Bodo schenkt Bier aus.\n');
+var kTitel = 'Stand der Dinge nach Sitzung 3 (Welttag 3)';
+r = lauf(['--kern', 'messen', kAlt, '--richtwert', '300']);
+var kOhne = lese(kAlt).slice(0, lese(kAlt).indexOf('\n## Stichwortliste'));
+pruef('Kern messen: Abschnitte, Summe ohne Stichwortliste, Abstand zum Richtwert',
+  r.status === 0 && /## Questlog/.test(r.stdout) && !/Stichwortliste\n/.test(r.stdout.replace(/ohne die Stichwortliste/, '')) &&
+  r.stdout.indexOf(String(Array.from(kOhne).length) + '         ohne die Stichwortliste · Richtwert 300 · ' + (Array.from(kOhne).length - 300) + ' darüber') >= 0, r.stdout + r.stderr);
+var kSumme = 0; r.stdout.split('\n').forEach(function (z) { var m = z.match(/^\s*([\d.]+)\s+\d+ %/); if (m) kSumme += parseInt(m[1].replace(/\./g, ''), 10); });
+pruef('Kern messen: Die Abschnitte ergeben zusammen die Summe', kSumme === Array.from(kOhne).length, kSumme + ' / ' + Array.from(kOhne).length);
+var kSpoiler = schreib('kern/03_spielleitung_SPOILER.md', '# SPOILER\n## Der wahre Vogt\n- Der Vogt ist ein Hochstapler.\n## Uhren\n- Die Flut: 2 von 6.\n');
+r = lauf(['--kern', 'messen', kSpoiler]);
+pruef('Kern messen: Die Spoilerdatei nennt Nummern statt Überschriften', r.status === 0 && /Abschnitt 2 ab Zeile 2/.test(r.stdout) && !/Vogt|Uhren/.test(r.stdout) && /im Ganzen · Richtwert 100\.000/.test(r.stdout), r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kAlt, kNeu, kGes, '--titel', 'Rückblick', 'Karte']);
+pruef('Kern Kapitel: Der Titel muss mit „Stand der Dinge“ beginnen', r.status === 1 && /beginnt mit „Stand der Dinge“/.test(r.stderr), r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kAlt, kNeu, kGes, '--titel', kTitel, 'Fäden']);
+pruef('Kern Kapitel: Ein unbekannter Abschnitt wird abgelehnt, mit der Liste der Abschnitte', r.status === 1 && /„Fäden“ gibt es nicht/.test(r.stderr) && /Jetzt · Für die Spielleitung · Karte · Questlog/.test(r.stderr), r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kAlt, kNeu, kGes, '--titel', kTitel, 'Karte', 'Für die Spielleitung']);
+pruef('Kern Kapitel: Ein Abschnitt für die Spielleitung geht nicht ins Buch', r.status === 1 && /gehört in die Werkbank/.test(r.stderr) && lese(kGes).indexOf('Stand der Dinge') < 0, r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kSpoiler, kNeu, kGes, '--titel', kTitel, 'Uhren']);
+pruef('Kern Kapitel: Spielleitungswissen geht nie in die Geschichte', r.status === 1 && /Spielleitungswissen/.test(r.stderr) && lese(kGes).indexOf('Stand der Dinge') < 0, r.stdout + r.stderr);
+r = lauf(['--kern', 'verlust', kAlt, kNeu, kGes, kWerkbank]);
+pruef('Verlustprobe vor dem Kapitel: nennt die Zeilen, die nirgends mehr stehen', r.status === 1 && /FEHLT: Zeile 13 · - Die Furt führt im Frühjahr Hochwasser; Bodo riet zum Umweg\./.test(r.stdout) && /4 von 17 Zeilen/.test(r.stdout), r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kAlt, kNeu, kGes, '--titel', kTitel, '--ohne', kWerkbank, 'questlog', 'Karte', 'Jetzt']);
+var kText = lese(kGes), kKapitel = ['### ' + kTitel, '#### Karte', '- Die Furt führt im Frühjahr Hochwasser; Bodo riet zum Umweg.', '', '#### Questlog', '##### Offene Aufträge',
+  '- **Der Brief des Vogts:** nach Mühlfurt bringen.', '  - Bodo kennt den Empfänger nicht.', '  - Der Vogt zahlt bei Rückkehr.', '', '### Sitzung 1, Tag 1'].join('\n');
+pruef('Kern Kapitel: steht vor der ersten Sitzung, Zeilen wörtlich, Überschriften ab ####, in der Reihenfolge des Kerns',
+  r.status === 0 && kText.indexOf('# Was bisher geschah\n\n' + kKapitel) === 0 && /Jetzt: nichts hat den Kern verlassen/.test(r.stdout) && /Karte: 1 Zeile\n/.test(r.stdout) && /Questlog: 3 Zeilen/.test(r.stdout) && /: 4 Zeilen, /.test(r.stdout), r.stdout + r.stderr + '\n' + kText);
+pruef('Kern Kapitel: Was in der Werkbank steht, geht nicht ins Buch; die Sitzungen bleiben unberührt',
+  kText.indexOf('Kehraus zuletzt') < 0 && !/Nicht ins Kapitel genommen/.test(r.stdout) && /### Sitzung 2, Tag 2\n- Bodo schenkt Bier aus\.\n$/.test(kText), r.stdout + '\n' + kText);
+var kNeuVorher = lese(kNeu);
+r = lauf(['--kern', 'kapitel', kAlt, kGes, kNeu, '--titel', kTitel, 'Karte']);
+pruef('Kern Kapitel: Vertauschte Dateien, geschrieben wird nur in eine Geschichte', r.status === 1 && /ist keine Geschichte/.test(r.stderr) && lese(kNeu) === kNeuVorher, r.stdout + r.stderr);
+r = lauf(['--kern', 'kapitel', kAlt, kNeu, kGes, '--titel', kTitel, 'Karte']);
+pruef('Kern Kapitel: Dasselbe Kapitel gibt es nicht zweimal', r.status === 1 && /gibt es in .* schon/.test(r.stderr) && lese(kGes) === kText, r.stdout + r.stderr);
+r = lauf(['--kern', 'verlust', kAlt, kNeu, kGes, kWerkbank]);
+pruef('Verlustprobe: nichts verloren, auch die tiefer gesetzten Überschriften zählen', r.status === 0 && /NICHTS VERLOREN: Jede der 17 Zeilen/.test(r.stdout), r.stdout + r.stderr);
+r = lauf(['--kern', 'verlust', kAlt, kNeu, kGes]);
+pruef('Verlustprobe: ohne die Werkbank fehlt deren Zeile', r.status === 1 && /FEHLT: Zeile 9 · - Kehraus zuletzt nach Sitzung 1\./.test(r.stdout) && /1 von 17 Zeilen der alten Fassung steht nirgends mehr/.test(r.stdout), r.stdout + r.stderr);
+// Das Kapitel übersteht den Weg ins Buch und zurück als ein Abschnitt
+var kBuch = path.join(dir, 'kern', 'buch'), kZur = path.join(dir, 'kern', 'zurueck');
+r = lauf(['--dateien', kBuch, '--stand', 'Stand: Tag 3', kGes]);
+var kJson = JSON.parse(lese(path.join(kBuch, 'daten', 'geschichte.json')));
+pruef('Kern Kapitel im Buch: ein Abschnitt, an erster Stelle, mit seinen Überschriften im Text', r.status === 0 && kJson.length === 3 && kJson[0].titel === kTitel && /^#### Karte\n/.test(kJson[0].text) && /\n##### Offene Aufträge\n/.test(kJson[0].text), r.stderr + JSON.stringify(kJson.map(function (x) { return x.titel; })));
+r = lauf(['--kern', 'verlust', kAlt, kNeu, path.join(kBuch, 'daten', 'geschichte.json'), kWerkbank]);
+pruef('Verlustprobe liest auch geschichte.json', r.status === 0 && /NICHTS VERLOREN/.test(r.stdout), r.stdout + r.stderr);
+r = lauf(['--zurueck', kBuch, kZur]);
+pruef('Kern Kapitel: hin und zurück ändert die Geschichte nicht', r.status === 0 && lese(path.join(kZur, '02_geschichte.md')) === kText && !/Überschriften jetzt ab/.test(r.stderr), r.stderr);
+// Ein Abschnitt aus der Zeit vor 4.2, dessen Text Überschriften „##“ und „###“ trägt, bliebe beim Zurückschreiben nicht ganz: --zurueck setzt sie tiefer
+var kAltbuch = path.join(dir, 'kern', 'altbuch');
+fs.mkdirSync(path.join(kAltbuch, 'daten'), { recursive: true });
+fs.writeFileSync(path.join(kAltbuch, 'daten', 'geschichte.json'), JSON.stringify([{ id: 'stand', reihe: 0, titel: 'Stand der Dinge nach Sitzung 2 (Welttag 2)', text: '## Questlog\n### Offene Aufträge\n- Der Brief.\n#### Etappen\n- Aufbruch.' },
+  { id: 's1', reihe: 1, titel: 'Sitzung 1, Tag 1', text: '- Aufbruch in der Hafenstadt.' }]));
+var kAltZur = path.join(dir, 'kern', 'altzurueck');
+r = lauf(['--zurueck', kAltbuch, kAltZur]);
+var kAltMd = lese(path.join(kAltZur, '02_geschichte.md'));
+pruef('--zurueck setzt Überschriften im Text eines Abschnitts ab #### und sagt es', r.status === 0 && /in 1 stehen Überschriften jetzt ab „####“/.test(r.stderr) && kAltMd.indexOf('#### Questlog\n##### Offene Aufträge\n- Der Brief.\n###### Etappen\n- Aufbruch.') > 0, r.stderr + kAltMd);
+r = lauf(['--dateien', path.join(dir, 'kern', 'altbuch2'), kAltMd === '' ? kGes : path.join(kAltZur, '02_geschichte.md')]);
+pruef('… und der Abschnitt bleibt beim nächsten --dateien einer', r.status === 0 && JSON.parse(lese(path.join(dir, 'kern', 'altbuch2', 'daten', 'geschichte.json'))).length === 2, r.stderr);
+// Ein zweiter Kehraus: Sein Kapitel steht nach dem ersten und vor den Sitzungen
+var kNeu2 = schreib('kern/neu2.md', lese(kNeu).replace('- Dem Vogt: Schweigen über den Brief.\n', ''));
+r = lauf(['--kern', 'kapitel', kNeu, kNeu2, kGes, '--titel', 'Stand der Dinge nach Sitzung 9 (Welttag 12)', 'Questlog']);
+var kText2 = lese(kGes);
+pruef('Kern Kapitel: Das zweite steht nach dem ersten, vor den Sitzungen', r.status === 0 && kText2.indexOf('### ' + kTitel) < kText2.indexOf('### Stand der Dinge nach Sitzung 9') && kText2.indexOf('### Stand der Dinge nach Sitzung 9') < kText2.indexOf('### Sitzung 1, Tag 1') &&
+  /### Stand der Dinge nach Sitzung 9 \(Welttag 12\)\n#### Questlog\n##### Gegebenes Wort\n- Dem Vogt: Schweigen über den Brief\.\n\n### Sitzung 1/.test(kText2), r.stdout + r.stderr + kText2);
+r = lauf(['--kern', 'kapitel', kNeu, kNeu, kGes, '--titel', 'Stand der Dinge nach Sitzung 10 (Welttag 13)', 'Questlog']);
+pruef('Kern Kapitel: Ohne Kürzung entsteht kein Kapitel', r.status === 1 && /nichts den Kern verlassen/.test(r.stderr) && lese(kGes) === kText2, r.stdout + r.stderr);
+// Spielleitungswissen: Die Verlustprobe nennt nur Zeilennummern
+var kSpoilerNeu = schreib('kern/03_neu.md', '# SPOILER\n## Uhren\n- Die Flut: 2 von 6.\n');
+r = lauf(['--kern', 'verlust', kSpoiler, kSpoilerNeu]);
+pruef('Verlustprobe an der Spoilerdatei: Zeilennummern, kein Wortlaut', r.status === 1 && /FEHLT: Zeile 2\nFEHLT: Zeile 3\n2 von 5 Zeilen/.test(r.stdout) && !/Hochstapler|wahre/.test(r.stdout), r.stdout + r.stderr);
+var kArchiv = schreib('kern/archiv/004-der-wahre-vogt.md', '## Der wahre Vogt\n\n- Der Vogt ist ein Hochstapler.\n');
+r = lauf(['--kern', 'verlust', kSpoiler, kSpoilerNeu, kArchiv]);
+pruef('Verlustprobe an der Spoilerdatei: Das Archiv trägt, was sie verlassen hat', r.status === 0 && /NICHTS VERLOREN: Jede der 5 Zeilen/.test(r.stdout), r.stdout + r.stderr);
 
 console.log((fehl ? 'FEHLER' : 'ok') + ' · buch.test.js: ' + ok + ' bestanden, ' + fehl + ' fehlgeschlagen');
 process.exit(fehl ? 1 : 0);

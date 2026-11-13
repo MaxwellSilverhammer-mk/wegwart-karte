@@ -41,5 +41,20 @@ erwarte('Spoiler bleibt gesperrt', [spoilerDaten, kern, spoiler, geschichte], fa
 var wbSpoiler = schreib('03_mit_json.md', '# SPOILER\n```json\n{"notiz": 1}\n```\n- Der Brief des Vogts ist gefälscht.\n## Wer weiß was\n*Stand: Tag 3 · Figur: Probefigur*\n### Bodil\n- Der Vogt gab der Probefigur einen versiegelten Brief. (Gerücht, Tag 2; vom Boten)\n');
 var rw = lauf([wbSpoiler, kern, wbSpoiler, geschichte]);
 if (/Wissensbuch:/.test(rw.stdout + rw.stderr) && !/Unbekannte Daten/.test(rw.stdout + rw.stderr)) ok++; else { fehl++; console.log('FEHL Wissensbuch mit json-Block\n' + rw.stdout + rw.stderr); }
+// --ohne-kern (Regelwerk 21.1, „Schreiben vor Kürzen“): zeigt, was allein am Kern hängt, und ändert am Ergebnis nichts
+function pruef(name, bed, info) { if (bed) ok++; else { fehl++; console.log('FEHL ' + name + (info ? '\n' + info : '')); } }
+var ro = lauf([daten, kern, spoiler, geschichte, '--ohne-kern']);
+pruef('--ohne-kern: Ergebnis bleibt, der Satz ist außerhalb belegt, Zahl und Wort hängen am Kern',
+  ro.status === 0 && /FREIGEGEBEN/.test(ro.stdout) && /Ohne den Kern \(Regelwerk 21\.1\): Jeder Satz hat einen Beleg außerhalb; dazu \d+ Angaben? \(Namen, Wörter, Zahlen\)/.test(ro.stdout) && !/◦/.test(ro.stdout), ro.stdout + ro.stderr);
+// Ein Satz, den nur der Kern trägt: Er wird genannt, mit Ort und Wortlaut
+var kernMitSatz = schreib('02_spielstand_satz.md', fs.readFileSync(kern, 'utf8') + '- Der Wanderstab trägt eine Kerbe vom Sturz am Damm.\n');
+var datenMitSatz = schreib('02_inventar_satz.md', fs.readFileSync(daten, 'utf8').replace('{"name":"Wanderstab","art":"werkzeug","kg":1}', '{"name":"Wanderstab","art":"werkzeug","kg":1,"notiz":"Der Wanderstab trägt eine Kerbe vom Sturz am Damm."}'));
+var rs = lauf(['--ohne-kern', datenMitSatz, kernMitSatz, spoiler, geschichte]);
+pruef('--ohne-kern: nennt den Satz, der seinen Beleg nur im Kern hat',
+  rs.status === 0 && /1 Satz hat seinen Beleg nur dort/.test(rs.stdout) && /◦ .*Wanderstab.*\(notiz\): „Der Wanderstab trägt eine Kerbe vom Sturz am Damm\.“/.test(rs.stdout), rs.stdout + rs.stderr);
+var rk = lauf([datenMitSatz, kernMitSatz, spoiler, '--ohne-kern']);
+pruef('--ohne-kern ohne Teile: sagt, dass der Kern alles trägt', /Kein Teil des Spielstands ist mitgegeben/.test(rk.stdout), rk.stdout + rk.stderr);
+var rn = lauf([datenMitSatz, kernMitSatz, spoiler, geschichte]);
+pruef('ohne den Schalter kein Hinweis dazu', rn.status === 0 && !/Ohne den Kern/.test(rn.stdout), rn.stdout + rn.stderr);
 console.log((fehl ? 'FEHLER' : 'ok') + ' · teile.test.js: ' + ok + ' bestanden, ' + fehl + ' fehlgeschlagen');
 process.exit(fehl ? 1 : 0);

@@ -120,6 +120,27 @@ function text(pg, sel) { return pg.locator(sel).innerText(); }
     ok('Dateien: kein Umzugskasten, keine Fehler');
     await p1.close();
 
+    // 1b „Stand der Dinge“ (Regelwerk 21.1): eigene Gruppe „Nachschlagen“ nach der Erzählung, nie von selbst offen
+    var gesN = JSON.stringify([{ id: 'stand-3', reihe: 0, titel: 'Stand der Dinge nach Sitzung 3 (Welttag 3)', text: '#### Karte\n- Die Furt führt Hochwasser.\n##### Offene Aufträge\n- **Der Brief** des Vogts.' }]
+      .concat(geB.map(function (d, i) { return { id: d.id, reihe: i + 1, titel: d.titel, text: d.text }; })));
+    var pN = await oeffne(ctx, { dateien: { meta: D.meta, glossar: D.glossar, tische: D.tische, geschichte: gesN }, hash: '#geschichte' });
+    await pN.waitForFunction(function () { return document.querySelectorAll('#geschichte details').length === 3; });
+    var bild = await pN.evaluate(function () {
+      var el = document.getElementById('geschichte');
+      return {
+        kinder: Array.prototype.map.call(el.children, function (c) { return c.tagName === 'DETAILS' ? (c.open ? 'offen:' : 'zu:') + c.querySelector('summary').textContent : c.id || c.tagName; }),
+        h4: Array.prototype.map.call(el.querySelectorAll('h4, h5'), function (h) { return h.tagName + ' ' + h.textContent; }), roh: /#/.test(el.textContent),
+        gruppe: el.querySelector('#nachschlagen h3').textContent
+      };
+    });
+    assert.deepStrictEqual(bild.kinder, ['zu:Sitzung 1, Tag 1', 'offen:Sitzung 2, Tag 2', 'nachschlagen', 'zu:Stand der Dinge nach Sitzung 3 (Welttag 3)']);
+    assert.deepStrictEqual(bild.h4, ['H4 Karte', 'H5 Offene Aufträge']);
+    assert.strictEqual(bild.roh, false, 'keine rohen Überschriftenzeichen');
+    assert.strictEqual(bild.gruppe, 'Nachschlagen');
+    assert.deepStrictEqual(pN.fehler, []);
+    ok('Dateien: „Stand der Dinge“ steht unter „Nachschlagen“ und bleibt zu; Überschriften im Text sind Zwischenzeilen');
+    await pN.close();
+
     // 2 Anker in der Adresse; fehlende Dateien heißen „noch leer“
     var p2 = await oeffne(ctx, { dateien: { meta: D.meta, glossar: D.glossar }, hash: '#geschichte' });
     await p2.waitForFunction(function () { return /Noch nichts erzählt/.test(document.getElementById('geschichte').textContent); });
