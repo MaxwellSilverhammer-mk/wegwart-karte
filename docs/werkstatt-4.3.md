@@ -1,8 +1,8 @@
 # Oerik – Werkstatt der Spielleitung
 
-**Zum Regelwerk 4.2 · 13. November 2026 · Weltenhüter: Max**
+**Zum Regelwerk 4.3 · 14. November 2026 · Weltenhüter: Max**
 
-Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, eine neue Figur anlegt oder einem Revier einen neuen Auftrag oder eine neue Bedrohung gibt, wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
+Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, einen Kampf erzählt (12.7), eine neue Figur anlegt oder einem Revier einen neuen Auftrag oder eine neue Bedrohung gibt, wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
 
 ## 4 Befehle und Bedienung
 
@@ -69,6 +69,295 @@ Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die S
 - **Ohne Node** gilt die Wortregel (4.8): Sie tippt die erste Karte selbst, mit Wörtern, die im Spielstand stehen; Schreibfehler meldet die Karte dem Spieler.
 - **Beim Sitzungsende:** Eine neue Karte an einem Ort, der wiederkommen kann, wird zur Bühne, und die Bühne wird berichtigt, wenn das Gespielte ihr widerspricht oder sich der Ort verändert hat (eine Tür ist aufgebrochen, ein Keller ist gesehen). Neu oder geändert: prüfen (4.8), dann als Datei in den Ordner der Ablage; sie geht mit der Ablage hinaus (21.3, Schritt 10). Ein Zwischenhalt schreibt sie gleich (21.4).
 - **Abnahme:** Zeigen darf die Spielleitung dem Spieler von einer Bühne höchstens, was `--karte` herausgibt, und nur für Orte, die die Figur kennt; das gilt auch für den Weltenhüter, wenn er mitspielt. Bühnen unbekannter Orte prüft nur die Maschine.
+
+### 12.7 Stilblatt der Kampfbeschreibung
+Was gilt, steht im Regelwerk (12.7). Hier steht der Vorrat dazu: wie eine Trefferbeschreibung entsteht und welche Bilder zu Schadensart, Körper, Attribut und Gesinnung gehören. Die Bilder sind Vorrat, kein Wortlaut: Die Spielleitung nimmt eines, formt es für die Szene und bringt es in einem Kampf nicht zweimal. Beginnt ein Kampf, genügen Töne, Baukasten, Wundmaß und Zeichen; die Tafeln zu Schadensarten, Attributen und Gesinnungen holt sie einzeln, nach dem, was in diesem Kampf vorkommt.
+
+**Töne nach Lage.**
+
+| Lage | Ton | Kennzeichen |
+|---|---|---|
+| Grundton: Gegnerzüge, Getroffenwerden, alles ohne eigene Zeile | Dreck und Atem | hässlich, körperlich, erschöpfend; Zufall, Angst, müde Arme; trockene innere Stimme |
+| Eigener Treffer, vom Fach | Handwerk | Fußarbeit, Finte, Winkel; zeigt, warum der Treffer sitzt |
+| Eigener Treffer, nicht vom Fach | Dreck und Atem | der Treffer gelingt trotz der Technik, nicht ihretwegen |
+| Kipppunkt | Sinnesrausch | Fragmente, ein Sinn nach dem anderen, gedehnte Zeit |
+| Glanzmoment | Ballade | Märchenformeln, Dreizahl, feste Bilder |
+| Rauferei | Lakonisch | Ergebnis zuerst, kurze Sätze, trockener Witz |
+
+**Linse der Figur.** Beispiele für die Zeile im Spielstand:
+
+| Figur | Achtet zuerst auf | Vergleicht mit |
+|---|---|---|
+| Marinesoldat | Stand, Wetter, Kommando | Deck und Dünung, Tauwerk, Drill |
+| Jägerin | Wind, Fährte, Sehnen und Gelenke | Wild, Falle, Aufbrechen |
+| Schmied | Gewicht, Naht, Fehler im Material | Amboss, Glut, Abschrecken |
+| Gelehrter | Muster, Abweichung, Proportion | Lehrsatz, Rechnung, Randnotiz |
+| Akolythin | Zeichen, Schuld, wer Schutz braucht | Liturgie, Fasten, Glocke |
+| Dieb | Ausgänge, Hände, Lücken | Schloss, Gedränge, Würfelspiel |
+
+**Baukasten.** Eine Trefferbeschreibung beantwortet fünf Fragen in fester Reihenfolge:
+1. **Ton:** nach Lage, siehe oben.
+2. **Güte des Wurfs:** knapp oder sauber getroffen, knapp oder weit verfehlt. Für Fehlwürfe gilt die Rüstungsleiter (Regelwerk 12.1).
+3. **Wundmaß:** wie viel der Treffer dem Ziel nimmt.
+4. **Schadensart am Körper:** das Bild aus den Tafeln unten, mit den drei Zeichen.
+5. **Farbe:** höchstens ein Attribut und höchstens eine Gesinnung je Zug.
+
+**Wundmaß.**
+
+| Stufe | Wann | In der Erzählung |
+|---|---|---|
+| Streifer | unter einem Zehntel der vollen Trefferpunkte | ein Halbsatz: Atem, Haut, Haltung; keine Wunde |
+| Treffer | ein Zehntel bis ein Viertel | eine konkrete Wunde, ein bis zwei Sätze |
+| Schwerer Treffer | über ein Viertel, kritischer Treffer oder der Fall unter die Hälfte | die Wunde und ihre sichtbare Folge, die bis zum Ende des Kampfes im Bild bleibt |
+| Fällt | 0 Trefferpunkte | der entscheidende Treffer; ob tot, sterbend oder bewusstlos, sagt die Regel (Regelwerk 12.1, 13) |
+
+Unter der Hälfte ihrer Trefferpunkte tragen alle sichtbare Spuren (PHB): Blut, Schonhaltung, pfeifender Atem. So liest der Spieler den Stand eines Gegners ohne Zahl.
+
+**Die drei Zeichen.**
+
+| Zeichen | Regel | In der Erzählung |
+|---|---|---|
+| Prallt ab | immun | Der Treffer sitzt, und nichts geschieht. Das wird klar gesagt und wundert die Figur. |
+| Beißt schlecht | resistent | Die Wirkung bleibt hinter dem Schlag zurück: stumpf, gedämpft, schnell erstickt. |
+| Frisst sich hinein | anfällig | Die Wirkung ist größer als der Schlag: Sie reißt weiter, breitet sich aus, das Wesen klingt anders. |
+
+Welches Zeichen gilt, sagt der Werteblock, nicht dieses Blatt. Die Tafeln unten zeigen gewöhnlichen Schaden und nennen nur, was für eine Körperart üblich ist.
+
+**Körperarten.** Jede Schadensart hat ein Kernbild; der Körper bestimmt, wie es aussieht, klingt und riecht.
+
+| Körper | Wer | Woran man Schaden sieht |
+|---|---|---|
+| Fleisch und Blut | Humanoide, Tiere, Riesen | Blut, Schmerz, Schonhaltung |
+| Schuppe, Panzer, Chitin | Echsen, Krokodile, Schildkröten, Insekten, Drachen | Platten springen, darunter ist es weich |
+| Pflanze und Pilz | Pflanzenwesen, Baumhirten, Pilzvolk | Saft, Fasern, Sporen; kein Schrei |
+| Untote mit Leib | Zombies, Ghule, Skelette | kein Blut, kein Schmerz; Stücke fehlen |
+| Körperlose | Geister, Schatten | der Umriss franst aus, wird dünn, flackert |
+| Schleim | Gallerten, Schlicke | Masse fehlt, zieht sich zusammen, zischt |
+| Konstrukte | Stein und Ton, Metall, Holz, Seil und Tuch | Risse, Dellen, Splitter; nur das Material macht Laut |
+| Elementare | Feuer, Wasser, Luft, Erde | der Leib verliert Form, Größe oder Zusammenhalt |
+
+Jenseitige (Scheusale, Himmlische, Feen, Aberrationen) folgen dem Körper, den sie zeigen. Fremd ist nur, was aus der Wunde kommt: schwarzes Ichor, Licht, Harz, etwas, das sich bewegt.
+
+**Hieb.** Eine Schneide trennt, was zusammengehört. Es klafft, und es läuft sofort.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Die Wunde klafft und läuft sofort; Sehnen geben nach, ein Griff wird unsicher. |
+| Schuppe, Panzer, Chitin | Die Klinge schabt über Platten, findet eine Naht und hebt eine Schuppe ab wie einen Fingernagel. |
+| Pflanze und Pilz | Ein Schnitt wie durch nasses Tau; Saft statt Blut, der abgetrennte Trieb zuckt noch. |
+| Untote mit Leib | Totes Fleisch teilt sich ohne Blut, grau und faserig; Gebein kerbt ein und splittert. |
+| Körperlose | Die Klinge geht durch Kälte; der Umriss reißt wie Rauch und schließt sich langsamer als zuvor. |
+| Schleim | Der Schnitt schließt sich hinter der Klinge; manche Schlicke teilen sich daran in zwei. |
+| Konstrukte | Stein: Funken und eine helle Scharte. Metall: ein Kreischen, ein blanker Strich. Holz: Späne bis ins Kernholz. |
+| Elementare | Feuer und Luft schließen sich um die Klinge, Wasser spritzt, Erde bröckelt; getroffen ist der Zusammenhalt. |
+
+**Stich.** Eine Spitze geht tief und zeigt wenig. Kleine Wunde, große Wirkung; der Schmerz kommt spät.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Ein kleines Loch, das innen mehr anrichtet als außen; der Atem wird kurz, das Blut kommt dunkel und spät. |
+| Schuppe, Panzer, Chitin | Die Spitze findet den Spalt zwischen zwei Platten, sitzt fest und muss herausgedreht werden. |
+| Pflanze und Pilz | Ein Loch im Stamm, aus dem es harzt; Fasern reißen der Länge nach. |
+| Untote mit Leib | Die Spitze fährt hinein wie in einen nassen Sack; kein Zucken, kein Laut, innen reißt etwas. Gebein verliert eine Rippe. |
+| Körperlose | Ein Loch im Umriss, durch das man kurz die Wand dahinter sieht. |
+| Schleim | Die Spitze versinkt; die Masse zieht sich um die Stelle zusammen. |
+| Konstrukte | Stein: ein abgeplatzter Splitter. Metall: ein Loch mit aufgebogenem Rand. Holz: der Bolzen steckt und zittert. |
+| Elementare | Ein Zischen im Feuer, ein Wirbel im Wasser, eine Lücke im Sturm, ein Loch im Lehm, das nicht gleich zuläuft. |
+
+**Wucht.** Masse bricht, was unter der Haut liegt. Erst ein dumpfer Schlag, dann ein Knacken.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Kein Blut zuerst, nur ein Schlag, der die Luft nimmt; dann schwillt es, etwas knackt, ein Arm will nicht mehr. |
+| Schuppe, Panzer, Chitin | Der Panzer hält die Schneide ab, nicht den Stoß: Platten springen, Chitin reißt wie Eierschale. |
+| Pflanze und Pilz | Fasern quetschen, Rinde platzt; ein Ast bricht mit dem Laut von grünem Holz. |
+| Untote mit Leib | Totes Fleisch gibt nach wie nasser Lehm; Gebein zerspringt, Rippen fliegen wie Kleinholz. |
+| Körperlose | Der Schlag fährt durch Kälte; der Umriss zittert wie ein Bild im Wasser. |
+| Schleim | Die Masse klatscht auseinander und läuft wieder zusammen, kleiner als vorher. |
+| Konstrukte | Stein: Risse laufen vom Einschlag, ein Stück bricht aus. Metall: eine Delle, eine Niete springt. Holz: splittert quer zur Faser. |
+| Elementare | Erde zerbröselt, Wasser spritzt auseinander, Feuer stiebt in Funken, Luft reißt kurz ab. |
+
+**Feuer.** Feuer frisst von außen nach innen und nimmt zuerst, was leicht brennt. Es riecht nach verbranntem Haar.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Haar und Stoff zuerst; die Haut rötet sich und wirft Blasen, bei schweren Treffern wird sie wächsern und fühllos. |
+| Schuppe, Panzer, Chitin | Schuppen rollen sich an den Rändern auf und schwärzen; Chitin knackt wie Kastanien in der Glut. |
+| Pflanze und Pilz | Saft kocht und zischt, Rinde platzt, Trockenes fängt wie Zunder; es riecht nach Herbstfeuer. |
+| Untote mit Leib | Totes Fleisch brennt fettig und stinkend, ohne Schrei; Gebein schwärzt und wird mürbe. |
+| Körperlose | Die Flamme geht hindurch und färbt den Umriss einen Atemzug lang; er wird dünner wie Nebel in der Sonne. |
+| Schleim | Die Oberfläche kocht, wirft Blasen und verkrustet; darunter zieht sich die Masse zurück. |
+| Konstrukte | Stein: schwärzt und platzt erst bei großer Hitze. Metall: glüht dunkelrot, Riemen verkohlen. Holz, Seil, Tuch: flammt auf und verkohlt. |
+| Elementare | Feuer: nichts, Flamme in Flamme. Wasser verdampft zischend und schrumpft, Luft flimmert, Erde backt hart und rissig. |
+
+**Kälte.** Kälte nimmt Gefühl und Beweglichkeit, bevor sie verletzt. Die Wunde ist weiß und blutet nicht.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Die Haut wird weiß und hart, Finger gehorchen spät, der Atem steht als Wolke; später brennt es wie Feuer. |
+| Schuppe, Panzer, Chitin | Kaltblüter werden stumpf im Blick; Reif kriecht in die Fugen zwischen den Platten, Gelenke knirschen. |
+| Pflanze und Pilz | Saft gefriert und sprengt die Fasern von innen; Blätter werden glasig und brechen bei Berührung. |
+| Untote mit Leib | Nasses totes Fleisch friert steif und reißt bei der nächsten Bewegung; Gebein wird spröde wie altes Glas. |
+| Körperlose | Kälte in Kälte: oft nichts zu sehen, höchstens glitzert der Umriss kurz wie Atem im Frost. |
+| Schleim | Die Oberfläche wird zäh und milchig; eine Eishaut bricht in Schollen. |
+| Konstrukte | Stein: Reif und feine Risse, wo Wasser in den Fugen stand. Metall: beschlägt, wird spröde, klingt heller. Holz: knackt wie Balken im Winter. |
+| Elementare | Wasser erstarrt an den Rändern zu Eis, Feuer schrumpft und rußt, Luft wird schwer, Erde hart wie gefrorener Acker. |
+
+**Blitz.** Blitz ist schneller als der Schmerz. Er sucht den kürzesten Weg durch den Körper, und die Muskeln tun, was er will. Es riecht nach Gewitter.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Alle Muskeln krampfen zugleich, die Zähne schlagen aufeinander; wo er ein- und austritt, bleibt ein schwarzes Mal, manchmal ein Farnmuster auf der Haut. |
+| Schuppe, Panzer, Chitin | Der Panzer schützt nicht: Der Schlag läuft durch das nasse Fleisch darunter, das Tier zuckt wie am Haken, zwischen den Platten raucht es. |
+| Pflanze und Pilz | Der Saft verdampft im Stamm; Rinde platzt in einem langen Streifen ab wie am getroffenen Baum. |
+| Untote mit Leib | Tote Muskeln zucken noch einmal, als lebten sie; Gebein rasselt, Zähne klappern. |
+| Körperlose | Der Umriss leuchtet von innen auf wie Wetterleuchten in einer Wolke. |
+| Schleim | Ein Zittern läuft durch die ganze Masse; manche Schlicke reißt es in zwei, und beide kriechen weiter. |
+| Konstrukte | Stein: ein schwarzer Zackenstrich, ein abgesprengter Splitter. Metall: der Schlag läuft über die ganze Hülle, Fugen sprühen. Holz: spaltet der Länge nach. |
+| Elementare | Wasser kocht entlang der Bahn, Luft nimmt ihn auf wie ihresgleichen, Feuer flackert weiß, Sand schmilzt zu Glasfäden. |
+
+**Säure.** Säure löst auf, was sie berührt: Kanten werden weich, Farben laufen, es zischt und raucht. Der Geruch sticht in der Nase.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Die Haut wird erst rot, dann grau und weich; Stoff löst sich in Fetzen, Leder kräuselt sich, der Schmerz kommt in Wellen. |
+| Schuppe, Panzer, Chitin | Schuppen werden stumpf und weich wie eingeweichtes Horn; Chitin bekommt Löcher mit hellen Rändern. |
+| Pflanze und Pilz | Blätter fallen zu braunem Brei zusammen, Rinde löst sich in Streifen. |
+| Untote mit Leib | Totes Fleisch läuft von den Knochen wie Wachs; Gebein wird porös. |
+| Körperlose | Die Säure fällt hindurch und zischt auf dem Boden; der Umriss trübt sich wie Wasser, in das Tinte fällt. |
+| Schleim | Säure in Säure: oft nichts, höchstens ein Brodeln an der Stelle. |
+| Konstrukte | Stein: schäumt und wird narbig. Metall: läuft an, Nieten lösen sich. Holz, Seil, Tuch: wird morsch und faserig. |
+| Elementare | Wasser trübt sich und verdünnt sie, Erde schäumt und sackt zusammen, Feuer faucht kurz farbig auf, Luft trägt den Dunst weiter. |
+
+**Schall.** Schall ist ein Schlag ohne Waffe: Druck, der durch alles Feste läuft und innen zuerst trifft. Danach ist es sehr still.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Die Brust wird eingedrückt wie von einer Faust, es pfeift in den Ohren, aus der Nase kommt ein dünner Blutfaden. |
+| Schuppe, Panzer, Chitin | Ein Panzer ist eine Trommel: Das Wesen wird in seiner eigenen Schale geschüttelt, Chitin bekommt Haarrisse. |
+| Pflanze und Pilz | Blätter und Sporen stieben weg, Äste brechen an den dünnen Stellen; der Stamm summt nach. |
+| Untote mit Leib | Lockeres fällt ab: Zähne, Finger, Rippen; totes Fleisch reißt an alten Nähten. |
+| Körperlose | Der Umriss wird zerdrückt und zieht Schlieren wie Rauch im Luftzug. |
+| Schleim | Ringe laufen über die Masse wie über einen Teich; an den Rändern spritzt sie ab. |
+| Konstrukte | Stein und Ton: springen entlang alter Risse, Schalen platzen ab. Metall: dröhnt wie eine Glocke, Nähte gehen auf. Holz: Zapfen und Leimfugen lösen sich. |
+| Elementare | Erde zerfällt in Brocken, Wasser zerstäubt, Luft wird zerrissen und sammelt sich neu, Feuer wird flach gedrückt. |
+
+**Gift.** Gift ist kein Schlag, sondern ein Verlauf: Es kommt verzögert und von innen. Zu sehen ist nicht die Wunde, sondern das Gesicht.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Erst Taubheit an der Stelle, dann Schweiß, Speichel, weite Pupillen; die Knie werden weich, der Mund schmeckt nach Metall. |
+| Schuppe, Panzer, Chitin | Kaltblüter zeigen es spät: Die Zunge hängt, die Flanken pumpen; Insekten krümmen sich und ziehen die Beine an. |
+| Pflanze und Pilz | Blätter welken in Augenblicken, Triebe hängen, Fruchtkörper fallen ein und werden schwarz. |
+| Untote mit Leib | Prallt in aller Regel ab: Nichts kreist mehr, was das Gift tragen könnte. |
+| Körperlose | Prallt in aller Regel ab: kein Leib, kein Gift. |
+| Schleim | Trübe Schlieren ziehen von der Stelle nach innen; die Masse wird flockig und träge. |
+| Konstrukte | Prallt in aller Regel ab: kein Blut, kein Atem. Das Gift läuft an Stein und Metall herunter. |
+| Elementare | Prallt in aller Regel ab: Gift braucht einen Leib, der lebt. |
+
+**Nekrotisch.** Nekrotische Kraft nimmt Leben, ohne zu verwunden: Was sie berührt, altert, welkt und wird grau. Es riecht nach kalter Asche.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Die Stelle wird grau und kalt wie die Hand eines Toten, Adern zeichnen sich dunkel ab; es tut nicht weh, es fehlt nur etwas. |
+| Schuppe, Panzer, Chitin | Schuppen verlieren Glanz und Farbe und lösen sich wie in einer schlechten Häutung; Chitin wird papieren. |
+| Pflanze und Pilz | Es welkt vom Punkt der Berührung aus: Grün wird braun, Holz wird Mulm, ein Winter in einem Atemzug. |
+| Untote mit Leib | Was sie aufrecht hält, wird dünner: Glieder hängen in falschen Winkeln, ein Kiefer fällt herab. Alte Tote nehmen es hin wie Regen. |
+| Körperlose | Prallt meist ab: Tod lässt sich nicht töten. |
+| Schleim | Die Masse wird an der Stelle stumpf und flockig und stößt sie ab wie tote Haut. |
+| Konstrukte | Das Material altert: Stein verwittert, Metall rostet in Augenblicken, Holz wird morsch. |
+| Elementare | Feuer brennt grau und kalt, Wasser wird schal, Luft steht verbraucht, Erde wird zu totem Staub. |
+
+**Gleißend.** Gleißendes ist Licht mit Gewicht: Es brennt ohne Flamme und ohne Rauch und lässt saubere Ränder.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Ein Brand wie von einem Sommer Sonne in einem Augenblick: Die Haut ist rot und heiß, die Augen tränen; schwere Treffer lassen scharf umrissene weiße Stellen. |
+| Schuppe, Panzer, Chitin | Der Panzer hilft nicht, das Licht geht durch die Fugen; Schuppen bleichen aus, Augen ohne Lider finden keinen Schutz. |
+| Pflanze und Pilz | Blätter verdorren wie unter einem Brennglas; Pilze, die das Dunkel lieben, schrumpfen und reißen. |
+| Untote mit Leib | Totes Fleisch dampft und zerfällt an den Rändern zu Asche; Gebein wird kreideweiß und mürbe. |
+| Körperlose | Der Umriss brennt weg wie Nebel in der Morgensonne; wo das Licht war, fehlt ein Stück. |
+| Schleim | Die Masse wird an der Stelle trüb und fest wie gekochtes Eiweiß. |
+| Konstrukte | Stein bleicht und wird heiß, Metall glüht ohne Feuer, Holz vergilbt wie nach Jahren in der Sonne. |
+| Elementare | Wasser dampft, ohne zu kochen, Feuer verblasst im stärkeren Licht, Luft flimmert, Erde wird spröde. |
+
+**Psychisch.** Psychischer Schaden hat keinen Ort am Körper. Trifft er die Figur, wird er von innen erzählt; trifft er andere, liest man ihn am Gesicht.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Der Blick bricht weg, eine Hand geht an die Schläfe, ein Laut kommt, der kein Wort ist; Nasenbluten, Würgen. Bei der Figur: ein Gedanke, der nicht ihrer ist, zu laut. |
+| Schuppe, Panzer, Chitin | Tiere wehren sich gegen nichts: Sie schnappen in die Luft, drehen sich um sich selbst, drücken den Kopf an den Boden. |
+| Pflanze und Pilz | Ein Zittern geht durch alle Blätter gegen den Wind; Pilzvolk stößt eine wirre Sporenwolke aus. |
+| Untote mit Leib | Geistlose Tote stocken nur, als hätte jemand an einer Schnur gezogen. Die mit Willen heulen. |
+| Körperlose | Es trifft das Einzige, was noch da ist: Der Umriss verzerrt sich und zeigt kurz das Gesicht, das er im Leben hatte. |
+| Schleim | Ein zielloses Zucken in alle Richtungen zugleich. |
+| Konstrukte | Prallt oft ab: nichts da, was sich fürchten könnte. Wo ein Geist gebunden ist, stockt die Bewegung mitten im Schlag. |
+| Elementare | Die Form verliert ihre Absicht: Flammen schlagen ohne Richtung, Wasser steht einen Herzschlag still, der Wind dreht gegen sich selbst. |
+
+**Energie.** Energie ist Kraft ohne Stoff: ein Hammer, den niemand sieht. Sie hat keine Hitze und keinen Geruch, und fast nichts hält sie auf.
+
+| Körper | Bild |
+|---|---|
+| Fleisch und Blut | Ein Schlag wie von einer Faust aus Luft: Male in Formen, die keine Waffe macht; bei schweren Treffern bricht etwas, ohne dass die Haut reißt. |
+| Schuppe, Panzer, Chitin | Der Panzer verteilt nichts: Die Kraft sitzt genau dort, wo sie gemeint war, und drückt die Platte ins Fleisch. |
+| Pflanze und Pilz | Ein Stück fehlt wie herausgestanzt; die Fasern stehen sauber ab. |
+| Untote mit Leib | Glieder werden weggedrückt wie von unsichtbaren Händen; Gebein bricht an der Stelle glatt durch. |
+| Körperlose | Sie fasst den Umriss an wie Festes: Er wird gestoßen, eingedellt, verliert Stücke. |
+| Schleim | Ein Abdruck bleibt einen Atemzug lang stehen wie ein Stempel in Wachs. |
+| Konstrukte | Stein: ein glattes Loch wie gebohrt. Metall: eine Delle ohne Kratzer. Holz: bricht ohne Splitter. |
+| Elementare | Die Form wird auseinandergedrückt und braucht einen Augenblick, um zurückzufinden. |
+
+**Attribute.** Gefärbt wird mit dem Attribut, das der Wurf benutzt: beim Angriff das Angriffsattribut, beim Zauber das Zauberattribut, beim Rettungswurf seines, beim Getroffenwerden Konstitution. Zwischen zwei Kämpfern zählt der Abstand: Hoch gegen höher liest sich wie niedrig.
+
+| Modifikator | Wirkung in der Beschreibung |
+|---|---|
+| −1 und tiefer | zeigt sich als Mangel |
+| 0 und +1 | bleibt ohne Farbe |
+| +2 und +3 | zeigt sich als Können |
+| +4 und höher | Können, das Gegnern und Umstehenden auffällt |
+
+| Attribut | Hoch im Kampf | Niedrig im Kampf | Zaubern und Rettungswürfe |
+|---|---|---|---|
+| Stärke: Gewicht und Hebel | Hiebe gehen durch Paraden statt um sie herum; die fremde Klinge wird beiseitegedrückt, der Schild sinkt. | Am Ende jedes Hiebs ist die Waffe zu schwer; Treffer kommen an, aber ohne Gewicht, und jede Bindung gewinnt der andere. | Stärke zaubert nicht, sie hält stand: Gegen Griff, Ranken, Sturm und Stoß stemmt sich der Starke, der Schwache wird mitgenommen. |
+| Geschick: Zeit, früher da sein und kürzer bleiben | Der Treffer kommt aus der kleinsten Bewegung und landet in der Lücke: Achsel, Kniekehle, Naht. In der Abwehr ist die Figur schon fort, wo der Schlag ankommt. | Einen halben Schritt zu spät, die eigenen Füße im Weg; Treffer landen, wo es gerade ging, nicht wo sie sollten. | Gesten sind klein und sauber. Gegen Flamme, Splitter und Falle duckt sich der Geschickte unter der Wirkung weg, der Ungeschickte steht mitten darin. |
+| Konstitution: was übrig bleibt, wenn der Kampf länger dauert als geplant | Treffer werden genommen wie Wetter: ein Grunzen, ein Schritt, weiter. Der Atem bleibt ruhig, wenn der des Gegners schon pfeift. | Jeder Treffer kostet mehr als die Wunde: Seitenstechen, weiße Lippen, Hände, die nach dem Kampf zittern. | Konzentration unter Schmerz: Der Zähe hält den Zauber durch den Treffer wie ein Tau unter Last, dem Schwachen reißt der Faden beim ersten Blut. Gegen Gift, Kälte und Krankheit wehrt sich der Körper oder gibt nach. |
+| Intelligenz: der Plan hinter dem Schlag | Die Figur liest die Schule des Gegners, zählt seine Schritte und weiß vor ihm, wohin er nach der Finte muss. | Dieselbe Finte wirkt zweimal; das Gelände ist erst da, wenn man darüber stolpert. | Magie als Rechnung (Magier, Magieschmiede, Mystische Ritter, Arkane Betrüger): genaue Worte, saubere Winkel, eine Wirkung mit scharfem Rand. Bei niedrigem Wert fransen die Ränder. Im Rettungswurf erkennt der Kluge das Trugbild an seinem Fehler. |
+| Weisheit: was man merkt, bevor man es weiß | Ruhe im Lärm: Die Figur sieht den zweiten Gegner, bevor er zählt, spürt den Hieb im Rücken und lässt sich nicht reizen. | Tunnelblick: nur der eine Gegner, nur die eine Klinge. Spott trifft, und Finten mit dem Blick auch. | Magie als Antwort (Kleriker, Druiden, Waldläufer): Die Figur bittet, lauscht, lässt geschehen; die Wirkung wächst und kommt wie Wetter. Bei niedrigem Wert muss zweimal gefragt werden. Im Rettungswurf bleibt der Weise bei sich, wenn ein fremder Wille anklopft. |
+| Charisma: Wille, den andere spüren | Der Gegner zögert vor dem Blick, nicht vor der Klinge; Finten gelingen, weil man sie glaubt. | Niemand weicht, Drohungen verpuffen. Das kann nützen: Wer übersehen wird, steht plötzlich nah. | Magie als Behauptung (Barden, Hexenmeister, Zauberer, Paladine): Die Figur sagt, was ist, und die Welt gibt nach; die Wirkung trägt ihre Stimme und ihren Auftritt. Bei niedrigem Wert wirkt der Zauber wie geliehen. Im Rettungswurf hält das Selbst gegen Verbannung und Besessenheit. |
+
+Die drei Quellen der Magie in einem Satz: Intelligenz rechnet, Weisheit bittet, Charisma behauptet.
+
+**Gesinnungen.** Die Gesinnung ändert nie, was ein Schlag tut, sondern wie und wie weit jemand kämpft. Sie färbt Gegner und Gefolge; bei der Spielerfigur liefert sie nur den Grundzug, denn was sie tut, entscheidet der Spieler.
+
+| Pol | Färbt | Im Kampf |
+|---|---|---|
+| Rechtschaffen | die Form | Drill, Reihe, Ansage; wiederholt, was wirkt; hält Abmachungen auch im Kampf: Ergebung, Zweikampf, Waffenruhe |
+| Chaotisch | die Form | Einfall, Rhythmuswechsel, das Gelände als Waffe; kein Zug wie der letzte; Abmachungen gelten, solange sie passen |
+| Gut | das Maß | so hart wie nötig; hört auf, wenn der andere fällt oder aufgibt; stellt sich vor Wehrlose und trägt es danach (Regelwerk 13) |
+| Böse | das Maß | nimmt mehr als nötig: schlägt Liegende, nimmt Geiseln, lässt leiden oder rechnet kalt |
+| Neutral | den Zweck | tut, was die Lage verlangt, und nicht mehr |
+
+| Gesinnung | Im Kampf | Beim Zaubern |
+|---|---|---|
+| Rechtschaffen gut | Kündigt an, bietet Ergebung, deckt die Schwachen zuerst; kämpft nach Regeln, die auch für ihn gelten. | Gemessen, wie ein Eid gesprochen; klare Formen, nichts streift Unbeteiligte. |
+| Neutral gut | Beendet, was Leid macht, auf dem kürzesten Weg; keine Pose, kein Nachtreten. | Still und warm; Heilung vor Schaden, wenn beides geht. |
+| Chaotisch gut | Bricht jede Regel für einen Menschen; Überraschung, Witz, der Griff nach dem Kronleuchter. | Sprunghaft; die Wirkung kommt von der Seite, aber nie auf Wehrlose. |
+| Rechtschaffen neutral | Befehl und Verfahren; weder Gnade noch Grausamkeit. Hört auf, wenn der Auftrag erfüllt ist. | Nach Formel, ohne Schnörkel, jedes Mal gleich. |
+| Neutral | Kämpft wie ein Handwerker: um Lohn, Revier, die eigene Haut; flieht ohne Scham, wenn es sich nicht mehr lohnt. | Sparsam; kein Zauber mehr als nötig. |
+| Chaotisch neutral | Laune und Risiko; der schöne Hieb zählt mehr als der kluge. | Wild, zu groß oder zu klein; Nebenwirkungen nur im Bild, nie in der Regel. |
+| Rechtschaffen böse | Grausamkeit mit Methode: zielt auf den, dessen Fall die anderen bricht; hält Verträge dem Buchstaben nach. | Genau und kalt; bevorzugt, was festhält, zwingt und zeichnet. |
+| Neutral böse | Jedes Mittel, das sich lohnt: Rücken, Gift, Geisel; kein Hass, nur Vorteil. | Zweckmäßig und hässlich; nimmt, was gerade wirkt. |
+| Chaotisch böse | Lust an der Zerstörung ohne Plan: bleibt am Liegenden, vergisst die anderen. | Roh, verschwenderisch, laut; die Wirkung will gesehen werden. |
+
+- Tiere und Geistlose sind gesinnungslos: Sie kämpfen nach Hunger, Revier, Brut und Befehl (Regelwerk 13).
+- Gesinnung färbt, sie erklärt nicht. Wer herrscht, hält sich für gerecht (Regelwerk 20.2): Ein rechtschaffen böser Aufseher nennt sich ordentlich.
+- Würfe ändert die Gesinnung nur, wo ein Zauber oder Ding es sagt. Spirit Guardians etwa erscheinen bei guten und neutralen Wirkern himmlisch oder feenhaft und tun gleißenden Schaden, bei bösen scheusalhaft und nekrotischen.
+
+**Beispiele.** Vier erfundene Züge zeigen den Baukasten.
+- Eigener Treffer, vom Fach (Handwerk, sauber getroffen, schwerer Treffer, Hieb an Schuppe, Linse Marinesoldat): „Das Krokodil wirft sich herum, und du gehst mit, einen halben Schritt aus der Linie, wie an einer Reling, die für zwei zu schmal ist. Die Klinge schabt über den Rückenpanzer, findet die Naht hinter dem Vorderbein und hebt dort eine Platte ab wie einen Fingernagel. Darunter ist es weich. Das Tier schlägt mit dem Schwanz, und seine Flanke färbt das Wasser dunkel.“
+- Gegnerzug (Grundton, knapp getroffen, Treffer, Hieb an Fleisch, Stärke hoch, rechtschaffen neutral): „Der Mann kämpft, wie man Holz hackt: derselbe Hieb, dieselbe Höhe, ohne Hass. Beim dritten drückt er deine Klinge einfach beiseite, und die Schneide geht dir über den Unterarm, tief genug, dass die Finger kurz nicht wissen, was sie halten (6 Schaden).“
+- Zauber der Figur (gleißend an totem Fleisch, schwerer Treffer): „Der Stern bricht dir aus der Hand wie Sonne durch eine Wolke. Wo er den Toten trifft, dampft das graue Fleisch und fällt an den Rändern zu Asche. Kein Laut. Er geht weiter, mit einem Loch in der Schulter, durch das du den Bach siehst.“
+- Prallt ab (Gift an Gebein): „Der Dolch fährt dem Skelett zwischen die Rippen, und das Gift tropft durch den leeren Brustkorb auf den Stein. Es dreht den Schädel zu dir, als hättest du es angetippt.“
 
 ## 17 Die geteilte Welt
 
@@ -191,7 +480,7 @@ Für die Spielleitung in der ersten Sitzung:
 
 ### 22.2 Umstieg einer laufenden Figur auf 4.2
 Bis 4.1 lagen Buch und Ablage in der Datenbank des Spielerbuchs. Der Umzug macht daraus Dateien: einmal je Figur, in einem eigenen Chat ihres Projekts, der Dateien veröffentlichen kann (4.7), vor der nächsten Sitzung. Bis dahin ließe sich aus den Projektdateien spielen (21.5), aber kein Sitzungsende schreiben. Eine Übergabe, die noch liegt, zieht mit um; danach geht es mit „Weiter“ oder dem Sitzungsende weiter.
-1. Regelwerk und Werkstatt 4.2 liegen im Projekt (24), die Werkzeuge im neuen Stand in der Arbeitsumgebung (Regelwerk 4.2).
+1. Regelwerk und Werkstatt ab 4.2 liegen im Projekt (24), die Werkzeuge im neuen Stand in der Arbeitsumgebung (Regelwerk 4.2).
 2. Die neue Seite bauen: `node seite/bauen.js --seite --titel "<Figur>s Buch" > index.html`. Zum Speichern des Pakets braucht sie eine Fähigkeit mehr, und die wird vor der Seite erklärt: `read_declaration`, dann `declare_capabilities` mit der bisherigen Datenbank und `"downloads": true`, dann `publish_files` mit `index.html` in das Spielerbuch. Das Buch sieht aus wie vorher, denn solange `daten/meta.json` fehlt, liest die neue Seite weiter die Datenbank.
 3. Der Spieler öffnet sein Buch. Nur er sieht dort den Kasten „Umzug“; „Umzugspaket speichern“ lädt alle Sammlungen samt der alten Ablage als `spielerbuch-umzug.zip`. Er öffnet das Paket nicht, denn es enthält die Spoilerdatei, und hängt es an den Chat. Meldet die Seite, dass Speichern hier nicht geht, braucht der Umzug einen Chat mit Netzzugriff oder den Weltenhüter.
 4. `node seite/bauen.js --umzug <paket.zip> <umzug>` schreibt `<umzug>/buch/daten/` und `<umzug>/ablage/` samt `stand.json` und meldet nur Zahlen und Prüfsummen: wie viele Einträge, Abschnitte, Bühnen und Profile, und ob Spielstand und Spoilerdatei ihrer alten Prüfsumme gleichen. Bei „STIMMT NICHT“ oder übergangenen Einträgen geht es nicht weiter, bis der Grund klar ist.
@@ -384,7 +673,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 
 **Außerhalb des Koffers** steht D&D Beyond: Jede Figur wird in der Kampagne des Weltenhüters gebaut, und ihr Bogen kommt als PDF ins Projekt (7.2, 7.4).
 
-**Lücken, Stand 4.2.** Sie stören das Spiel nicht, aber man sollte sie kennen:
+**Lücken, Stand 4.3.** Sie stören das Spiel nicht, aber man sollte sie kennen:
 - Der Kartentisch kennt die Gebiete `sumpf`, `totholz`, `wald`, `berge`, `felder`, `mangroven`; für Wüste, Eis und Steppe gibt es noch keine Gebietsart. Bis dahin stehen sie als Name und Notiz auf der Karte. Große Strecken zeigt er nur im Ausschnitt.
 - Klangtisch Live hat keine Ortstypen für Gebirge, Wüste und Eis.
 - Eine Spielleitung ohne Artefakt-Werkzeuge, Code oder Widgets spielt nach 22.1 in Textform. Eine, die Buch und Ablage nur gerade nicht schreiben kann, sichert mit einem Zwischenhalt ins Projekt (4.7, Fall 2).

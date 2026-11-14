@@ -1,6 +1,15 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.2.md`, `werkstatt-4.2.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.3.md`, `werkstatt-4.3.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.3 (14. November 2026)
+
+Gegenüber 4.2 (13. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.3 (`werkstatt-4.3.md`). Keine Spielregel ist geändert: Neu ist, in welchem Ton Kämpfe erzählt werden.
+
+- **Kampfbeschreibung** (3, 12.7, 21.1). Grundton ist „Dreck und Atem“; eigene Treffer stehen als Handwerk, wo die Figur vom Fach ist, Kipppunkte als Sinnesrausch, der Glanzmoment als Ballade, Raufereien lakonisch. Wunden stehen deutlich, aber nicht ausgewalzt, und nur bei Treffern, die zählen. Jeder Kampf wird durch die Linse der Figur gesehen; der Spielstand nennt „Linse“ und „Vom Fach“ bei den Wünschen im Kampf. Bilder ändern keine Regeln. Ein Spieler kann für seinen Tisch einen anderen Grundton oder weniger deutliche Wunden wünschen.
+- **Stilblatt** (W 12.7). Töne nach Lage, Baukasten für die Trefferbeschreibung, Wundmaß, drei Zeichen für Immunität, Resistenz und Anfälligkeit, alle dreizehn Schadensarten an acht Körperarten, Farben der sechs Attribute und der neun Gesinnungen für Kampf und Zaubern, vier Beispiele. Die Werkstatt nennt den Kampf jetzt unter den Anlässen, bei denen sie gelesen wird.
+- **Kleines.** Das Beispiel des Titelbildschirms (4.10) und die Liste der Lücken (W 24) nennen 4.3; der Umstieg (W 22.2) verlangt Regelwerk und Werkstatt „ab 4.2“.
+- Anlass: Beschluss des Weltenhüters vom 14. November 2026 an seinem eigenen Tisch, nach Proben von sechs Tönen und zwei Stufen der Deutlichkeit.
 
 ## Regelwerk 4.2 (13. November 2026)
 
