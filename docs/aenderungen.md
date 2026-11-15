@@ -1,6 +1,19 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.5.md`, `werkstatt-4.5.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.6.md`, `werkstatt-4.6.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.6 (15. November 2026)
+
+Gegenüber 4.5 (15. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.6 (`werkstatt-4.6.md`).
+
+- **Nachschlagewerke** (7.1, 20.1, W 24). Das Regelwerk nennt jetzt die Verzeichnisse der Wesen und der Gegenstände (für das freie Grundregelwerk SRD 5.1 mit Kampfwerten und Wirkung im Wortlaut, sonst Eckdaten und Fundstelle; maßgeblich bleibt das Buch), die Karte von Oerik und das Verzeichnis der Orte (aus Chronik und Quellen gebaut; fest ist die Lage eines Orts erst unter `orte`) und das Greyhawk-Wissen der Spielleitungen, das zuerst liest, wer eine unbespielte Gegend beschreibt. W 24 hält Ziel und Grenze fest: Die Nachschlagewerke sollen tragen, wenn D&D Beyond oder der Rechner des Weltenhüters nicht erreichbar sind; im Wortlaut steht nur das freie Grundregelwerk, alles andere als Kurzangabe in eigenen Worten mit Fundstelle.
+- **Schauplätze der Abenteuer** (20.3, 7.1, W 22.3, W 23). Die Schauplätze veröffentlichter Abenteuer, die in Greyhawk spielen, gibt es in der Welt. Das Abenteuer selbst spielt dort nur nach ausdrücklicher Absprache mit dem Weltenhüter; sonst ist es Steinbruch für Bühnen und Gewölbe. Die Tafel der Wahlregeln bekommt dafür eine Zeile.
+- **Nur öffentlich Bekanntes** (20.3). Auf Karten und in Verzeichnissen stehen Landesnamen und öffentliche Ämter, nie, wer ein Land heimlich beherrscht oder sich hinter einem Amt verbirgt.
+- **Herrscher und bekannte Namen** (20.3). Das Verzeichnis der Personen nennt, wer 576 CY wo herrscht. Klasse und Stufe dort sind ein Maß für die Macht, kein Spielwert. Es gilt der Rang der Quellen: Nennt ein Tisch oder die Chronik einen Herrscher anders als das Buch, gilt dieser Name.
+- **Roman und Dichtung des Mittelalters** (20.2, W 20.2). Fünf Werke geben Farbe für Stände, Sitten und Alltag: *Der Name der Rose*, *Die Säulen der Erde*, *Le Morte d'Arthur*, *The Canterbury Tales* und das *Nibelungenlied*. W 20.2 sagt, wofür jedes steht. Motive und Ton ja, Namen, Gestalten und erkennbare Geschichten nie; die Technik der Welt bleibt die von 20.
+- **Werkzeugkoffer** (W 24, W 18). Neu sind das Verzeichnis der Orte, das Verzeichnis der Personen und die Karte von Oerik; die Verzeichnisse der Wesen und der Gegenstände tragen die Werte des freien Grundregelwerks (323 Wesen, 249 Gegenstände). meta/welt führt die Adressen aller Nachschlagewerke (`weltkarte`, `greyhawk_wissen`, `ortsverzeichnis`, `personenverzeichnis`, `wesenverzeichnis`, `gegenstandsverzeichnis`). Hinter keiner Adresse im Werkzeugkoffer steht mehr ein Komma, das der Eingang mitverlinkte. Die Lücken sind nachgeführt.
+- **Kleines.** Der Kopfabsatz und das Beispiel des Titelbildschirms (4.10) nennen 4.6. Die Zeilen für das Verzeichnis der Orte und die Karte von Oerik standen seit dem 15. November 2026 schon in Projekt und Eingang, noch unter 4.5.
+- Anlass: Vorgaben des Weltenhüters vom 15. November 2026 zur Karte von Oerik, zu den Nachschlagewerken und zu den Flavor-Referenzen, nachgeführt aus der Übergabe der Werkzeuge.
 
 ## Regelwerk 4.5 (15. November 2026)
 
