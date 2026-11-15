@@ -1,6 +1,33 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.3.md`, `werkstatt-4.3.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.5.md`, `werkstatt-4.5.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.5 (15. November 2026)
+
+Gegenüber 4.4 (14. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.5 (`werkstatt-4.5.md`).
+
+- **Auslegung** (7.1, W 7.1). Lässt der Wortlaut der Bücher mehr als eine Lesart zu, gilt das Sage Advice Compendium (2014), für Zauber in einer Fassung von 2024 das Compendium von 2025, gelesen nach der Umrechnungstafel. Das Regelwerk geht vor. W 7.1 nennt, wo es anders entscheidet oder sich festlegt: natürliche 20 und 1, Überraschung mitten im Kampf, Magisches bestimmen, Zauber in der kurzen Rast.
+- **Erzwungene Flucht** (12.6). Wen ein Zauber oder eine Fähigkeit forttreibt, der kämpft noch: Seine Bewegung löst Gelegenheitsangriffe aus. Ausgenommen bleibt, wer aufgegeben hat.
+- **Wesen** (7.1, 16.2). Mordenkainen's Tome of Foes ist neben dem Monster Manual 2014 und Volo's Guide to Monsters das dritte Buch der Wesen; fasst ein anderes Buch ein Wesen daraus neu, bleibt die ältere Fassung. Behelf: Wer Volo's oder Mordenkainen's nicht lesen kann, nimmt die Fassung aus Monsters of the Multiverse und vermerkt es. Was beide Bücher über die Völker erzählen, gilt als Bericht eines Reisenden.
+- **Partnerinhalte und Regeln von 2024** (7.1, W 23). Bücher und Hefte anderer Verlage sind keine Regelquelle; ihre Abenteuer sind Steinbruch. Bücher der „5.5e Expanded Rules“ und die D&D Beyond Drops ergänzen, wo sie Neues bringen: Wesen und magische Gegenstände, die in den Büchern der Regeln von 2014 fehlen. Neufassungen gelten nicht, ebenso wenig das Monster Manual und der Dungeon Master's Guide von 2024. Was an eine andere Welt gebunden ist, kommt nur mit dem Blick des Weltenhüters nach Oerik.
+- **Zauber** (7.3, W 7.3, W 23). Wählbar sind auch die Zauber aus D&D Beyond Drops; nicht wählbar sind Zauber aus Partnerinhalten und aus D&D: World of Warcraft. Auflage aus dem Buch: Die 15 Dunamantie-Zauber aus Wildemount und Encode Thoughts aus Ravnica werden erst wählbar, wenn die Figur sie in der Welt gefunden hat oder gelehrt bekam. Kreiszauber sind aus; die vier Zauber gelten ohne diesen Modus. Maßgeblich ist der Wortlaut des Buchs, auch wo die Zauberdaten von D&D Beyond abweichen. Was die Zauberbibliothek als gesperrt oder zurückgestellt führt, ist nicht wählbar: Zurückgestellt sind 14 Karten, die noch nicht gegen den Wortlaut gelesen sind, und 13, die den Blick des Weltenhüters oder eine Prüfung brauchen (Namen in W 7.3). Die Zauber aus Deep Magic bleiben offen.
+- **Rang der Quellen** (20, 20.3). Widersprechen sich Quellen über die Welt, gilt die frühere von fünf Stufen: das Gespielte und die Chronik; der Kanon von 576 CY (World of Greyhawk); der Greyhawk-Teil des Dungeon Master's Guide von 2024; Quellen mit späterem Stand; Abenteuer und Kampagnen anderer Tische und Verlage.
+- **Werkzeugkoffer** (W 24). Neu sind das Verzeichnis der Wesen, das Verzeichnis der Gegenstände und der Bücherordner des Weltenhüters. Die Spielleitung vervielfältigt keine Bücher. Die Lücken sind nachgeführt.
+- **Kleines.** D&D Beyond nennt seine Regale jetzt „5e Core Rules“, „5e Expanded Rules“ und „5.5e Core Rules“ (7.1, 7.2, 7.3, 16.2, Eingang). Die Tafel der Wahlregeln (W 23) bekommt neun Zeilen. Der Kopfabsatz und das Beispiel des Titelbildschirms (4.10) nennen 4.5. Die Überschrift „Zauber zur Rast“ der Rastübersicht folgt mit der nächsten Fassung der Tische.
+- Anlass: Beschluss des Weltenhüters vom 15. November 2026 nach einem Vorschlag in zehn Punkten.
+
+## Regelwerk 4.4 (14. November 2026)
+
+Gegenüber 4.3 (14. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.4. Die Dateien zu 4.4 lagen nie in diesem Verzeichnis; 4.5 schließt sie ein.
+
+- **Zauberfassungen** (7.3, 7.4, W 7.3). Jeder Zauber gilt an allen Tischen in derselben Fassung, gleich welche der Bogen nennt. Grundsatz ist die Fassung von 2014; 30 Zauber gelten immer in der Fassung des PHB 2024; Zauber, die es nur für die Regeln von 2024 gibt, gelten in dieser Fassung und werden nach der Umrechnungstafel der Werkstatt gelesen. Laufende Figuren stellt die Spielleitung in der ersten Sitzung unter 4.4 um.
+- **Module** (7.1, 7.2, W 23). The Griffon's Saddlebag (Buch 1 und 2), Valda's Spire of Secrets: Player Pack 1 und 2 und Deep Magic (Band 1 und 2) ergänzen die Bücher, so weit die Tafel der Wahlregeln es nennt: magische Gegenstände nur über die Spoilerdatei, Zauber nach 7.3, Wesen als Ergänzung, Unterklassen und Talente nur in einer Fassung für die Regeln von 2014 und nur mit Freigabe des Weltenhüters. Was Schießpulver braucht, gibt es nicht.
+- **Zauberbibliothek** (7.3, W 7.3, W 24). Eine Seite des Weltenhüters führt die Zauber mit Eckdaten, geltender Fassung, Kurzwirkung, Hinweis und Stand: offen, frei, frei mit Auflage, gesperrt oder zurückgestellt. Wählbar ist, was frei oder frei mit Auflage ist. Von den 36 Zaubern aus Valda's Player Packs sind 34 frei, 6 davon mit Auflage; einer ist gesperrt, einer zurückgestellt. Die Zauber aus Deep Magic sind offen.
+- **Gewölbe erkunden** (8.6, W 22.3, W 23). Erkundung in Zügen: Die Uhr zählt in Minuten, Licht ist Vorrat, die Karte wächst mit dem, was die Figur sieht, und je Stunde und bei Lärm würfelt die Spielleitung verdeckt, wer kommt. Ein Gewölbe ist gelöst, wenn die Figur die Antwort auf seine Kernfrage kennt, und gesäubert, wenn keine feindliche Gruppe mehr darin haust; beides ist eine Spur. Es steht in der Spoilerdatei, bevor die Figur es betritt.
+- **Rule of Cool** (6.7). Auf Bitten, Pläne und frei geschriebene Handlungen antwortet die Spielleitung, wo es geht, mit „Ja, und …“, und mit „Nein, aber …“, wo das Regelwerk dagegensteht. SG, natürliche 1, Aufstieg und Preise bleiben, wie sie sind.
+- **Märchen und Folklore** (20.2, W 20.2). Für die Farbe einer Szene schöpft die Spielleitung aus Märchen und Volksüberlieferung; die Werkstatt nennt Sammlungen je Gegend. Es bleibt bei Motiven und Ton.
+- **Kleines.** Die Tafel der Wahlregeln (W 23) nennt Erkundung in Zügen, Zufallsgewölbe, Zauberfassungen und Blessing of the Lone Champion (aus). Das Beispiel des Titelbildschirms (4.10) und die Liste der Lücken (W 24) nennen 4.4.
+- Anlass: Beschlüsse des Weltenhüters vom 14. November 2026.
 
 ## Regelwerk 4.3 (14. November 2026)
 
