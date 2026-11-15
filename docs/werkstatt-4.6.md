@@ -822,7 +822,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 - Volo's und Mordenkainen's hat nur der Weltenhüter, Volo's als deutschen Scan, Mordenkainen's als Bilddatei ohne Suche. Werte liest die Spielleitung vom Seitenbild; andere Tische spielen den Behelf nach 7.1.
 - Die Verzeichnisse der Wesen und der Gegenstände tragen Werte nur für das freie Grundregelwerk SRD 5.1: Kampfwerte für 323 Wesen und Wirkung für 249 Gegenstände, im englischen Wortlaut. Für alles andere nennen sie Eckdaten und Fundstelle: Es fehlen 173 Wesen des Monster Manual, 51 Gegenstände des Dungeon Master's Guide und alle anderen Bücher, dazu die deutschen Namen außerhalb von Volo's; dafür liest die Spielleitung im Buch. Kurzangaben in eigenen Worten für die übrigen stehen noch aus.
 - Das Verzeichnis der Personen ist noch nicht mit allen Tischen abgeglichen, und Klasse und Stufe nennt es nur bei einem Teil der Herrscher. Nennt ein Tisch einen Herrscher anders, meldet seine Spielleitung es dem Weltenhüter (Regelwerk 20.3).
-- Karte und Verzeichnis der Orte führen 21 Orte aus Quellenbüchern und 26 Schauplätze, die noch nicht unter `orte` in der Chronik stehen.
+- Karte und Verzeichnis der Orte führen 21 Orte aus Quellenbüchern und 24 Schauplätze, die noch nicht unter `orte` in der Chronik stehen.
 - Auch die Verzeichnisse und die Karte von Oerik sind noch nicht geteilt, und das Greyhawk-Wissen liegt als Datei im Artefakt der Karte: Bisher erreichen sie nur der Weltenhüter und seine Spielleitungen.
 - Die Listen von D&D Beyond sind nicht für jede Quelle verlässlich: Für Explorer's Guide to Wildemount nannten sie fünf Wesen. Gezählt wird dann am Buch.
 - Die Herausforderungsgrade aus Mordenkainen's sind in den Lesehinweisen noch nicht erfasst.
