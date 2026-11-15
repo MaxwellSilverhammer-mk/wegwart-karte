@@ -1,8 +1,8 @@
 # Oerik – Werkstatt der Spielleitung
 
-**Zum Regelwerk 4.3 · 14. November 2026 · Weltenhüter: Max**
+**Zum Regelwerk 4.5 · 15. November 2026 · Weltenhüter: Max**
 
-Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, einen Kampf erzählt (12.7), eine neue Figur anlegt oder einem Revier einen neuen Auftrag oder eine neue Bedrohung gibt, wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
+Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, und die Tafel der Wahlregeln (23). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, einen Kampf erzählt (12.7), einen Zauber umrechnet, nachschlägt oder zur Wahl stellt (7.3), eine neue Figur anlegt oder einem Revier einen neuen Auftrag, eine neue Bedrohung oder ein Gewölbe gibt (22.3), für eine Gegend nach ihrer Überlieferung sucht (20.2), wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk.
 
 ## 4 Befehle und Bedienung
 
@@ -53,6 +53,74 @@ Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die S
 - `--ohne-kern` hinter einem Aufruf zeigt, was allein am Kern hängt: die Sätze eines Tischs, die ohne `02_spielstand.md` keinen Beleg mehr hätten, und die Zahl der Namen, Wörter und Zahlen, die nur dort stehen (Regelwerk 21.1, Schreiben vor Kürzen). Am Ergebnis ändert der Schalter nichts. Nach einem Kehraus (21.7) läuft die Prüfung zweimal, vor dem Kürzen und danach; freigegeben ist die Kürzung nur, wenn beide dasselbe melden.
 - Was die Maschine nicht kann: einen Posten erkennen, der mit gewöhnlichen Wörtern umschreibt, was nur die Spoilerdatei weiß. Darum liest die Spielleitung jeden neuen Posten und Satz vor dem Eintragen gegen die Spoilerdatei, ebenso jeden neuen Abschnitt der Geschichte, den keine Maschine prüft.
 - Ohne Node-Zugang ändert die Spielleitung die Daten nur mit Wörtern, die wörtlich im Spielstand stehen, bei der Karte im Abschnitt „Karte“, vermerkt „ungeprüft“ im Kopf der Datei und prüft in der nächsten Sitzung mit Zugang nach.
+
+## 7 Regelgrundlage und Charakterbau
+
+### 7.1 Auslegung
+Regelwerk 7.1 macht das Sage Advice Compendium (2014) zur Auslegung der Bücher. An diesen Stellen entscheidet das Regelwerk anders oder legt sich fest:
+
+| Frage | Sage Advice | An unseren Tischen |
+|---|---|---|
+| Natürliche 20 und 1 | zählen nur bei Angriffswürfen | bei jedem Wurf mit SG oder RK (6.5, Hausregel) |
+| Überraschung mitten im Kampf | gibt es nur am Kampfbeginn | wer unbemerkt dazukommt, bekommt einen Zug vorab (12.1, Hausregel) |
+| Magisches bestimmen | eine kurze Rast genügt | Gebrauch, Identify oder ein Kundiger (15.1) |
+| Zauber in der kurzen Rast | unterbrechen die Rast | gelten als direkt vor oder nach der Stunde gewirkt; die Rastübersicht führt sie als „Zauber zur Rast“ (4.3), in der Überschrift erst mit der nächsten Fassung der Tische |
+| Flucht, die ein Zauber erzwingt | löst Gelegenheitsangriffe aus | ebenso (12.6) |
+
+Häufige Antworten: Wer als Bonusaktion zaubert, wirkt im selben Zug daneben nur einen Zaubertrick als Aktion. Ein Gelegenheitsangriff ist ein einzelner Angriff, kein Mehrfachangriff. Silvery Barbs hebt eine Legendary Resistance nicht auf.
+
+Für die 30 Zauber in der Fassung von 2024 gelten die Antworten von 2014 nur, soweit der Text derselbe geblieben ist. Bei True Strike, Hail of Thorns, Blinding Smite, Barkskin, Cloud of Daggers und Poison Spray ist er es nicht.
+
+### 7.3 Zauber umrechnen und freigeben
+Welche Fassung eines Zaubers gilt und was wählbar ist, regelt Regelwerk 7.3. Hier stehen die Umrechnungstafel für Zauber, die für die Regeln von 2024 geschrieben sind, die Quellen zum Nachschlagen und der Stand der Modulzauber.
+
+**Umrechnungstafel 2024 → 2014.** Einen Zauber in einer Fassung von 2024 liest die Spielleitung so: Was links steht, ersetzt sie durch die Regel rechts.
+
+| Im Text von 2024 | An unseren Tischen | Anmerkung |
+|---|---|---|
+| Magic action, Utilize | Aktion: Zauber wirken, Gegenstand benutzen | nur andere Namen |
+| Emanation | Radius um den Wirker, der mit ihm wandert | der Wirker ist nur betroffen, wenn der Zauber es sagt |
+| Bloodied | bei der Hälfte der Trefferpunkte oder weniger | ausschreiben |
+| D20 Test | Angriffswurf, Attributswurf oder Rettungswurf | ausschreiben |
+| Heroic Inspiration | Heldenmut (6.6) | höchstens einer zugleich |
+| Zustände wie Grappled, Incapacitated, Invisible, Stunned | Wortlaut des PHB 2014 | Stunned erlaubt 2014 keine Bewegung |
+| Exhaustion | Erschöpfung nach 9.3 | eine Stufe bleibt eine Stufe |
+| Überraschung | PHB 2014 (12.1) | wer überrascht ist, handelt im ersten Zug nicht |
+| Hide, Search, Study, Influence | Aktionen und Proben des PHB 2014 | |
+| Ringen und Stoßen per Rettungswurf | Wettstreit nach PHB 2014 (12.3) | ein Flucht-SG im Zauber bleibt |
+| ein Zauber mit Zauberplatz je Zug | Regel des PHB 2014 zu Zaubern als Bonusaktion | |
+| Weapon Mastery | entfällt (7.2) | |
+| Species | Volk | |
+| Tag „Chronomancy“ | Schule aus dem Zauber | das Tag bleibt als Stichwort |
+| Burning | 1W4 Feuerschaden zu Beginn jedes Zuges, bis eine Aktion die Flammen löscht | wie Alchemistenfeuer (PHB 2014) |
+
+**Abgleich bei Modulzaubern.** Maßstab ist die Tabelle „Spell Damage“ im DMG 2014 (S. 283 f.), für Schaden wie für Heilung. Liegt ein Zauber deutlich darüber, senkt eine Auflage seinen Wert, oder der Weltenhüter lehnt ihn ab. Heilzauber in einer Fassung von 2024 heilen gegenüber 2014 teils das Doppelte.
+
+**Nachschlagen**
+- **Zauberbibliothek von Oerik:** eine Seite des Weltenhüters; ihre Adresse steht in meta/welt (`zauberbibliothek`) und im Werkzeugkoffer (24). Je Zauber zeigt sie Name, Grad, Schule, Klassenlisten, Eckdaten, geltende Fassung, Kurzwirkung in eigenen Worten, Hinweis, Quelle und Stand, mit Suche und Filtern nach Klasse, Grad, Quelle und Stand. Steht eine Zauberwahl oder eine Zaubervorbereitung an (Regelwerk 7.4 und 4.3), nennt die Spielleitung dem Spieler die Adresse, beim ersten Mal ungefragt, danach auf Wunsch. Sie selbst holt die Seite als Datei `index.html` auf die Platte (4.7) und liest gezielt daraus: Die Zauber stehen als JSON-Liste im Element `<script id="daten">`, je Zauber mit Name `n`, Kurzwirkung `w`, Hinweis `h` und Stand `st`; fehlt `st`, ist der Zauber offen. Erreicht sie die Seite nicht, liest der Spieler ihr die Karte vor (Regelwerk 7.3).
+- **Zauber von Wizards of the Coast:** Maßgeblich ist der Wortlaut des Buchs, wie D&D Beyond ihn führt; die Karte der Bibliothek ist eine Kurzfassung. Weichen die Zauberdaten von D&D Beyond vom Buch ab, gilt das Buch. Die Karte folgt der gedruckten Zeile, auch bei der Reichweite: „Selbst“ mit Fläche nur, wo das Buch die Fläche nennt. Die Klassenliste ist die des Buchs, ergänzt um Tashas zusätzliche Zauberlisten; nennt das Buch keine, folgt die Karte D&D Beyond und sagt es im Hinweis.
+- **Deep Magic:** Band 1 und 2 (2023), als PDF beim Weltenhüter. Beide sind für die Regeln von 2014 geschrieben und brauchen die Tafel nicht. Die Ausgabe von Open5e (Sammlungen `deepm` und `deepmx`, Fassung von 2020) dient nur noch zum Nachlesen: 500 der 1.037 Zauber stehen auch dort, 79 gibt es nur dort.
+- **Valda's Player Packs:** D&D Beyond, geteilt über die Kampagne des Weltenhüters. In die Bibliothek kommen Eckdaten, Kurzwirkung in eigenen Worten und Auflagen, nie der Wortlaut.
+- **The Griffon's Saddlebag** bringt keine eigenen Zauber mit.
+
+**Stand der Modulzauber.** Den Stand jedes Zaubers führt die Bibliothek: offen, frei, frei mit Auflage, gesperrt oder zurückgestellt. Wählbar ist, was frei oder frei mit Auflage ist (Regelwerk 7.3); die Auflage steht im Hinweis. Was der Weltenhüter entscheidet, trägt er dort ein; weicht die Bibliothek von diesem Abschnitt ab, gilt die Bibliothek. Der Wortlaut der Bücher kommt nicht hinein. Die Zahlen führt die Statuszeile der Bibliothek.
+- **Wizards of the Coast:** alle frei, je in der Fassung nach Regelwerk 7.3, soweit keine Auflage aus dem Buch gilt (Regelwerk 7.3) und der Weltenhüter den Zauber nicht zurückgestellt hat (unten, „Gegengelesen“). Vier Namen gibt es auch in Deep Magic (Catapult, Frostbite, Power Word Pain, Thunderclap); es gilt der Zauber von Wizards of the Coast.
+- **Deep Magic:** 1.037 Zauber, alle offen. 280 tragen einen Hinweis: „prüfen“ heißt, Stärke oder Text sind unklar; „Blick des Weltenhüters“ heißt, der Zauber greift in die Welt ein; die übrigen nennen Zusatzregeln, Stile der Magie oder fremde Monsterbücher. Würfel, Maße, Rettungswürfe, Schadensarten und Zustände der Karten sind per Skript gegen die Bände geprüft, die Klassenlisten in zwei Lesungen; bei Zaubern mit Reaktion steht der Auslöser im Zeitaufwand. Nicht geprüft ist, was eine Kurzwirkung weglässt: Fehlt etwas, meldet die Spielleitung die Lücke, und der Weltenhüter liest im Band nach (Regelwerk 7.3).
+- **Valda's Player Packs:** 36 Zauber, umgerechnet nach der Tafel. Nach dem Beschluss des Weltenhüters vom 14. November 2026 sind 34 frei, 6 davon mit Auflage; einer ist gesperrt, einer zurückgestellt.
+  - Gesperrt: Finger Guns. Er liegt über dem Maß für Zaubertricks, und die Geste ahmt eine Feuerwaffe nach, die Oerth nicht kennt (Regelwerk 20).
+  - Zurückgestellt: Soul Effigy. Er liegt weit über dem, was 2014 auf Grad 4 kann, und taugt eher als Fluch der Welt (14.1).
+  - Rumor, Auflage: Die Probe für „Gerüchte streuen“ gilt als gelungen, Dauer und Kosten bleiben (8.4); das Gerücht ist eine Spur (17.4).
+  - Defenestration, Auflage: bei gelungenem Rettungswurf kein Stoß.
+  - Cheat, Auflage: zählt beim „Spiel“ als Falschspiel (8.4), und die Geste muss verborgen bleiben (15).
+  - Flawed Reconstruction, Auflage: Das Trefferpunktmaximum bleibt bis zur nächsten langen Rast gesenkt.
+  - Flashback, Auflage: Die Vorbereitung muss in den letzten 24 Stunden möglich gewesen sein, nach Ort, Zeit, Geld und Gewicht (10.1, 9.5), und darf nichts Gespieltem und keinem Eintrag der Chronik widersprechen (17.1).
+  - Rusting Grasp, Auflage: Der Abzug auf die RK trifft nur nichtmagische Rüstung und Schilde aus Metall, wie beim Rostmonster.
+  - Frei mit dem Hinweis „Blick des Weltenhüters“: Moment to Think, Clue, Séance.
+  - Chronomantie ist keine eigene Schule; das Stichwort bleibt am Zauber. Mandy's Feral Follower und Mandy's Marvelous Dress führt die Welt ohne den Namen. Die sieben Vertrauten aus Pack 2 sind als Wesen der Welt nutzbar (Regelwerk 7.1), als Vertraute sind sie aus (23).
+
+**Gegengelesen.** Stand 14. November 2026 sind 576 der 590 Karten zu Zaubern von Wizards of the Coast gegen den Wortlaut gelesen. Offen sind 14 aus vier Büchern, die dem Weltenhüter fehlen: Acquisitions Incorporated 7, The Book of Many Things 3, Spelljammer 2, Planescape 2. Nicht gelesen sind die Werteblöcke der zehn Summon-Zauber; die Karten verweisen dort auf den Werteblock. Der Weltenhüter hat am 15. November 2026 die 14 Karten zurückgestellt, bis sie gegengelesen sind: Distort Value, Fast Friends, Gift of Gab, Incite Greed, Jim's Glowing Coin, Jim's Magic Missile und Motivational Speech (Acquisitions Incorporated), Antagonize, Spirit of Death und Spray of Cards (The Book of Many Things), Air Bubble und Create Spelljamming Helm (Spelljammer), Gate Seal und Warp Sense (Planescape). Mit ihnen hat er 13 Karten zurückgestellt, die seinen Blick oder eine Prüfung brauchen: Buzzing Bee, Conjure Tools, Deryan's Helpful Homunculi, Galder's Tower, Hindsight, Holy Star of Mystra, Inflict Doubt, Moment of Prescience, Spellfire Flare, Spellfire Storm, Vision of Elapsing Eons, Wail of the Banshee und Waves of Exhaustion. Die Bibliothek führt alle 27 als „zurückgestellt“ und nennt im Hinweis den Grund. Die Zauber aus Deep Magic hat er bis auf Weiteres ausgeklammert: Sie bleiben offen.
+
+**Umstellen einer laufenden Figur** (Übergang, Regelwerk 7.3). In der ersten Sitzung unter 4.4 geht die Spielleitung die Zauber der Figur durch, bestimmt je Zauber die geltende Fassung und sagt dem Spieler in einem Satz je Zauber, was sich ändert. Beim Sitzungsende trägt sie die Fassungen in den Spielstand ein und die umgerechnete Form ins Zauberbuch der Werkbank (Regelwerk 21.1). Auf D&D Beyond stellt der Spieler die Fassungen selbst um.
 
 ## 12 Kämpfe
 
@@ -373,7 +441,7 @@ Die drei Quellen der Magie in einem Satz: Intelligenz rechnet, Weisheit bittet, 
 
 - Was die Chronik ist und was die Spielleitung zu Beginn jeder Sitzung liest, steht im Regelwerk (18). Hier stehen die Sammlungen im Einzelnen und das Schreiben.
 - Sammlungen und Felder:
-  - **meta/welt**: Name der Welt, gültige Regelwerk-Version, Welttag 1, Weltenhüter, Adressen von Würfelkasten, Kartentisch, Rastübersicht, Gepäck, Logbuch, Glossar, Händlertisch, Titelbildschirm und Kampfkarte (ein Stand für alle Tische, `tische_stand`, 4.2), die Vorlage des Spielerbuchs (`spielerbuch`, 4.7), der Eingang (`eingang`, 22) und die Karten (`karten`, Regelwerk 20.3).
+  - **meta/welt**: Name der Welt, gültige Regelwerk-Version, Welttag 1, Weltenhüter, Adressen von Würfelkasten, Kartentisch, Rastübersicht, Gepäck, Logbuch, Glossar, Händlertisch, Titelbildschirm und Kampfkarte (ein Stand für alle Tische, `tische_stand`, 4.2), die Vorlage des Spielerbuchs (`spielerbuch`, 4.7), der Eingang (`eingang`, 22), die Zauberbibliothek (`zauberbibliothek`, 7.3) und die Karten (`karten`, Regelwerk 20.3).
   - **orte**: je Ort id, name, x, y (Weltraster, 4.2), art (Ortsart der README), revier, erstmals (welttag, figur), aktualisiert (JJJJ-MM-TT). Hier steht die Lage; was eine Figur über den Ort weiß, steht in ihren Kartendaten. Die kanonischen Orte der Flanaess-Karte (Regelwerk 20.1) tragen `kanon: true` und `legende` (Hauptstadt, Stadt, Freie Stadt, Ort, Ruine) statt `revier` und `erstmals`; gemessen vom Nullpunkt Monmurg aus, ein Hexfeld (30 Meilen) sind 10 Einheiten, auf etwa 2 Einheiten genau. Betritt eine Figur einen davon, kommen `revier` und `erstmals` dazu. Orte jenseits der Flanaess tragen kein `kanon`; ihre Lage legt die erste Spielleitung, die dort spielen will, mit dem Weltenhüter fest (Regelwerk 20.3).
   - **laender** (Regelwerk 20.3): je Land, in dem gespielt wird, der Spickzettel. Id klein mit Bindestrichen (`hold-der-seeprinzen`). name, raum (Flanaess, Zentral-Oerik, West-Oerik), spickzettel (Zeilen: Herrscher und Götter, Sprachen, Sklaverei, Vertrautheit mit Magie, Sonnenuntergang, Kalendernamen, wem man misstraut, Lage), muenzen (`{pm: [Einzahl, Mehrzahl], ga: …, em: …, sm: …, km: …}`, wie im Gepäck, Regelwerk 4.4), quellen, quelle (Spieler, Sitzung), aktualisiert (JJJJ-MM-TT). Kanon, jenseits der Flanaess das Festgelegte (Regelwerk 20.3), keine Geheimnisse. Eine Spielleitung ergänzt, was fehlt, und überschreibt nichts; bei Streit entscheidet der Weltenhüter.
   - **figuren**: je Figur name, spieler, revier, status (aktiv, ruhend, tot), start (welttag, ort), stand (welttag, datum, tageszeit, ort), ruf (was man sich erzählt), erkennungszeichen, gefolge, buch (Link zum Spielerbuch, privat; nur zum Wiederfinden), aktualisiert (JJJJ-MM-TT).
@@ -391,6 +459,23 @@ Die drei Quellen der Magie in einem Satz: Intelligenz rechnet, Weisheit bittet, 
 - **Briefkasten der Seite.** Für Spielleitungen, die die Datenbank nicht selbst lesen oder schreiben können, hat die Seite zwei Knöpfe, beide nur für angemeldete Konten mit Zugang: **Sitzungspaket speichern** lädt alle Sammlungen als Datei `01_chronik.md` herunter, die der Spieler ungelesen ins Projekt legt; **Nachtrag einreichen** nimmt den Chroniknachtrag entgegen und schreibt ihn in die Sammlungen. Der Weltenhüter darf Nachträge für andere einreichen.
 - **Chroniknachtrag.** Ist die Chronik nicht erreichbar oder hat die Spielleitung keinen Zugang, spielt sie trotzdem weiter und gibt beim Sitzungsende alle fälligen Einträge als Datei `chroniknachtrag.json` aus (zur Not als Codeblock), die der Spieler ungelesen einreicht oder dem Weltenhüter schickt. Aufbau: `{"figur":"<id der Figur>","stand":"<Datum>","eintraege":[{"sammlung":"chronik","id":"wt0012-…","daten":{…}}, …]}`. Für Dokumente, die es schon gibt (die eigene Figur, das Revier, ein Brief bei der Zustellung), enthält `daten` nur die Felder, die sich ändern: Die Seite ersetzt jedes genannte Feld ganz und lässt die übrigen stehen. Was wachsen soll (der `ruf` einer Figur, `oeffentlich` eines Reviers oder eines Rufs), steht unter `anhaengen`, etwa `"anhaengen":{"ruf":"In Rohrdorf heißt es, sie habe den Brand gelöscht."}`: Die Seite hängt den Satz an das an, was im Feld steht, ohne es zu ersetzen und nie doppelt. So schreibt niemand ein ganzes Feld ab, und nichts geht verloren, was inzwischen ein anderer geschrieben hat. Ein Feld steht in `daten` oder in `anhaengen`, nicht in beiden; meta/welt ändert so nur der Weltenhüter (24). Die Ids folgen dem Muster der bestehenden Einträge (chronik: `wt<Welttag vierstellig>-<stichwort>`, für Tage vor Welttag 1 `wt-<Abstand vierstellig>-<stichwort>`, post: `wt<Welttag>-<von>-an-<an>`).
 - Die Chronik wächst. Einträge, die älter als ein Jahr Weltzeit sind, fasst der Weltenhüter je Revier zu einem Eintrag zusammen, damit Sitzungspakete handlich bleiben.
+
+## 20 Die Welt
+
+### 20.2 Sammlungen je Gegend
+Märchen und Folklore geben einer Szene Farbe (Regelwerk 20.2). Aus welcher Überlieferung die Spielleitung schöpft, hängt an Gegend und Leuten. Es bleibt bei Motiven und Ton: keine Namen, keine Gestalten, keine erkennbaren Geschichten, und keine Sammlung wird im Spiel genannt.
+
+| Gegend und Leute | Sammlungen | Stand |
+|---|---|---|
+| Baklunischer Westen | 1001 Nacht | beschlossen |
+| Olman im Amedio-Dschungel und in der Hold der Seeprinzen | Popol Vuh, Sahagún (Codex Florentinus) | beschlossen |
+| Barbaren im Nordosten | Asbjørnsen und Moe, Kalevala | beschlossen |
+| Flan, auch in der Hold der Seeprinzen | Boas, Erdoes und Ortiz, Stith Thompson | beschlossen |
+| Hold der Seeprinzen und Sheldomar-Tal, Oeridier und Suel | Brüder Grimm, Bechstein, Andersen | Vorschlag |
+| Olman, zusätzlich | Peñalosa (Q'anjob'al Maya) | Vorschlag |
+| Motive nachschlagen, überall | Enzyklopädie des Märchens, Lévi-Strauss (Mythologica) | Vorschlag |
+
+Eine Zeile mit „Vorschlag“ gilt, bis der Weltenhüter sie bestätigt oder ändert. Noch ohne Gegend sind aus seiner Liste: Narodnye russkie skazki, Erben, Srpske narodne pripovijetke, Hyltén-Cavallius und Stephens, Tang Kristensen, Rasmussen, Macmillan, das Huarochirí-Manuskript, Wilbert und Simoneau. Die erste Spielleitung, die in einer Gegend ohne Eintrag spielt, schlägt dem Weltenhüter eine Zuordnung vor (Regelwerk 2).
 
 ## 21 Spielstand pflegen
 
@@ -495,11 +580,12 @@ Was ein Revier enthält, steht in 17.2 und 21.1. Hier steht, worauf die Spiellei
 - **Jedes Geheimnis hat mehrere Spuren.** Was die Figur wissen muss, damit ein Auftrag weitergeht, liegt an mindestens drei Stellen: bei Leuten, an Orten, in Dingen. Fortschritt hängt nie an einer einzigen Probe oder daran, zu erraten, was die Spielleitung denkt; eine verpasste Spur verschiebt den Weg, sie versperrt ihn nicht (6.4).
 - **Jeder Gegenspieler hat ein Ziel, eine Rechtfertigung und einen Bezug zur Figur.** Was er will, warum er sich im Recht glaubt und was ihn mit Herkunft, Handwerk, Bindung oder Taten der Figur verbindet, steht bei ihm in der Spoilerdatei. Er handelt über Uhren und Reaktionen (8.3), nicht über Auftritte.
 - **Jede geplante Kampflage hat mehr als Gegner.** Die Spoilerdatei nennt zum Ort, was die Lage bewegt: Gelände und Wasser, Licht und Wetter, Unbeteiligte, ein Ziel außer Töten (fliehen, schützen, etwas holen oder halten) und was sich mitten im Kampf ändern kann. Schwierigkeit und EP regeln weiter 12.2 und 11.2.
-- **Orte folgen der Karte, Ton folgt den Vorbildern.** Lage, Landschaft und Leben eines Ortes nach 20.1, Aufträge und Gegenspieler im Ton von 20.2; Ungeheuer und ihre Werte nach 7.1.
+- **Orte folgen der Karte, Ton folgt den Vorbildern.** Lage, Landschaft und Leben eines Ortes nach 20.1, Aufträge und Gegenspieler im Ton von Regelwerk 20.2; Ungeheuer und ihre Werte nach 7.1.
 - **Das Revier kennt sein Land.** Jedes Revier stützt sich auf den Landeseintrag seines Landes (Regelwerk 20.3, Chronik unter `laender`, 18). Gibt es keinen, legt die Spielleitung ihn beim Anlegen an, aus Wiki und Chronik: Herrscher und Götter, Sprache, die Namen der Münzen zu den Werten von 7.5, wie es dort um die Sklaverei steht, wie vertraut die Leute mit Magie sind, wie man Tage und Monate nennt, wem man misstraut und wann die Sonne untergeht. Was nur das Revier betrifft, bleibt in der Spoilerdatei. Die id des Eintrags steht im Revier unter `land` (18), die Münznamen trägt sie als `muenzen` ins Gepäck (Regelwerk 4.4). Kann sie die Datenbank nicht beschreiben, steht der Eintrag im Chroniknachtrag (18).
 - **Das Revier kennt sein Klima.** Die Spoilerdatei trägt „## Klima“ je Jahreszeit (9.7): Regen- und Trockenzeit, Frost und Eis, Nebel, Stürme auf See, Hitze; daraus kommt das Wetter der Statuszeile, und daraus folgen Kälte, Hitze, Höhe und Eis als Gefahren. Ein Revier im Amedio hat andere Jahreszeiten als eins an der Eissee; beide stehen so fest wie die Karte.
 - **Zwischenzeit, Zwischenfälle, Flüche und Schrecken wachsen aus dem Revier.** Die Spoilerdatei bekommt beim Anlegen drei kleine Abschnitte, die mit dem Spiel wachsen: „## Zwischenzeit“ mit den Verwicklungen, die in diesem Revier passieren können (8.4; aus Leuten, Uhren und Geheimnissen, nicht aus Buchtabellen), „## Zwischenfälle“ je Gelände für Verfolgungen (12.4) und „## Flüche und Schrecken“ mit Auslöser, Wirkung, Dauer und Lösung (14.1). Was es im Revier gibt (eine Arena, ein Archiv, einen Lehrer, einen Hehler, einen Tempel, einen Verkäufer für Magisches, eine Formel), steht bei den Orten, damit die Tätigkeiten der Zwischenzeit und 15.1 einen Boden haben; was es nicht gibt, gibt es nicht.
 - **Schiffe und Häfen haben Werte, Bühnen gibt es vorher.** Schiffe des Reviers stehen mit Werteblock nach Ghosts of Saltmarsh, Mannschaft, Kurs und Fahrplan in der Spoilerdatei (8.5); Orte, an denen ein Kampf auf der Kampfkarte wahrscheinlich ist (Gewölbe, Häuser mit mehreren Räumen, Hinterhalte, Decks), bekommen eine Bühne (12.6) mit dem, was die Figur noch nicht sieht, als verdeckte Gruppen, und was sie nicht einmal ahnen darf, getarnt (`aussehen`). Ohne Spielerbuch (22.1) steht stattdessen ein Grundriss als Text oder Skizze in der Spoilerdatei, aus dem die Spielleitung im Kampf nimmt, was die Figur sieht.
+- **Ein Gewölbe steht vorher.** Bevor eine Figur ein Gewölbe betreten kann (Regelwerk 8.6), stehen in der Spoilerdatei: der Plan als Bühne mit verdeckten Gruppen je Raum (12.6; ein großes Gewölbe als mehrere Bühnen), die Kernfrage mit ihrer Antwort an mindestens drei Stellen, die Bewohner als Gruppe mit Ziel und Tageslauf, die Schwelle der Begegnungsprobe und was Lärm auslöst, Licht, Fallen (DMG 120 ff.) und der Hort (Regelwerk 10.2). Anhang A des DMG 2014 (Zufallsgewölbe, S. 290 ff.) und veröffentlichte Abenteuer sind Steinbruch beim Bauen: Die Spielleitung würfelt oder liest vorab, streicht, was nicht zur Karte (Regelwerk 20.1) und zur Kernfrage passt, und schreibt das Ergebnis in die Spoilerdatei. Im Spiel wird nichts erwürfelt.
 - **Schätze sind Geschichte.** Alltagshorte folgen 10.2 (ein Viertel der Horttabelle); ein Schatz, der den Namen verdient, steht mit Herkunft, Besitzern und Folgen in der Spoilerdatei und wird mit dem Weltenhüter angelegt, denn er kauft ein Schiff (10.1) und zieht Kreise durch mehrere Reviere (17.4).
 
 ## 23 Wahlregeln
@@ -512,7 +598,7 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 3. **Nichts, was Figuren stärker oder Tode plötzlicher macht** (Markieren, Durchschlagen, massiver Schaden, Dauervorteil durch Flankieren, dunkle Gaben, epische Gaben, Training für Stufen als Bremse ebenso wie als Beschleuniger).
 4. **Eigene Systeme stehen** (Heldenmut statt Inspiration und Heldenpunkten, Einfall statt Handlungspunkten, Neigung statt Haltungstabelle, Beziehungen und Frömmigkeit, Spoilerdatei statt Zufallstabellen, Chronik statt geteilter Kampagne, EP mit Meilensteinen statt Stufen ohne EP).
 5. **Nicht bestrafend, Figur statt Spieler** (Wahnsinn, Stress, Verstand, Ehre).
-6. **Nicht diese Welt** (Feuerwaffen, Sprengstoff, fremde Technik, Setting-Bücher außer ihren Zaubern, 2024-Regeln außer Zauberfassungen).
+6. **Nicht diese Welt** (Feuerwaffen, Sprengstoff, fremde Technik, Setting-Bücher außer ihren Zaubern, 2024-Regeln außer den Zauberfassungen nach Regelwerk 7.3, die Schauplätze der Module).
 
 | Regel | Quelle | Stand |
 |---|---|---|
@@ -528,6 +614,7 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 | Fertigkeiten mit anderem Attribut | PHB 175 | gilt (6.7) |
 | Traglast (Variante) | PHB 176 | gilt (9.5) |
 | Reisetempo schnell/langsam | PHB 181 f. | gilt (8.2) |
+| Erkundung in Zügen | PHB 181 ff. | angepasst (8.6) |
 | Zwischenzeit (Handwerk, Beruf, Erholung, Forschen, Training) | PHB 187 | angepasst (8.4) |
 | Spiel auf dem Raster | PHB 192 | angepasst: nur auf der Kampfkarte, sonst Erzählung mit Metern (12.6) |
 | Renown | DMG 22 | angepasst (10.3) |
@@ -555,7 +642,7 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 | Flächen auf dem Raster | DMG 251 | gilt auf der Kampfkarte (12.6) |
 | Flankieren, Diagonalen (5-10-5), Blickrichtung | DMG 251 f. | aus, auch auf der Kampfkarte: Umzingelung löst Moral aus statt Vorteil (12.1), Blickrichtung ist für Text zu fein, Diagonalen zählen nach PHB (12.6) |
 | Verfolgungsjagden | DMG 252 ff. | angepasst (12.4) |
-| Belagerungsgerät | DMG 255 | gilt, wenn es vorkommt (Werteblöcke); keine Kanonen (20) |
+| Belagerungsgerät | DMG 255 | gilt, wenn es vorkommt (Werteblöcke); keine Kanonen (Regelwerk 20) |
 | Krankheiten | DMG 256 f. | angepasst (14) |
 | Gifte | DMG 257 f. | gilt: Werte nach DMG, Vorkommen, Ernten und Kauf über die Spoilerdatei |
 | Wahnsinn | DMG 258 ff. | aus (14.1) |
@@ -569,7 +656,7 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 | Furcht und Horror | DMG 266 | angepasst (14.1) |
 | Heilvarianten (Heilerkit-Pflicht, Heilschübe, langsames Heilen) | DMG 266 f. | aus: Rastübersicht und Trefferwürfel-Rechnung; Wunden wiegen über 14 |
 | Rastvarianten (episch, grimmig) | DMG 267 | aus: kippt Zauber- und Trefferwürfel-Rechnung laufender Figuren und die Rastübersicht; Rast im Freien ist über 9.4 und 8.3 schon teuer |
-| Feuerwaffen, Sprengstoff, fremde Technik | DMG 267 f. | aus: Schießpulver ist auf Oerth wirkungslos, Technik nach Gygax (20) |
+| Feuerwaffen, Sprengstoff, fremde Technik | DMG 267 f. | aus: Schießpulver ist auf Oerth wirkungslos, Technik nach Gygax (Regelwerk 20) |
 | Handlungspunkte | DMG 269 | aus: die Welt erzählt die Spielleitung, der Einfall gibt dem Spieler sein Stück davon (6.6) |
 | Initiativvarianten | DMG 270 | aus: Kasten und Reihenfolge nach 12.1 |
 | Handlungsoptionen | DMG 271 f. | angepasst: fünf von sechs (12.3) |
@@ -579,6 +666,7 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 | Massiver Schaden | DMG 273 | aus: ein Wurf, der eine Solo-Figur ohne Wahl fällt (6.5) |
 | Moral | DMG 273 | angepasst (12.1), auch bei Umzingelung |
 | Zauberpunkte | DMG 288 | aus: Zauberplätze in Statuszeile, Rastübersicht und Bogen |
+| Zufallsgewölbe | DMG 290 ff. (Anhang A) | angepasst: Steinbruch beim Bauen, nie im Spiel (8.6, 22.3) |
 | Fallgeschwindigkeit | XGtE 77 | gilt |
 | Gleichzeitige Wirkungen | XGtE 77 | gilt |
 | Schlaf | XGtE 77 f. | gilt (9.2) |
@@ -618,11 +706,34 @@ Die Tafel aller Wahlregeln der Bücher (7.1). **gilt** heißt in der Fassung des
 | Beziehungen | Strixhaven | aus: Neigung (8.3) |
 | Frömmigkeit | Theros | aus: Renown bei einer Gemeinde (10.3) |
 | Gildenruf | Ravnica | aus: Renown (10.3) |
-| Drachenmale, Dunamantie, Spelljammer, Planescape, Dragonlance-Schlachten, Deck der vielen Dinge, Acquisitions Inc. | Setting-Bücher | aus: Setting-gebunden; Wesen und Dinge daraus nach 7.1 und 10.2, Zauber daraus nach 7.3 |
-| Zauberfassungen 2024 | PHB 2024 | gilt nach Bogen (7.3) |
-| Zauber aus allen Büchern | alle Bücher von Wizards of the Coast für die 5. Edition, auch Setting-Bücher | gilt (7.3, seit 4.2): wählbar nach der Zauberliste der Klasse in dem Buch; Fassung nach Bogen, sonst 2014 |
+| Drachenmale, Dunamantie, Spelljammer, Planescape, Dragonlance-Schlachten, Deck der vielen Dinge, Acquisitions Inc. | Setting-Bücher | aus: Setting-gebunden; Wesen und Dinge daraus nach 7.1 und 10.2, Zauber daraus nach Regelwerk 7.3 |
+| Zauberfassungen | PHB 2014, PHB 2024 | angepasst (Regelwerk 7.3): Fassung 2014; 30 Zauber immer nach 2024; sonst 2024 nur, wo es keine andere Fassung gibt |
+| Zauber aus allen Büchern | alle Bücher von Wizards of the Coast für die 5. Edition, auch Setting-Bücher | gilt (Regelwerk 7.3, seit 4.2): wählbar nach der Zauberliste der Klasse in dem Buch; Fassung nach Regelwerk 7.3; Auflagen des Buchs bleiben (seit 4.5) |
+| Zauber aus D&D Beyond Drops | D&D Beyond Drops | gilt (Regelwerk 7.3, seit 4.5): wählbar wie Zauber eines Buchs, Fassung von 2024 nach der Tafel in 7.3 |
+| Kreiszauber | Forgotten Realms: Heroes of Faerûn | aus: mehrere Wirker an einem Zauber kennt 15 nicht; die vier Zauber gelten ohne diesen Modus |
+| Dunamantie-Zauber, Gildenzauber | Explorer's Guide to Wildemount, Guildmasters' Guide to Ravnica | angepasst: frei mit Auflage, wählbar erst nach Fund oder Lehre (Regelwerk 7.3) |
+| Zauber aus D&D: World of Warcraft | D&D: World of Warcraft, Frühzugang | aus: andere Welt, Text noch nicht endgültig (Regelwerk 7.3) |
+| Unterklassen, Hintergründe, Völker, Gilden, Heldenchronik | Explorer's Guide to Wildemount, Guildmasters' Guide to Ravnica | aus: nicht diese Welt (Grund 6) |
+| Lawine, Schneesturm, Reisen im Schnee, Gebirgsreise | Icewind Dale: Rime of the Frostmaiden, S. 10 f. | aus, bis ein Revier im Eis entsteht; dann angepasst in 9.7 |
+| Fremde Technik in Abenteuern | Expedition to the Barrier Peaks (in Quests from the Infinite Staircase), Lost Laboratory of Kwalish | aus wie DMG 267 f.; als Fund eine Spur und Sache des Weltenhüters (Regelwerk 20) |
+| Abenteuer, Werteblöcke und Gegenstände aus Partnerinhalten | Legends of Greyhawk (acht Titel), Classic Modules Today | aus als Regelquelle: Steinbruch (22.3); Werteblöcke nach Regelwerk 7.1 |
+| Wesen und Gegenstände aus Büchern für die Regeln von 2024 | 5.5e Expanded Rules, D&D Beyond Drops | gilt (Regelwerk 7.1, seit 4.5): Sie ergänzen, wo sie Neues bringen; Neufassungen gelten nicht |
 | Heldeninspiration | PHB 2024 | angepasst: Heldenmut (6.6) |
 | Waffenmeisterschaft, Erschöpfung 2024, Bastionen, übrige 2024-Regeln | PHB/DMG 2024 | aus (7.2, 9.3) |
+| Blessing of the Lone Champion | Dragon Delves (2025) | aus: Powercreep; allein gilt 12.2, mit Gefährte 16.4 |
+| Magische Gegenstände | The Griffon's Saddlebag 1 und 2, Valda's Player Pack 1 und 2, Deep Magic Band 1 und 2 (Stile der Magie) | angepasst: nur über die Spoilerdatei (7.1, 10.2); Zufallstabellen aus |
+| Zauber | Valda's Player Pack 1 und 2 | angepasst: umgerechnet nach der Tafel in 7.3, je Zauber mit Freigabe (Regelwerk 7.3) |
+| Zauber | Deep Magic, Band 1 und 2 (2023) | angepasst: Kurzwirkung der Zauberbibliothek, je Zauber mit Freigabe (Regelwerk 7.3) |
+| Unterklassen, Talente | The Griffon's Saddlebag 2, Fassung für 2014 | angepasst: je Stück mit Freigabe (7.2); Stand 4.4: keine freigegeben |
+| Unterklassen, Talente, Vertraute | Valda's Player Pack 1 und 2, The Griffon's Saddlebag 1 | aus: nur für die Regeln von 2024 (7.2) |
+| Klassen, Unterklassen, Hintergründe | Deep Magic | aus: nicht auf D&D Beyond baubar, und gebaut wird dort (7.2) |
+| Völker | alle Module | aus: Völker kommen aus dem Kanon (Regelwerk 20); Ausnahmen nur mit dem Weltenhüter |
+| Pistolero, Gunslinger | Valda's Player Pack 2 | aus: Schießpulver ist auf Oerth wirkungslos (Regelwerk 20) |
+| Schauplätze | The Griffon's Saddlebag 1 und 2 | aus: nicht Oerik (Regelwerk 20); Wesen daraus nach 7.1 |
+| Wesen und Werteblöcke | alle Module | gilt nach 7.1: Sie ergänzen, wo sie Neues bringen |
+| Abenteuerorte, Zufallstabellen | Deep Magic, Band 1 und 2 (2023) | aus: Steinbruch für Spoilerdateien (22.3) |
+| Zwischenzeit, Zauberanpassung, epische Magie | Deep Magic, Band 1 und 2 (2023) | aus, solange 8.4 und 15.1 sie nicht übernehmen |
+| Rule of Cool, „Ja, und …“ | Tischbrauch | angepasst (6.7): ein Ja und ein Wurf, nichts über Vorteil und Heldenmut hinaus |
 
 ## 24 Werkzeugkoffer
 
@@ -648,6 +759,9 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 |---|---|---|---|---|
 | Eingang nach Oerik | https://claude.ai/artifact/TBdN725HV7U3bjcmiFHiQg | Einstieg, Regelbuch, Werkzeugkoffer, Dateien; ohne Datenbank, öffentlich teilbar (für eine neue Fassung nimmt der Weltenhüter den öffentlichen Link kurz zurück) | 22 | alle |
 | Chronik von Oerik | Adresse in den Projektanweisungen | die gemeinsame Datenbank, Kalender, Postrechner, Briefkasten; kein öffentlicher Link | 18 | eingeladene Konten |
+| Zauberbibliothek von Oerik | https://claude.ai/artifact/PLB8E8DPvX6m5xSKz4oJGP, auch in meta/welt (`zauberbibliothek`) | alle Zauber mit Eckdaten, geltender Fassung, Kurzwirkung, Hinweis und Stand, mit Suche und Filtern; ohne Datenbank; noch nicht geteilt | 7.3, W 7.3 | Weltenhüter; Spieler und Spielleitungen, sobald er sie teilt |
+| Verzeichnis der Wesen von Oerik | https://claude.ai/artifact/AfgoJsYc69Rd7vuYgGCS2s | welche Wesen in welchem Buch stehen und welche Fassung gilt: Art, Größe, Herausforderungsgrad, EP, Fundstelle und Vermerk, mit Suche und Filtern; ohne Werteblöcke, ohne Datenbank; noch nicht geteilt | 7.1, 16.2 | Weltenhüter; Spielleitungen, sobald er es teilt |
+| Verzeichnis der Gegenstände von Oerik | https://claude.ai/artifact/65CpzZMGDjCm9CuTxH8F7x | magische Gegenstände mit Art, Seltenheit, Einstimmung, Fundstelle und Vermerk, mit Suche und Filtern; ohne Wirkung, ohne Datenbank; Steinbruch für Spoilerdateien; noch nicht geteilt | 7.1, 10.2, 15.1 | Weltenhüter; Spielleitungen, sobald er es teilt |
 | Spielerbuch | eines je Figur, gebaut aus seite/buch.html | Glossar, Logbuch, Gepäck, Karte, „Was bisher geschah“; vier Dateien statt einer Datenbank | 4.7, W 4.7 | Spieler, Spielleitung |
 | Ablage | eine je Figur, Deckblatt aus seite/ablage.html | Spielstand, Spoilerdatei, Wissensbuch, Einstellungen, Werkbank, Übergabe, Bühnen, Profile, Archiv; nie geteilt | 4.7, 21.1, W 21.5 | nur die Spielleitung |
 | Bildersaal | einer je Figur | Ortsgemälde und Bildnisse als PNG, das Titelbildnis als WebP und `data:`-Text | 3.3, 4.10, W 21.6 | freiwillig |
@@ -657,6 +771,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 | Werkzeug | Datei | Wofür | Regel |
 |---|---|---|---|
 | Spoilerprüfung | pruefen.js, wissen.js, wissensbuch.js | sperrt, was die Figur nicht wissen kann, und Wissen ohne Weg; `--ohne-kern` zeigt, was allein am Kern hängt | 5.1, W 4.8 |
+| Bücherordner des Weltenhüters | Ordner „Oerik“ in seinen Dokumenten (darin `Lesehinweise.md`) oder Ordner „Oerik“ in seinem Google Drive | Bücher, die im Regal auf D&D Beyond fehlen: Volo's, Mordenkainen's, die Greyhawk-Quellen, Abenteuer. Die Lesehinweise nennen je Buch Seitenzählung, Textschicht und Fundstellen und tragen die Namenstafeln. Lesbar nur in einem Chat, den der Weltenhüter mit dem Ordner verbindet, sonst gilt der Behelf nach 7.1. Über Google Drive kommt nur der Text von Büchern mit Textschicht bis etwa 45 MB an, keine Seitenbilder | 7.1, 20.3 |
 | Glossar-Auszug | glossar.js `--auszug`, `--liste` | ein Eintrag für den Chat, Stichwortliste für den Spielstand | 4.6 |
 | Bühnen und Profile | buehne.js | feste Karten, Kampfdaten, die erste Karte eines Kampfes | 12.6, W 12.6 |
 | Buchbinder | seite/bauen.js | Spielerbuch und Ablage bauen, Dateien hin und zurück, Umzug von vor 4.2; `--kern` misst den Kern, schreibt das Kapitel „Stand der Dinge“ und macht die Verlustprobe | W 4.7, W 21.4, W 21.5, W 21.7, W 22.2 |
@@ -671,14 +786,21 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 | Klangtisch Live | Repository wegwart-klang | eigene Kopie des Repositorys, Spotify Premium und eine Spotify-App (README dort); kennt neun Ortstypen statt der acht Stimmungen. Die Signaldatei ist öffentlich: Wer keinen Ort verraten will, setzt nur den Ortstyp | 3.2 |
 | Gemälde malen | Skill „Selbstmalende Gemälde“ und Malkasten, beide beim Weltenhüter | Der Weltenhüter teilt beides. Ohne sie gibt es keine Gemälde, und das Spiel läuft genauso | 3.3, W 21.6 |
 
-**Außerhalb des Koffers** steht D&D Beyond: Jede Figur wird in der Kampagne des Weltenhüters gebaut, und ihr Bogen kommt als PDF ins Projekt (7.2, 7.4).
+**Außerhalb des Koffers** steht D&D Beyond: Jede Figur wird in der Kampagne des Weltenhüters gebaut, und ihr Bogen kommt als PDF ins Projekt (7.2, 7.4). Bücher legt der Weltenhüter selbst in seinen Ordner. Die Spielleitung vervielfältigt keine Bücher: Sie liest, was bereitliegt, und trägt nur Eckdaten und eigene Worte weiter (W 7.3).
 
-**Lücken, Stand 4.3.** Sie stören das Spiel nicht, aber man sollte sie kennen:
+**Lücken, Stand 4.5.** Sie stören das Spiel nicht, aber man sollte sie kennen:
 - Der Kartentisch kennt die Gebiete `sumpf`, `totholz`, `wald`, `berge`, `felder`, `mangroven`; für Wüste, Eis und Steppe gibt es noch keine Gebietsart. Bis dahin stehen sie als Name und Notiz auf der Karte. Große Strecken zeigt er nur im Ausschnitt.
 - Klangtisch Live hat keine Ortstypen für Gebirge, Wüste und Eis.
 - Eine Spielleitung ohne Artefakt-Werkzeuge, Code oder Widgets spielt nach 22.1 in Textform. Eine, die Buch und Ablage nur gerade nicht schreiben kann, sichert mit einem Zwischenhalt ins Projekt (4.7, Fall 2).
 - Ein Projektchat ohne Netzzugriff ändert weder die Chronik noch den Eingang. Für die Chronik gibt es den Chroniknachtrag (18), für eine neue Fassung den Weg unten.
 - Das Projektwerkzeug überschreibt ein Dokument nur, wenn der Chat es mit `project_read` ganz gelesen oder selbst aus einer Datei geschrieben hat, und es verbietet, ein Dokument zu löschen, um es neu anzulegen. Was das für Spielstand und Spoilerdatei heißt, steht in 21.3, Schritt 11.
 - Ein Artefakt mit öffentlichem Link lässt sich mit den Werkzeugen im Chat nicht neu veröffentlichen, und in die Chronik schreibt dann niemand außer dem Weltenhüter (Regelwerk 18).
+- Für die Karte eines Gewölbes außerhalb des Kampfes gibt es noch keinen Tisch. Bis dahin beschreibt die Spielleitung auf (Karte), was die Figur vom Gewölbe kennt.
+- Die Zauberbibliothek ist noch nicht geteilt: Bisher öffnen sie nur der Weltenhüter und seine Spielleitung. Bis er sie teilt, gelten an anderen Tischen für Zauber von Wizards of the Coast D&D Beyond und für Valda's Player Packs die Beschlüsse in 7.3; die Zauber aus Deep Magic sind ohnehin alle noch offen.
+- Die Umrechnungstafel (7.3) ist noch nicht gegen den Leitfaden „Converting to SRD v5.2.1“ von Wizards of the Coast gegengelesen. Von den Karten zu Zaubern von Wizards of the Coast sind 14 noch nicht gegen den Wortlaut gelesen (W 7.3).
+- Volo's und Mordenkainen's hat nur der Weltenhüter, Volo's als deutschen Scan, Mordenkainen's als Bilddatei ohne Suche. Werte liest die Spielleitung vom Seitenbild; andere Tische spielen den Behelf nach 7.1.
+- Die Verzeichnisse der Wesen und der Gegenstände nennen Eckdaten und Fundstelle, aber keine Werte. Es fehlen die deutschen Namen außerhalb von Volo's und die Kurzwirkungen der Gegenstände; dafür liest die Spielleitung im Buch.
+- Die Listen von D&D Beyond sind nicht für jede Quelle verlässlich: Für Explorer's Guide to Wildemount nannten sie fünf Wesen. Gezählt wird dann am Buch.
+- Die Herausforderungsgrade aus Mordenkainen's sind in den Lesehinweisen noch nicht erfasst.
 
 **Eine neue Fassung veröffentlichen** (Weltenhüter): 1. Tische im Repository ändern, testen (`for t in test/*.test.js; do node $t; done`), Commit als neuer `tische_stand`. 2. Regelwerk und Werkstatt als docs/regelwerk-<Version>.md und docs/werkstatt-<Version>.md schreiben, Änderungen in docs/aenderungen.md. 3. Eingang neu veröffentlichen (`publish_files`, 4.7): die Seite seite/eingang.html als `index.html` mit den Dateien regelwerk.md, werkstatt.md und vorlage-projektanweisungen.md aus docs/ und den Tischen unter tische/ (die .js-Dateien der Tische, wuerfel.js und seite/proben.js); hat sich seite/chronik.html geändert, auch die Chronikseite, ihre Datenbank bleibt. Beide Seiten ändert kein Projektchat ohne Netzzugriff (4.7): Der Weltenhüter öffnet dafür einen Chat von der Seite des Artefakts aus oder erlaubt den Netzzugriff. Solange eine Seite einen öffentlichen Link hat, geht auch das nicht: Er nimmt ihn vorher zurück und teilt den Eingang danach neu. 4. meta/welt in der Chronik setzen (`regelwerk_version`, `tische_stand`, Adressen), im selben Chat wie die Chronikseite. Sonst reicht der Weltenhüter auf der Chronikseite einen Nachtrag ein, der nur meta/welt nennt: `{"figur":"weltenhueter","eintraege":[{"sammlung":"meta","id":"welt","daten":{"regelwerk_version":"<Version>","tische_stand":"<Commit>"}}]}`. 5. Im Projekt jeder Figur Regelwerk und Werkstatt ersetzen: die Dateien aus dem Repository im Stand von main holen (docs/; der `tische_stand` liegt einen Commit davor und trägt die neuen Texte noch nicht), je Dokument erst `project_read`, dann `project_write` mit `local_path` (21.3, Schritt 11; beide alten Texte stehen dann im Verlauf, zusammen rund 250.000 Zeichen). Die Kopfzeile jeder Datei nennt ihre Fassung; sie muss `regelwerk_version` aus meta/welt gleichen. Billiger ist es von Hand: Der Spieler speichert beide Dateien im Eingang und ersetzt sie im Projekt. Die Ablage bleibt dabei, wie sie ist (21.5); neue Spieler holen beide im Eingang. 6. Ändert die Fassung die Seite von Buch oder Ablage, baut jede Spielleitung sie beim nächsten Sitzungsende neu (4.7).
