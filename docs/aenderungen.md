@@ -1,6 +1,16 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.6.md`, `werkstatt-4.6.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.7.md`, `werkstatt-4.7.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.7 (16. November 2026)
+
+Gegenüber 4.6 (15. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.7 (`werkstatt-4.7.md`).
+
+- **Kampf, Gewölbe und See in der Werkstatt** (8.5, 8.6, 12.3 bis 12.7; W 8.5, W 8.6, W 12.3 bis W 12.7). Was nur bei Anlass gilt, liest die Spielleitung erst dann: Schiffe und See ohne die Fahrt, die im Regelwerk bleibt, das Erkunden von Gewölben, Handlungsoptionen, Verfolgungsjagden, Munition und Kampf im Wasser, die Kampfkarte samt Bühnen und Profilen und die Kampfbeschreibung samt Stilblatt. Im Regelwerk bleibt je Abschnitt ein Platzhalter mit dem Anlass, bei 8.6 mit Begriff und Kernsatz, bei 12.6 mit der Frage, wann die Karte kommt. Verweise im verschobenen Text, die in der Werkstatt auf einen anderen Abschnitt gezeigt hätten, tragen „Regelwerk“. Das Regelwerk wird rund 18.000 Zeichen kürzer (192.679 statt 211.157).
+- **Funde an besonderen Orten** (10.2, 10.4, W 10.4; dazu 4.4, 7.1, 10.1, 15.1, W 22.3, W 23). Gräber, Schreine, Anführer, Zauberkundige, Ungeheuer mit Revier und Horte tragen nach einer Fundtafel Wertvolles und Magisches, gewürfelt beim Anlegen, nie im Spiel. Die Gefahr misst eine Tafel der HG-Summen für die Figur allein: mittel bis Stufe 4 ein Viertel der Stufe, ab Stufe 5 ein Drittel; drei oder mehr kleine Gegner rücken eine Zeile höher. Höchstens ein magisches Ding je Stufe. Die Welt sieht magische Dinge zwei Stufen seltener, als das DMG sie führt, soweit der Landeseintrag nichts anderes sagt; der Preis bleibt beim DMG.
+- **Ortsakten** (8.6, 21.1, 21.3, 4.7, 4.8; W 4.7, W 4.8, W 21.3 bis W 21.7, W 22.3, W 24). Jeder vorbereitete Ort bekommt eine Datei `ortsakten/<ort>.md` in der Ablage, gelesen bei Anlass. Die Spoilerdatei behält Auftrag, Uhren, Fristen, die Reaktionen vor der Fahrt, die Spuren bei Leuten anderswo, was die Bewohner außerhalb ihres Orts tun, und ein Verzeichnis der Ortsakten. Ohne die Akte betritt die Figur das Gewölbe nicht; ohne Ablage steht die Akte als Abschnitt in der Spoilerdatei. Geprüft wird gegen eine Sammeldatei aus Spoilerdatei und Akten; `--ablage` und `--einordnen` nehmen den Ordner ohne Änderung mit.
+- **Kleines.** Der Kopfabsatz und das Beispiel des Titelbildschirms (4.10) nennen 4.7. Weil die Werkstatt jetzt eigene Kapitel 8 und 10 hat, verweisen W 21.4 (Auftreten) und W 23 (magische Gegenstände der Module) ausdrücklich auf Regelwerk 10 und 7.1.
+- Anlass: Vorschläge der Spielleitung an Visegards Tisch vom 16. November 2026, in Fürchtegotts Projekt geprüft und ergänzt, vom Weltenhüter am selben Tag beschlossen.
 
 ## Regelwerk 4.6 (15. November 2026)
 
