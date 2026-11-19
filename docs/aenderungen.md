@@ -1,6 +1,19 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.7.md`, `werkstatt-4.7.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.8.md`, `werkstatt-4.8.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.8 (19. November 2026)
+
+Gegenüber 4.7 (16. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.8 (`werkstatt-4.8.md`).
+
+- **Lesen** (3.1, 4.6, 6.7, 21.3; W Vorspann; Vorlage der Projektanweisungen). Vor jeder Spielantwort schlägt die Spielleitung nach, statt sich zu erinnern: wer jemand ist (beim ersten Auftritt im Chat der ganze Glossareintrag und die letzte Stelle der Geschichte), ob er da sein kann (die Lage in „Jetzt“) und was die Optionen voraussetzen. Erfinden ja, Überschreiben nein. Die Werkstatt liest sie abschnittsweise, mit einem Handgriff, auch beim Sitzungsbeginn und nach einer Zusammenfassung des Chats.
+- **Schreiben** (21.1, 21.2). „Jetzt“ trägt die Zeile „Lage“: wer und was wo ist, wer fort ist und bis wann, was heute und morgen kommt; der Kehraus kürzt sie nicht. Daten stehen als Welttag oder mit Monat, Mengen mit ihrem Wort; Kurzzeilen zeigen, ob er oder sie gemeint ist, und meiden Verneinungen.
+- **Prüfen** (W 21.3, W 21.4, W 21.8 neu; 21.1, 21.3). Jede neue Festlegung sucht die Spielleitung vor dem Schreiben einmal in Geschichte und Glossar. Sie führt Sitzungsnotizen als Datei im Arbeitsordner (Lage, Neu festgelegt, Berichtigung, Fehlerbuch); das Fehlerbuch steht in der Werkbank, seine Zahlen kommen in den Abschluss des Sitzungsendes, und es gibt eine Schwelle für eine Ursachenanalyse.
+- **Werkzeuge** (W 4.8, W 24). Das Szenenblatt `szene.js` und die Datumsprüfung in `pruefen.js` sind beschlossen und kommen mit dem nächsten `tische_stand`; bis dahin schlägt die Spielleitung mit grep nach.
+- **Zuschlag nach leeren Stufen** (W 10.4). Je Stufe ohne gelegtes magisches Stück steigt die Zahl für Magisches in der Fundtafel um 5 %, bis die Tafel wieder eins legt. Gezählt wird, was gelegt ist, nicht was gefunden ist; den Stand führt die Spielleitung verdeckt. Laufende Figuren zählen ihre Stufen vor der Fundtafel mit.
+- **Besondere Orte anlegen** (W 22.4 neu; 10.4, W Vorspann, W 23). Ein Revier hat zugleich zwei bis vier besondere Orte, auf Reisen kommt abseits der Straßen einer je Reisetag dazu. Art (W10) und Gefahr (W20) würfelt die Spielleitung beim Anlegen; die Wächter folgen der HG-Summe der Gefahr, der Fund der Fundtafel. Jeder Ort hat eine Kernfrage, Spuren in der Welt und einen Wandel als Frist oder Auslöser; eine Tafel nennt die fünf Arten.
+- **Kleines.** Der Kopfabsatz und das Beispiel des Titelbildschirms (4.10) nennen 4.8. Der Handgriff zum abschnittsweisen Lesen nimmt `/mnt/project/*00_werkstatt.md`, damit er auch greift, wo die Werkstatt als `claude_00_werkstatt.md` liegt, und nennt die Datei auch beim `sed`.
+- Anlass: der Vorschlag der Spielleitung an Visegards Tisch vom 19. November 2026 nach der Ursachenanalyse vom 18. November (Änderungen 1 bis 8) und zwei Wünsche des Weltenhüters vom selben Tag (Änderungen 9 und 10), in Fürchtegotts Projekt ausgearbeitet, vom Weltenhüter am 19. November 2026 beschlossen.
 
 ## Regelwerk 4.7 (16. November 2026)
 
