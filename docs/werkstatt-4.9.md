@@ -1,8 +1,8 @@
 # Oerik – Werkstatt der Spielleitung
 
-**Zum Regelwerk 4.8 · 19. November 2026 · Weltenhüter: Max**
+**Zum Regelwerk 4.9 · 22. November 2026 · Weltenhüter: Max**
 
-Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, die Tafel der Wahlregeln (23) und, seit 4.7, die Regeln, die nur bei Anlass gelten: Schiffe und See (8.5), Gewölbe (8.6), die Fundtafel (10.4) und der Kampf im Einzelnen (12.3 bis 12.7). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn ein Kampf droht oder geplant wird (spätestens beim Initiativewurf: 12.3, 12.5, 12.6, 12.7), eine Verfolgung beginnt (12.4), die Figur ein Gewölbe betritt (8.6) oder an Bord eines Schiffs geht (8.5), wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, einen Zauber umrechnet, nachschlägt oder zur Wahl stellt (7.3), eine neue Figur anlegt oder einem Revier einen neuen Auftrag, eine neue Bedrohung, ein Gewölbe oder einen Ort mit Funden gibt (10.4, 22.3, 22.4), für eine Gegend nach ihrer Überlieferung sucht (20.2), wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Gelesen wird gezielt: in der Arbeitsumgebung der Abschnitt aus `/mnt/project` (Regelwerk 21.3), nicht die ganze Datei mit `project_read`, das sie in den Verlauf legt. Der Handgriff: erst die Überschriften (`grep -n '^#' /mnt/project/*00_werkstatt.md`), dann der Abschnitt (`sed -n '<von>,<bis>p' /mnt/project/*00_werkstatt.md`). Das gilt auch beim Sitzungsbeginn und nach einer Zusammenfassung des Chats. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk; wo das nicht eindeutig wäre, steht „Regelwerk“ davor.
+Die Werkstatt ist der zweite Teil des Regelwerks: die Arbeitsschritte, die die Spielleitung nur zum Speichern, Bauen und Einrichten braucht, die Tafel der Wahlregeln (23) und, seit 4.7, die Regeln, die nur bei Anlass gelten: Schiffe und See (8.5), Gewölbe (8.6), die Fundtafel (10.4) und der Kampf im Einzelnen (12.3 bis 12.7). Sie gilt wie das Regelwerk und wird mit ihm geändert, steht aber in einer eigenen Datei, damit sie nicht jede Sitzung mitlädt. Die Spielleitung liest sie, wenn ein Kampf droht oder geplant wird (spätestens beim Initiativewurf: 12.3, 12.5, 12.6, 12.7), eine Verfolgung beginnt (12.4), die Figur ein Gewölbe betritt (8.6) oder an Bord eines Schiffs geht (8.5), wenn sie einen Zwischenhalt macht oder eine Sitzung beendet, Spielerbuch, Ablage oder Chronik liest oder schreibt, Tische baut oder prüft, ein Treffen leitet, einen Zauber umrechnet, nachschlägt oder zur Wahl stellt (7.3), eine neue Figur anlegt oder einem Revier einen neuen Auftrag, eine neue Bedrohung, ein Gewölbe oder einen Ort mit Funden gibt (10.4, 22.3, 22.4), für eine Gegend nach ihrer Überlieferung oder für eine Szene nach Vorbild, Stimmung und Reglern sucht (20.2), wenn ein Spieler nach einer Regel der Bücher fragt, die im Regelwerk nicht steht (23), und immer, wenn das Regelwerk mit „W“ hierher verweist. Gelesen wird gezielt: in der Arbeitsumgebung der Abschnitt aus `/mnt/project` (Regelwerk 21.3), nicht die ganze Datei mit `project_read`, das sie in den Verlauf legt. Der Handgriff: erst die Überschriften (`grep -n '^#' /mnt/project/*00_werkstatt.md`), dann der Abschnitt (`sed -n '<von>,<bis>p' /mnt/project/*00_werkstatt.md`). Das gilt auch beim Sitzungsbeginn und nach einer Zusammenfassung des Chats. Die Abschnitte tragen die Nummern des Regelwerks; eine Nummer meint den Abschnitt in dieser Datei, wo es ihn hier gibt, sonst den im Regelwerk; wo das nicht eindeutig wäre, steht „Regelwerk“ davor.
 
 ## 4 Befehle und Bedienung
 
@@ -606,6 +606,72 @@ Eine Zeile mit „Vorschlag“ gilt, bis der Weltenhüter sie bestätigt oder ä
 
 Die Werke hat der Weltenhüter am 15. November 2026 benannt. Wofür sie stehen, ist die Lesart der Spielleitung und gilt, bis er sie bestätigt oder ändert. Die Technik der Welt bleibt die von Regelwerk 20.
 
+**Film und Serie** (Regelwerk 20.2; seit 4.9). Siebzehn Filme und Serien geben Farbe für Bild, Licht, Tempo und Klang einer Szene. Sie hängen an keiner Gegend, außer wo die Tafel eine nennt: Sie passen, wo es den Schauplatz gibt. Auch hier bleibt es bei Motiven und Ton.
+
+| Werk | Schauplatz und Stimmung | Was es an Farbe gibt |
+|---|---|---|
+| *Hamlet* (Kenneth Branagh, 1996) | Hof; Stadt, Nachklang | der Hof als Falle: Lauscher, Masken, Trauer und Zaudern, Rede mit doppeltem Boden |
+| *Die Tudors* (2007–2010) | Hof und Kanzlei; Stadt | Gunst und Sturz, Heiratspolitik, Krone gegen Kirche, das Schafott |
+| *Braveheart* (1995) | Aufstand und Feldschlacht; Kampf | Aufstand von unten, Sippen, wankende Lehnsherren, die Rede vor der Schlacht, Schlamm |
+| *John Adams – Freiheit für Amerika* (2008) | Rat, Gericht und Gesandtschaft; Stadt | Rat und Recht, Gesandte an fremden Höfen, Briefe über Monate, Arbeit auf dem eigenen Gut, Krankheit und Alter |
+| *Kingdom of Heaven* (2005) | Glaubensgrenze und Belagerung, vor allem an der baklunischen Grenze; Weg, Kampf | Ritterorden mit eigener Politik, Belagerung mit Turm und Katapult, Wüste und Wasser, Achtung zwischen Feinden |
+| *Seven Samurai* (1954) | ein Dorf in Not; Lager, Kampf, Nachklang | ein Dorf heuert Schutz, Standesgrenzen, die Verteidigung vorbereiten, Regen, der Preis des Sieges |
+| *Valhalla Rising* (2009) | Fahrt ins Unbekannte, vor allem im Nordosten; Wildnis, Unheil | Schweigen, Nebel, wortlose Gewalt, Glaubenseifer, das Land als Feind |
+| *The Revenant* (2015) | Grenzland im Winter; Wildnis, Nachklang | Kälte, Hunger, Wunden über Wochen, Pelzhandel, Rache, die nichts heilt |
+| *Der Herr der Ringe* (Peter Jackson, 2001–2003) | Straße, Ruine und Belagerung; Weg, Kampf, Nachklang | eine alte Welt im Niedergang, lange Märsche mit Rast und Hunger, eine Last, die ihren Träger verändert, Belagerung mit Leiter, Ramme und Katapult |
+| *Der Hobbit* (Peter Jackson, 2012–2014) | Handelsstadt und Hort; Schenke, Stadt | das Abenteuer als Vertrag mit Anteil am Schatz, Zöllner und Schmuggler, ein Hort, der seinen Besitzer verdirbt und alle Nachbarn anzieht (Regelwerk 10.2) |
+| *The Witch* (2015) | ein Hof am Waldrand; Unheil | Missernte, Frömmigkeit, Verdacht in der eigenen Familie, Tiere, die zu viel wissen; langsam und bei Kerzenlicht |
+| *Dungeons & Dragons: Honor Among Thieves* (2023) | Gaunerstück; Schenke | der Plan, der scheitert, und der nächste; Zauber als Werkzeug statt als Waffe; wie Wesen der Regeln im Bild aussehen |
+| *The Northman* (2022) | Halle und Sippe, vor allem im Nordosten; Wildnis, Kampf | Blutrache als Schicksal, Rituale und Seherinnen, Knechtschaft, karges Land |
+| *Hagazussa* (2017) | Hochgebirge und Dorfrand; Unheil, Wildnis | eine Ausgestoßene, Pest, Kirche und alter Glaube, fast ohne Worte; offen, was Zauber ist und was Wahn |
+| *Sleepy Hollow* (1999) | ein Dorf mit Geheimnis; Unheil | ein Fremder mit Auftrag, schweigende Honoratioren, ein Spuk mit menschlichem Auftraggeber, Nebel, kahle Bäume, Galgenhumor |
+| *Black Death* (2010) | Seuchenzeit und Moor; Unheil, Wildnis | ein Trupp mit kirchlichem Auftrag, ein verschontes Dorf, Eifer, der beide Seiten grausam macht |
+| *The Head Hunter* (2018) | die Hütte des Jägers; Lager | der einsame Jäger zwischen den Aufträgen: Rüstung flicken, Salbe kochen, Trophäen, das Horn, das ruft; Vorbereitung und Nachwehen statt des Kampfs |
+
+Was draußen bleibt:
+- **Pulver.** *John Adams*, *The Revenant*, *Sleepy Hollow* und *The Witch* spielen in der Pulverzeit: Sitten und Bilder ja, Feuerwaffen nie (Regelwerk 20).
+- **Fremde Welten.** Aus *Der Herr der Ringe*, *Der Hobbit* und *Honor Among Thieves* kommen keine Völker, Orte, Bünde und Gestalten; es gilt der Kanon (Regelwerk 20 und 20.3).
+- **Härte.** *Black Death*, *Hagazussa* und *The Northman* zeigen mehr Grausamkeit, als Oerik erzählt; es bleibt bei 12.7 und Regelwerk 13.
+- **Regeln vor Bildern** (Regelwerk 20.2). Was ein Film zeigt und die Regeln nicht hergeben, bleibt Kino: eine Verwandlung in ein Ungeheuer, das kein Tier ist, die Stunts aus *Der Hobbit*, der Reiter aus *Sleepy Hollow* als Gestalt.
+
+Die Werke hat der Weltenhüter am 22. November 2026 benannt. Wofür sie stehen, ist die Lesart der Spielleitung und gilt, bis er sie bestätigt oder ändert.
+
+**Stimmung und Ton: Motive, Palette und Regler** (Regelwerk 3.4; seit 4.9). Die vier Grundsätze und die Vorgaben zur Lebendigkeit stehen im Regelwerk; hier steht, woraus sie gezogen sind und womit die Spielleitung abwechselt. Vorbilder sind alle aus Regelwerk 1 und 20.2 und aus den Tafeln oben, zusammen 51.
+
+Elf Motive kehren quer durch Romane, Sammlungen und Filme wieder:
+- **Zum Land:** das Land als Gegner (Kälte, Regen, Nebel und Weg entscheiden mit) und die alte Welt (Ruinen, Niedergang und Abschied; der Kanon bringt seine gefallenen Reiche schon mit).
+- **Zu den Leuten:** der Fremde mit Auftrag (einer kommt von außen an einen Ort, der etwas verschweigt); jeder hat Gründe (das Ungeheuer hat einen Grund, und wer herrscht, hält sich für gerecht); Glaube ist Alltag, Gewissheit selten (Bräuche, Verbote und Flüche gelten, auch wo niemand je einen Zauber sah); Arbeit zeigt den Menschen (Handwerk, Stand und Alltag erzählen mehr als jede Beschreibung).
+- **Zum Preis:** Gewalt kostet (Kämpfe sind kurz und hässlich, Wunden dauern Wochen, und der Sieg gehört selten dem, der ihn erkämpft); Worte binden (Eid, Vertrag, Fluch, Brief, Rede und Lied haben Folgen, und Rache heilt nichts); Gaben mit Preis (Wunder sind selten, fremd und teuer; wer nimmt, schuldet).
+- **Zur Stimme:** trockener Humor (gelacht wird aus den Figuren heraus, auch am Galgen) und Stille (wenige Worte, lange Blicke, Pausen).
+
+„Worte binden“ ist das eigenste Motiv: Oerik ist ein Textspiel, und Eid, Gerücht, Brief und Schlüsselwort sind dort schon Regel (Regelwerk 4.5, 5, 17.4 und 17.5).
+
+Die acht Stimmungen (Regelwerk 3.2) geben die Farbe einer Szene, auch an Tischen ohne Klang:
+
+| Stimmung | Farbe | Vorbilder |
+|---|---|---|
+| Weg | Weite, Wetter, Begegnungen am Rand; unterwegs wird erzählt | Roadwarden, Canterbury Tales, Der Herr der Ringe, Kingdom of Heaven |
+| Wildnis | karg, körperlich, wortarm; das Land handelt | The Revenant, Valhalla Rising, Hagazussa, The Northman, Stormlight Archive, Rasmussen, Kalevala |
+| Lager | Hände arbeiten, einer erzählt; hierher gehören die Märchen | The Head Hunter, Seven Samurai, Stormlight Archive, 1001 Nacht und die Sammlungen |
+| Schenke | Spott, Handel, Gerücht; hier darf es leicht sein | Canterbury Tales, Der Hobbit, Honor Among Thieves, Mistborn, Hexer, die Schwänke bei Grimm und Bechstein |
+| Stadt | Rang, Schrift, Rede mit doppeltem Boden; Prunk über Fäulnis | Hamlet, Die Tudors, John Adams, Der Name der Rose, Die Säulen der Erde, Game of Thrones |
+| Unheil | langsam, nah, ein Sinn zu viel; die Leute wissen etwas | The Witch, Hagazussa, Sleepy Hollow, Black Death, Der Name der Rose, Hexer, Erben |
+| Kampf | Dreck und Atem; Handwerk, wo einer vom Fach ist (12.7) | First Law, Game of Thrones, Hexer, Seven Samurai, Braveheart, Kingdom of Heaven, The Northman |
+| Nachklang | leise und kurz; ein Bild bleibt stehen | Seven Samurai, Der Herr der Ringe, The Revenant, Hamlet, Le Morte d'Arthur, Nibelungenlied, Andersen |
+
+Sechs Regler dürfen von Szene zu Szene wandern; die Ruhelage ist der Grundton, zu dem die Erzählung zurückkehrt:
+
+| Regler | Ein Ende | Anderes Ende | Ruhelage |
+|---|---|---|---|
+| Gewicht | leicht: Honor Among Thieves, Der Hobbit, Canterbury Tales | schwer: Black Death, The Northman, Nibelungenlied | eher schwer, mit trockenem Humor und lustigen Ausnahmen |
+| Lautstärke | still: Valhalla Rising, Hagazussa, The Head Hunter | beredt: Hamlet, John Adams, Braveheart | eher still |
+| Blickhöhe | von unten: Die Säulen der Erde, Seven Samurai, Mistborn | von innen: Die Tudors, Hamlet, John Adams | von außen: der Fremde sieht beides |
+| Maßstab | ein Mensch: The Head Hunter, The Revenant | ein Reich: Der Herr der Ringe, Braveheart, Die Tudors | Mensch und Dorf; das Reich bleibt Gerücht |
+| Das Übernatürliche | Gerücht und Zweifel: Black Death, Hagazussa | offen wirksam: Der Herr der Ringe, Honor Among Thieves | selten, fremd und teuer (Regelwerk 15) |
+| Gegner | grau: Hexer, First Law, Black Death | klar böse: Der Herr der Ringe, Der Hobbit, Honor Among Thieves | meist grau; klare Feinde gehören dazu |
+
+Ein Regler darf weit ausschlagen, solange die vier Grundsätze stimmen. Die Leute zweifeln, die Regeln nicht: Ob ein Zauber wirkt, sagt das Regelwerk; der Zweifel gehört den Leuten (Regelwerk 15). Die Gegend färbt zusätzlich, Märchen und Sagen nach der Tafel oben. Die Zuordnungen sind die Lesart der Spielleitung; die vier Grundsätze hat der Weltenhüter am 22. November 2026 bestätigt, die vier Vorgaben zur Lebendigkeit stammen von ihm.
+
 ## 21 Spielstand pflegen
 
 ### 21.3 Sitzungsende
@@ -964,7 +1030,7 @@ Alles Werkzeug der Welt an einer Stelle. Neu ist hier nichts: Die Regeln stehen 
 - **Bauen.** Die Bauskripte liegen im jeweiligen Artefakt unter `bau/`: `bau_wesen_srd.py.txt`, `bau_gegenstaende_srd.py.txt` und `bau_personen.py.txt`, das die Liste der Personen selbst trägt und die ganze Seite baut. Die Skripte der Karte und des Ortsverzeichnisses liegen mit ihren Eingangsdaten im Artefakt der Karte unter `bau/werk/` und `bau/daten/`, daneben ihre Übergabe (`uebergabe.md`). Die Skripte für Wesen und Gegenstände lesen die Seite, wie sie im Artefakt steht, hängen die Daten an und ändern Stil, Text und Code nur, wenn die Erweiterung noch fehlt. Datenquelle für das freie Grundregelwerk SRD 5.1 ist `github.com/5e-bits/5e-database`, Ordner `src/2014/en` (Aufbereitung unter MIT-Lizenz). Baut ein anderes Werkzeug ein Verzeichnis neu, laufen die Skripte danach noch einmal.
 - **Nachführen.** Nennt ein Tisch oder die Chronik einen Herrscher anders als das Buch, wird es im Skript des Personenverzeichnisses nachgetragen (Regelwerk 20.3). Wer ein Buch weiterliest, trägt Eckdaten in eigenen Worten mit Quelle im Greyhawk-Wissen nach: Datei `wissen/greyhawk.md` im Artefakt der Karte, zu holen mit `list_files` und `read_file` (4.7).
 
-**Lücken, Stand 4.8.** Sie stören das Spiel nicht, aber man sollte sie kennen:
+**Lücken, Stand 4.9.** Sie stören das Spiel nicht, aber man sollte sie kennen:
 - Die Prüfung kennt nur eine Spoilerdatei. Mit Ortsakten prüft die Spielleitung gegen eine Sammeldatei (4.8), bis pruefen.js und buehne.js weitere annehmen. Die Sammeldatei trägt, denn beide nehmen die Spoilerdatei nach ihrer Stelle im Aufruf, nicht nach dem Namen (nachgesehen am 16.11.2026).
 - Der Kartentisch kennt die Gebiete `sumpf`, `totholz`, `wald`, `berge`, `felder`, `mangroven`; für Wüste, Eis und Steppe gibt es noch keine Gebietsart. Bis dahin stehen sie als Name und Notiz auf der Karte. Große Strecken zeigt er nur im Ausschnitt.
 - Klangtisch Live hat keine Ortstypen für Gebirge, Wüste und Eis.
