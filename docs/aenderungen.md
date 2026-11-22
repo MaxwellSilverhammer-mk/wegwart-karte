@@ -1,6 +1,17 @@
 # Änderungen am Regelwerk und an den Werkzeugen
 
-Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.8.md`, `werkstatt-4.8.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+Das gültige Regelwerk und die Werkstatt liegen daneben (`regelwerk-4.9.md`, `werkstatt-4.9.md`), frühere Fassungen im Verlauf des Repositorys. Diese Liste lädt keine Spielleitung mit; sie ist für den Weltenhüter und für Spieler, die wissen wollen, was neu ist.
+
+## Regelwerk 4.9 (22. November 2026)
+
+Gegenüber 4.8 (19. November 2026). Der Stand der Tische und der Würfelkasten bleiben. Die Werkstatt wird 4.9 (`werkstatt-4.9.md`).
+
+- **Stimmung und Ton** (3.4 neu; 1, 3.1, 20.2). Vier Grundsätze gelten in jeder Szene: Das Land ist schwer, die Leute haben Gründe, alles hat einen Preis, und die Stimme bleibt trocken, nah und ohne Eile. Zu jedem gehört eine Frage, die sich die Spielleitung vor einer neuen Szene stellt.
+- **Lebendigkeit** (3.4; 1). Vier Vorgaben des Weltenhüters gegen Monotonie: Lachen darf sein, Scheitern ist normal, die Welt lebt in sich, und es bleibt Dungeons & Dragons. Eine langweilige Geschichte ist ein Scheitern der Spielleitung.
+- **Film und Serie** (20.2; W 20.2). Siebzehn Filme und Serien sind Vorbilder für Bild, Licht, Tempo und Klang, von *Seven Samurai* bis *The Head Hunter*. Die Werkstatt sagt, wofür jedes steht und was draußen bleibt: Pulver, fremde Welten, Härte über 13 hinaus und was die Regeln nicht hergeben.
+- **Motive, Palette und Regler** (W 20.2, W Vorspann). Elf Motive, die quer durch alle 51 Vorbilder wiederkehren; die acht Stimmungen als Palette mit ihren Vorbildern, auch an Tischen ohne Klang; sechs Regler mit Ruhelage.
+- **Kleines.** Der Kopfabsatz und das Beispiel des Titelbildschirms (4.10) nennen 4.9; die Lücken in W 24 tragen den Stand 4.9.
+- Anlass: die Vorbilder, die der Weltenhüter am 22. November 2026 benannt hat, und das Manifest für Stimmung und Ton vom selben Tag mit seinen Ergänzungen, in Fürchtegotts Projekt ausgearbeitet, vom Weltenhüter am 22. November 2026 mit „erstelle damit 4.9“ beschlossen.
 
 ## Regelwerk 4.8 (19. November 2026)
 
