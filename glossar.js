@@ -9,7 +9,9 @@
  *   <script type="text/plain" id="glossar-text">
  *   *Stand: Tag 9 · Gefahr nach Stufe 2 · Figur: Probefigur*
  *   ### Personen
- *   - **Bodo** (freundlich) · Ort: Rohrdorf · Logbuch: Die Brücke bei Rohrdorf · siehe: Jost
+ *   - **Bodo** (freundlich) · m · Anrede: du · Ort: Rohrdorf · Logbuch: Die Brücke bei Rohrdorf · siehe: Jost
+ *     (Personen dürfen Geschlecht und Anrede tragen: `m`, `w` oder `d`; `Anrede: du` gilt in beide Richtungen,
+ *      `Anrede: Ihr / du` heißt: die Figur sagt Ihr zur Person, die Person sagt du zur Figur.)
  *     Wirt der Alten Eiche in Rohrdorf.
  *     - Wirt der Alten Eiche in Rohrdorf. (gesehen, Tag 3)
  *     - Beim Schwarzen Weiher brennen nachts Lichter, zuletzt bei Vollmond. (von Bodo, Tag 3)
@@ -50,12 +52,13 @@
     wurzel: 'glossar',
     felder: {
       glossar: { titel: 'text', stand: 'text', heute: 'zahl', stufe: 'zahl', figur: 'text', auszug: 'ja', gesamt: 'zahl', eintraege: 'eintrag[]' },
-      eintrag: { id: 'id', name: 'text', namen: 'text[]', art: 'eintragsart', kurz: 'text', spieler: 'ja', haltung: 'haltung', gefahr: 'gefahr', ort: 'text', logbuch: 'text[]', siehe: 'text[]', post: 'post', wissen: 'wissen[]' },
+      eintrag: { id: 'id', name: 'text', namen: 'text[]', art: 'eintragsart', kurz: 'text', spieler: 'ja', haltung: 'haltung', gefahr: 'gefahr', geschlecht: 'geschlecht', anrede: 'anrede', ort: 'text', logbuch: 'text[]', siehe: 'text[]', post: 'post', wissen: 'wissen[]' },
       wissen: { text: 'text', bekannt: 'bekannt', quelle: 'text', tag: 'zahl' },
-      post: { ort: 'text', wie: 'text' }
+      post: { ort: 'text', wie: 'text' },
+      anrede: { figur: 'text', person: 'text' }
     },
-    wahl: { eintragsart: REIHE, bekannt: Object.keys(BEKANNT), haltung: Object.keys(HALTUNG), gefahr: Object.keys(GEFAHR) },
-    pflicht: { glossar: ['stand', 'heute', 'eintraege'], eintrag: ['id', 'name', 'art', 'wissen'], wissen: ['text', 'bekannt'], post: ['ort'] },
+    wahl: { eintragsart: REIHE, bekannt: Object.keys(BEKANNT), haltung: Object.keys(HALTUNG), gefahr: Object.keys(GEFAHR), geschlecht: ['m', 'w', 'd'] },
+    pflicht: { glossar: ['stand', 'heute', 'eintraege'], eintrag: ['id', 'name', 'art', 'wissen'], wissen: ['text', 'bekannt'], post: ['ort'], anrede: ['figur', 'person'] },
     // Namen prüft zusatz(): Das Glossar ist das Register der Schlüsselwörter, ein Name muss nicht wörtlich im übrigen
     // Spielstand stehen; er sperrt, wenn ein Wort davon nur die Spoilerdatei kennt
     namen: {},
@@ -171,8 +174,15 @@
           else if ((k = /^siehe:?\s+(.+)$/i.exec(f))) e.siehe = liste(k[1]);
           else if ((k = /^auch:\s*(.+)$/i.exec(f))) e.namen = liste(k[1]);
           else if ((k = /^Post:\s*(.+)$/i.exec(f))) { var p = k[1].split(/\s+–\s+/); e.post = { ort: p[0].trim() }; if (p[1]) e.post.wie = p.slice(1).join(' – ').trim(); }
-          else probleme.push('Zeile ' + nr + ': „' + f + '“ im Kopf von „' + name + '“ nicht verstanden (Ort:, Logbuch:, siehe:, auch:, Post:; Listen mit „; “ trennen).');
+          else if ((k = /^(m|w|d)$/.exec(f))) e.geschlecht = k[1];
+          else if ((k = /^Anrede:\s*(.+)$/i.exec(f))) {
+            var an = k[1].split(/\s*\/\s*/).map(function (x) { return x.trim(); });
+            if (an.length > 2 || an.some(function (x) { return !ANREDE.test(x); })) probleme.push('Zeile ' + nr + ': Anrede „' + k[1] + '“ bei „' + name + '“ nicht verstanden (du, Ihr, Sie oder Euer/Eure …; „Ihr / du“ heißt: die Figur sagt Ihr, die Person sagt du).');
+            else e.anrede = { figur: an[0], person: an[1] || an[0] };
+          }
+          else probleme.push('Zeile ' + nr + ': „' + f + '“ im Kopf von „' + name + '“ nicht verstanden (Ort:, Logbuch:, siehe:, auch:, Post:, m, w, d, Anrede:; Listen mit „; “ trennen).');
         });
+        if ((e.geschlecht || e.anrede) && art !== 'person') probleme.push('Zeile ' + nr + ': Geschlecht und Anrede gibt es nur bei Personen („' + name + '“).');
         D.eintraege.push(e);
         return;
       }
@@ -193,6 +203,8 @@
     });
     return { D: D, probleme: probleme };
   }
+  var ANREDE = /^(du|Ihr|Sie|Eu(er|re) [A-ZÄÖÜ][\wäöüß]*( [A-ZÄÖÜ][\wäöüß]*)?)$/;
+  function anredeText(a) { return a.figur === a.person ? a.figur : a.figur + ' / ' + a.person; }
   function satzende(s) { s = String(s || '').trim(); return /[.!?“”)]$/.test(s) ? s : s + '.'; }
   function alsText(D) {
     var aus = [], kopf = [];
@@ -210,6 +222,8 @@
         var k = '- **' + (e.spieler ? '🎭 ' : '') + e.name + '**';
         if (e.gefahr && GEFAHR[e.gefahr]) k += ' ' + GEFAHR[e.gefahr][2];
         if (e.haltung && HALTUNG[e.haltung]) k += ' (' + HALTUNG[e.haltung] + ')';
+        if (e.geschlecht) k += ' · ' + e.geschlecht;
+        if (e.anrede) k += ' · Anrede: ' + anredeText(e.anrede);
         if (e.namen && e.namen.length) k += ' · auch: ' + e.namen.join('; ');
         if (e.ort) k += ' · Ort: ' + e.ort;
         if (e.logbuch && e.logbuch.length) k += ' · Logbuch: ' + e.logbuch.join('; ');
@@ -294,6 +308,8 @@
     h += '</ul>';
     // Haltung: der Eindruck der Figur, nicht die Wahrheit; darum steht sie als Satz der Figur unter dem Wissen
     if (e.haltung && HALTUNG[e.haltung]) h += '<p class="glKl">' + esc(D.figur || 'Die Figur') + ' hält ' + esc(e.name.replace(/^(Der|Die|Das) /, function (a) { return a.toLowerCase(); })) + ' für ' + esc(HALTUNG[e.haltung]) + '.</p>';
+    // Geschlecht und Anrede: wie man die Person nennt und anspricht
+    if (e.geschlecht || e.anrede) h += '<p class="glKl">' + [e.geschlecht ? { m: 'Mann', w: 'Frau', d: 'divers' }[e.geschlecht] : '', e.anrede ? 'Anrede: ' + esc(e.anrede.figur) + (e.anrede.person !== e.anrede.figur ? ', umgekehrt ' + esc(e.anrede.person) : '') : ''].filter(Boolean).join(' · ') + '</p>';
     // Querverweise: Ort, siehe auch, Logbuch, Post; dann die Tische, auf denen das Stichwort liegt
     var quer = '';
     if (e.ort && stichwort(e.ort) !== stichwort(e.name)) quer += verweis(karte, e.ort, 'map-pin');

@@ -167,5 +167,21 @@ ok(html.indexOf('data-prompt="Questlog"') >= 0 && html.indexOf('data-prompt="Kar
 var hA = glossar.zeichne(PA.D);
 ok(hA.indexOf('data-prompt="Glossar Schwarzen Weiher"') >= 0 && hA.indexOf('Auszug: 1 von 7 Einträgen') >= 0 && hA.indexOf('data-prompt="Glossar"') >= 0, 'Auszug: Verweis nach draußen fragt die Spielleitung, Knopf zum ganzen Glossar');
 
+// Geschlecht und Anrede als Feld im Kopf einer Person (Übergabe Szenenblatt, Schritt 2)
+var GA = glossar.ausText(TEXT.replace('- **Bodo** · Ort', '- **Bodo** · m · Anrede: Ihr / du · Ort'));
+var bodo = GA.D.eintraege.filter(function (e) { return e.id === 'bodo'; })[0];
+ok(!GA.probleme.length && bodo.geschlecht === 'm' && bodo.anrede.figur === 'Ihr' && bodo.anrede.person === 'du', 'Kopf: m und Anrede Ihr / du gelesen', JSON.stringify(GA.probleme) + JSON.stringify(bodo));
+ok(/- \*\*Bodo\*\* · m · Anrede: Ihr \/ du · Ort: Rohrdorf/.test(glossar.alsText(GA.D)) && glossar.alsText(glossar.ausText(glossar.alsText(GA.D)).D) === glossar.alsText(GA.D), 'Geschlecht und Anrede bleiben beim Zurückschreiben erhalten');
+var GB = glossar.ausText(TEXT.replace('- **Bodo** · Ort', '- **Bodo** · w · Anrede: Sie · Ort'));
+var bodo2 = GB.D.eintraege.filter(function (e) { return e.id === 'bodo'; })[0];
+ok(bodo2.anrede.figur === 'Sie' && bodo2.anrede.person === 'Sie' && /· w · Anrede: Sie · /.test(glossar.alsText(GB.D)), 'Anrede ohne Schrägstrich gilt in beide Richtungen');
+ok(glossar.ausText(TEXT.replace('- **Bodo** · Ort', '- **Bodo** · Anrede: Euer Gnaden · Ort')).probleme.length === 0, 'Anrede mit Titel (Euer Gnaden)');
+var GF = glossar.ausText(TEXT.replace('- **Bodo** · Ort', '- **Bodo** · Anrede: Kumpel · Ort'));
+ok(GF.probleme.some(function (p) { return /Anrede „Kumpel“/.test(p); }), 'unbekannte Anrede wird gemeldet', JSON.stringify(GF.probleme));
+var GO = glossar.ausText(TEXT.replace('- **Schwarzer Weiher** · auch', '- **Schwarzer Weiher** · w · auch'));
+ok(GO.probleme.some(function (p) { return /nur bei Personen/.test(p); }), 'Geschlecht bei einem Ort wird gemeldet', JSON.stringify(GO.probleme));
+var hG = glossar.zeichne(GA.D);
+ok(hG.indexOf('Mann · Anrede: Ihr, umgekehrt du') >= 0, 'die Buchseite zeigt Geschlecht und Anrede', '');
+
 console.log(fehlgeschlagen ? fehlgeschlagen + ' Prüfungen fehlgeschlagen' : 'Alle Prüfungen bestanden');
 process.exit(fehlgeschlagen ? 1 : 0);
