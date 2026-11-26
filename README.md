@@ -308,7 +308,7 @@ node buehne.js --profil <profil.json>
 
 ## Szenenblatt
 
-`szene.js` (Node, nur bei der Spielleitung; 1.0 beschlossen mit Regelwerk 4.8, 1.3 vom Weltenhüter angenommen am 26.11.2026; gilt, sobald das Regelwerk sie einträgt) liest Buch und Ablage, wie die Spielleitung sie zu Beginn der Sitzung auf die Platte geholt hat (Werkstatt 4.7). Zu den Namen einer Szene gibt es oben die Lage, dann je Person ein Blatt und unten eine Prüfliste; zu einer Frage die besten Stellen:
+`szene.js` (Node, nur bei der Spielleitung; 1.0 beschlossen mit Regelwerk 4.8, 1.3 seit Regelwerk 4.10; wann die Spielleitung es holt, sagt Werkstatt 21.8) liest Buch und Ablage, wie die Spielleitung sie zu Beginn der Sitzung auf die Platte geholt hat (Werkstatt 4.7). Zu den Namen einer Szene gibt es oben die Lage, dann je Person ein Blatt und unten eine Prüfliste; zu einer Frage die besten Stellen:
 
 ```sh
 node szene.js --buch <arbeit> --ablage <ablage> [--notizen <uebergabe.md>] [--notizen <sitzungsnotizen.md>] Bodo Hartlieb
@@ -345,7 +345,7 @@ node szene.js --buch <arbeit> --ablage <ablage> --ort "Schwarzer Weiher"        
 
 ## Antwortprüfung
 
-`antwort.js` (Node, nur bei der Spielleitung; 1.1 vom Weltenhüter angenommen am 26.11.2026; gilt, sobald das Regelwerk sie einträgt) prüft eine fertige Antwort, bevor sie abgeschickt wird. Das Szenenblatt wirkt vorbeugend, die Antwortprüfung deckt auf. Sie liest dieselben Quellen mit denselben Schaltern wie `szene.js`:
+`antwort.js` (Node, nur bei der Spielleitung; 1.1 seit Regelwerk 4.10, Werkstatt 21.8) prüft eine fertige Antwort, bevor sie abgeschickt wird. Das Szenenblatt wirkt vorbeugend, die Antwortprüfung deckt auf. Sie liest dieselben Quellen mit denselben Schaltern wie `szene.js`:
 
 ```sh
 node antwort.js --buch <arbeit> --ablage <ablage> --notizen <sitzungsnotizen.md> antwort.md
@@ -558,4 +558,4 @@ git -C wegwart-karte fetch -q --depth 1 origin <STAND> && git -C wegwart-karte c
 
 ## Versionen
 
-Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10; 70 Zeichen seit Regelwerk 4.2), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0, Wissensbuch 1.1 (seit Regelwerk 4.2: eigene Datei mit der Standzeile am Anfang), Szenenblatt 1.0 (beschlossen mit Regelwerk 4.8; 1.3 und Antwortprüfung 1.1 angenommen am 26.11.2026, gelten mit dem nächsten Regelwerk), Spielerbuch 2.0 (seit Regelwerk 4.2: Buch und Ablage als Dateien statt Datenbank; davor 1.2 seit Regelwerk 3.16, die Ablage seit 3.5), Titel 1.1 (1.0 seit Regelwerk 3.6, 1.1 mit Bildnis), Kampf 1.11 (1.0 seit Regelwerk 3.15, 1.1 seit 3.17, 1.6 seit 3.19, 1.8 seit 3.20, 1.9 seit 3.21, 1.10 mit `buehne.js` seit 3.22, 1.11 mit den Kachelsets seit 3.23); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
+Wie beim Würfelkasten lädt die Spielleitung einen festen Stand (Commit oder Tag). Eine neue Fassung gilt erst, wenn der Weltenhüter sie im Regelwerk einträgt. Kartentisch 1.0, Gepäck 3.0 (Umrisszeichen, Seltenheit und Marke, seit Regelwerk 3.10; 70 Zeichen seit Regelwerk 4.2), Logbuch 1.0, Rast 1.0, Handel 1.0, Glossar 1.0 (seit Regelwerk 4.10 mit Geschlecht und Anrede), Wissensbuch 1.1 (seit Regelwerk 4.2: eigene Datei mit der Standzeile am Anfang), Szenenblatt 1.3 und Antwortprüfung 1.1 (seit Regelwerk 4.10; das Szenenblatt beschlossen mit 4.8), Spielerbuch 2.0 (seit Regelwerk 4.2: Buch und Ablage als Dateien statt Datenbank; davor 1.2 seit Regelwerk 3.16, die Ablage seit 3.5), Titel 1.1 (1.0 seit Regelwerk 3.6, 1.1 mit Bildnis), Kampf 1.11 (1.0 seit Regelwerk 3.15, 1.1 seit 3.17, 1.6 seit 3.19, 1.8 seit 3.20, 1.9 seit 3.21, 1.10 mit `buehne.js` seit 3.22, 1.11 mit den Kachelsets seit 3.23); seit Regelwerk 3.0 gilt ein Stand für alle Dateien. Die Regelwerke liegen unter `docs/`, was sich geändert hat, in `docs/aenderungen.md`.
